@@ -1,0 +1,24 @@
+{
+  "name": "customer-analytics-platform",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "pnpm install && cd backend && uv sync",
+    "dev": "concurrently \"pnpm --dir frontend dev\" \"cd backend && uv run python -m uvicorn app.main:app --reload\"",
+    "dev:frontend": "pnpm --dir frontend dev",
+    "dev:backend": "cd backend && uv run python -m uvicorn app.main:app --reload",
+    "lint": "pnpm lint:frontend && pnpm lint:backend",
+    "lint:frontend": "pnpm --dir frontend lint",
+    "lint:backend": "cd backend && uv run ruff check .",
+    "lint:backend:fix": "cd backend && uv run ruff check . --fix",
+    "format": "pnpm format:frontend && pnpm format:backend",
+    "format:frontend": "pnpm --dir frontend format",
+    "format:backend": "cd backend && uv run ruff format .",
+    "typecheck": "pnpm --dir frontend typecheck",
+    "build": "pnpm build:frontend",
+    "build:frontend": "pnpm --dir frontend build"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}
