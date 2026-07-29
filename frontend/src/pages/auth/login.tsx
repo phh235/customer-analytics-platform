@@ -3,7 +3,10 @@ import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import { PasswordInput } from "@/components/ui/password-input"
 import { useNavigate } from "react-router"
 import { MainLogo } from "@/lib/svg"
@@ -52,13 +55,15 @@ export const Component = () => {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel>Email</FieldLabel>
-              <Input
-                aria-invalid={fieldState.invalid}
-                className="h-9 w-full"
-                placeholder="Email"
-                type="email"
-                {...field}
-              />
+              <InputGroup className="h-9 w-full">
+                <InputGroupInput
+                  aria-invalid={fieldState.invalid}
+                  autoComplete="username"
+                  placeholder="Email"
+                  type="email"
+                  {...field}
+                />
+              </InputGroup>
               <FieldError errors={[fieldState.error]} />
             </Field>
           )}
@@ -71,6 +76,7 @@ export const Component = () => {
               <FieldLabel>Mật khẩu</FieldLabel>
               <PasswordInput
                 aria-invalid={fieldState.invalid}
+                autoComplete="current-password"
                 className="h-9 w-full"
                 placeholder="Mật khẩu"
                 {...field}
