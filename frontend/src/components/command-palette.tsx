@@ -1,9 +1,10 @@
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useState } from "react"
 import { useNavigate } from "react-router"
 
 import { Button } from "@/components/ui/button"
 import { navMain } from "@/config/navigation"
 import { Kbd } from "@/components/ui/kbd"
+import { useEventListener } from "@/hooks/use-event-listener"
 import {
   Command,
   CommandDialog,
@@ -22,18 +23,12 @@ export function CommandPalette() {
     typeof navigator !== "undefined" &&
     /Mac|iPhone|iPad/.test(navigator.userAgent)
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === "k" && (event.ctrlKey || event.metaKey)) {
-        event.preventDefault()
-        setOpen((currentOpen) => !currentOpen)
-      }
+  useEventListener("keydown", (event) => {
+    if (event.key.toLowerCase() === "k" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault()
+      setOpen((currentOpen) => !currentOpen)
     }
-
-    window.addEventListener("keydown", handleKeyDown)
-
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  })
 
   const handleSelect = (url: string) => {
     setOpen(false)
