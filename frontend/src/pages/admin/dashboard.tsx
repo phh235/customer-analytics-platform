@@ -1,37 +1,14 @@
-import { useCallback, useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { getHello } from "@/api"
-import { toastSuccess, toastError } from "@/utils"
+import { useEffect } from "react"
+import { useHelloStore, useLoadingStore } from "@/stores"
 import { Badge } from "@/components/ui/badge"
 
 export const Component = () => {
-  const [message, setMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleFetchHello = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const data = await getHello()
-      setMessage(data.message)
-      toastSuccess("Kết nối đến máy chủ thành công!")
-    } catch {
-      toastError("Không thể kết nối đến máy chủ")
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  const { message, fetchHello } = useHelloStore()
+  const { isLoading } = useLoadingStore()
 
   useEffect(() => {
-    let ignore = false
-    Promise.resolve().then(() => {
-      if (!ignore) {
-        handleFetchHello()
-      }
-    })
-    return () => {
-      ignore = true
-    }
-  }, [handleFetchHello])
+    fetchHello()
+  }, [fetchHello])
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -56,13 +33,6 @@ export const Component = () => {
             </span>
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleFetchHello}
-          disabled={isLoading}
-        >
-          Kiểm tra kết nối
-        </Button>
       </div>
     </div>
   )
