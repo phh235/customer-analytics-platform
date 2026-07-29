@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client"
 import { RouterProvider } from "react-router/dom"
+import { Analytics } from "@vercel/analytics/react"
 
 import "./index.css"
 import { router } from "@/router"
@@ -10,5 +11,6 @@ createRoot(document.getElementById("root")!).render(
   <ThemeProvider>
     <RouterProvider router={router} />
     <Toaster />
+    <Analytics />
   </ThemeProvider>
 )

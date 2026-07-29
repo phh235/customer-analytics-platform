@@ -45,10 +45,10 @@ export function CommandPalette() {
       <Button
         onClick={() => setOpen(true)}
         variant="outline"
-        className="w-fit pr-1"
+        className="w-fit pr-1 text-muted-foreground"
       >
         Tìm kiếm
-        <Kbd>{isMac ? "⌘ K" : "Ctrl K"}</Kbd>
+        <Kbd className="ml-2">{isMac ? "⌘ K" : "Ctrl K"}</Kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <Command>
