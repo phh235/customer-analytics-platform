@@ -7,15 +7,17 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { ThemeToggle } from "@/components/common/theme-toggle"
+import { CommandPalette } from "@/components/command-palette"
 
 export const AdminLayout = () => {
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-4">
+        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-3">
           <div className="flex items-center gap-2">
             <SidebarTrigger />
+            <CommandPalette />
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />

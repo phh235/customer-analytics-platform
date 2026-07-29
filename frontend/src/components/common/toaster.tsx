@@ -11,6 +11,7 @@ export function Toaster() {
       richColors
       position={isMobile ? "top-center" : "bottom-right"}
       theme={theme as ToasterProps["theme"]}
+      // expand={true}
     />
   )
 }

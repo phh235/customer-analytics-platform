@@ -21,9 +21,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react"
 
 const ACTIVE_CLASSES =
-  "data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary/90 data-active:hover:text-primary-foreground"
+  "data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary data-active:hover:text-primary-foreground"
 
 export const NavMain = ({
   items,
@@ -41,6 +42,16 @@ export const NavMain = ({
 }) => {
   const { state } = useSidebar()
   const location = useLocation()
+  const [renderCollapsed, setRenderCollapsed] = useState(state === "collapsed")
+
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setRenderCollapsed(state === "collapsed"),
+      state === "collapsed" ? 150 : 0
+    )
+
+    return () => window.clearTimeout(timeout)
+  }, [state])
 
   return (
     <SidebarGroup>
@@ -66,7 +77,7 @@ export const NavMain = ({
             )
           }
 
-          if (state === "collapsed") {
+          if (renderCollapsed) {
             return (
               <SidebarMenuItem key={item.title}>
                 <Popover>
@@ -101,7 +112,7 @@ export const NavMain = ({
                             className={cn(
                               "flex h-8 items-center rounded-md px-2.5 text-sm text-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                               isSubActive &&
-                                "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                             )}
                           >
                             {subItem.title}
@@ -135,7 +146,7 @@ export const NavMain = ({
                 <span>{item.title}</span>
                 <ChevronRightIcon className="ml-auto transition-transform duration-150 group-data-open/collapsible:rotate-90" />
               </CollapsibleTrigger>
-              <CollapsibleContent>
+              <CollapsibleContent className="h-(--collapsible-panel-height) overflow-hidden opacity-100 transition-[height,opacity] duration-150 ease-out data-ending-style:h-0 data-ending-style:opacity-0 data-starting-style:h-0 data-starting-style:opacity-0">
                 <SidebarMenuSub>
                   {item.items.map((subItem) => {
                     const isSubActive = location.pathname === subItem.url
