@@ -4,6 +4,7 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { useNavigate } from "react-router"
 import { MainLogo } from "@/lib/svg"
 
@@ -68,11 +69,10 @@ export const Component = () => {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel>Mật khẩu</FieldLabel>
-              <Input
+              <PasswordInput
                 aria-invalid={fieldState.invalid}
                 className="h-9 w-full"
                 placeholder="Mật khẩu"
-                type="password"
                 {...field}
               />
               <FieldError errors={[fieldState.error]} />
