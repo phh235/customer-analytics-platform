@@ -1,7 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router"
 import { PrivateRoute } from "@/components/common/private-route"
-import AdminLayout from "@/layouts/admin-layout"
-import AuthLayout from "@/layouts/auth-layout"
 
 export const router = createBrowserRouter([
   {
@@ -9,7 +7,11 @@ export const router = createBrowserRouter([
     element: <Navigate to="/login" replace />,
   },
   {
-    element: <AuthLayout />,
+    lazy: async () => {
+      const { default: Component } = await import("@/layouts/auth-layout")
+
+      return { Component }
+    },
     children: [
       {
         path: "/login",
@@ -22,7 +24,11 @@ export const router = createBrowserRouter([
     element: <PrivateRoute />,
     children: [
       {
-        element: <AdminLayout />,
+        lazy: async () => {
+          const { default: Component } = await import("@/layouts/admin-layout")
+
+          return { Component }
+        },
         children: [
           {
             index: true,
