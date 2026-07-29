@@ -25,7 +25,7 @@ import {
 import { PanelLeftIcon } from "lucide-react"
 
 const SIDEBAR_STORAGE_KEY = "sidebar_open"
-const SIDEBAR_WIDTH = "16rem"
+const SIDEBAR_WIDTH = "15rem"
 const SIDEBAR_WIDTH_MOBILE = "17rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
@@ -69,13 +69,10 @@ function SidebarProvider({
   const location = useLocation()
 
   React.useEffect(() => {
-    if (openMobile) {
-      const handle = setTimeout(() => {
-        setOpenMobile(false)
-      }, 0)
-      return () => clearTimeout(handle)
-    }
-  }, [location.pathname, openMobile])
+    const timeout = window.setTimeout(() => setOpenMobile(false), 0)
+
+    return () => window.clearTimeout(timeout)
+  }, [location.pathname])
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
