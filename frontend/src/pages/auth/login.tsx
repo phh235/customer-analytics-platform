@@ -3,10 +3,7 @@ import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import {
-  InputGroup,
-  InputGroupInput,
-} from "@/components/ui/input-group"
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { PasswordInput } from "@/components/ui/password-input"
 import { useNavigate } from "react-router"
 import { MainLogo } from "@/lib/svg"
@@ -37,7 +34,7 @@ export const Component = () => {
       <div className="flex justify-center">
         <MainLogo />
       </div>
-      <div className="mt-6 space-y-1">
+      <div className="mt-4 space-y-1">
         <p className="text-center text-xl font-semibold">
           Hệ thống phân tích khách hàng
         </p>
@@ -46,7 +43,7 @@ export const Component = () => {
         </p>
       </div>
       <form
-        className="mt-6 w-full space-y-4"
+        className="mt-6 w-full space-y-3"
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <Controller

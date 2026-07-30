@@ -9,9 +9,11 @@ import {
 } from "@/components/ui/empty"
 import { FullWidthDivider } from "@/components/ui/full-width-divider"
 import { ArrowLeft } from "lucide-react"
-import { Link } from "react-router"
+import { useNavigate } from "react-router"
 
 export const Component = () => {
+  const navigate = useNavigate()
+
   return (
     <div className="flex w-full items-center justify-center overflow-hidden">
       <div className="flex h-screen items-center border-x">
@@ -29,8 +31,8 @@ export const Component = () => {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button render={<Link to="/dashboard" />}>
-                <ArrowLeft />
+              <Button onClick={() => navigate(-1)}>
+                <ArrowLeft data-icon="inline-start" />
                 Quay lại
               </Button>
             </EmptyContent>

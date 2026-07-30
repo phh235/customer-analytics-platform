@@ -18,7 +18,10 @@ export const AdminLayout = () => {
         <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-3">
           <div className="flex items-center gap-2">
             <SidebarTrigger />
-            <Separator orientation="vertical" />
+            <Separator
+              className="h-5 data-vertical:self-center"
+              orientation="vertical"
+            />
             <CommandPalette />
           </div>
           <div className="flex items-center gap-2">
