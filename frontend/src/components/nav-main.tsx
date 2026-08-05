@@ -68,7 +68,6 @@ export const NavMain = ({
                   tooltip={item.title}
                   render={<Link to={item.url} />}
                   isActive={isParentActive}
-                  className={ACTIVE_CLASSES}
                 >
                   {item.icon}
                   <span>{item.title}</span>
