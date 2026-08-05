@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { PasswordInput } from "@/components/ui/password-input"
-import { useNavigate } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { MainLogo } from "@/lib/svg"
 
 const formSchema = z.object({
@@ -51,9 +51,10 @@ export const Component = () => {
           name="email"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Email</FieldLabel>
+              <FieldLabel htmlFor="login-email">Email</FieldLabel>
               <InputGroup className="h-9 w-full">
                 <InputGroupInput
+                  id="login-email"
                   aria-invalid={fieldState.invalid}
                   autoComplete="username"
                   placeholder="Email"
@@ -70,8 +71,9 @@ export const Component = () => {
           name="password"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Mật khẩu</FieldLabel>
+              <FieldLabel htmlFor="login-password">Mật khẩu</FieldLabel>
               <PasswordInput
+                id="login-password"
                 aria-invalid={fieldState.invalid}
                 autoComplete="current-password"
                 className="h-9 w-full"
@@ -86,6 +88,22 @@ export const Component = () => {
           Đăng nhập
         </Button>
       </form>
+      <p className="mt-4 text-center text-sm text-muted-foreground">
+        Chưa có tài khoản?{" "}
+        <Link
+          className="font-medium text-primary underline-offset-4 hover:underline"
+          to="/register"
+        >
+          Đăng ký
+        </Link>
+        <span className="mx-1">hoặc</span>
+        <Link
+          className="font-medium text-primary underline-offset-4 hover:underline"
+          to="/"
+        >
+          tìm hiểu thêm
+        </Link>
+      </p>
     </>
   )
 }

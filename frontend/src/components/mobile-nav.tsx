@@ -62,9 +62,9 @@ export function MobileNav() {
                 className="w-full"
                 nativeButton={false}
                 onClick={closeMenu}
-                render={<Link to="/products" />}
+                render={<Link to="/register" />}
               >
-                Khám phá sản phẩm
+                Đăng ký
               </Button>
             </div>
           </div>

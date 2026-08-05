@@ -12,17 +12,16 @@ export const navLinks = [
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 mx-auto w-full max-w-6xl bg-background">
+    <header className="sticky top-0 z-50 mx-auto w-full border-b border-border bg-background">
       <nav
         aria-label="Điều hướng chính"
-        className="flex h-14 w-full items-center justify-between border-b border-border px-4 pl-1"
+        className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between border-x px-4 pl-1"
       >
-        <Link aria-label="Về trang chủ" className="p-2" to="/">
-          <MainLogo className="size-9" />
-        </Link>
-
-        <div className="hidden items-center gap-2 md:flex">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center gap-6">
+          <Link aria-label="Về trang chủ" className="p-2" to="/">
+            <MainLogo className="size-8" />
+          </Link>
+          <div className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
               <Button
                 key={link.href}
@@ -34,22 +33,20 @@ export function Header() {
               </Button>
             ))}
           </div>
-          <ThemeToggle />
-          {/* <Button
+        </div>
+
+        <div className="hidden items-center gap-2 md:flex">
+          <Button
             nativeButton={false}
             render={<Link to="/login" />}
-            size="sm"
             variant="outline"
           >
             Đăng nhập
           </Button>
-          <Button
-            nativeButton={false}
-            render={<Link to="/products" />}
-            size="sm"
-          >
-            Khám phá
-          </Button> */}
+          <Button nativeButton={false} render={<Link to="/register" />}>
+            Đăng ký
+          </Button>
+          <ThemeToggle />
         </div>
 
         <MobileNav />
