@@ -18,6 +18,10 @@ export const router = createBrowserRouter([
         path: "products",
         lazy: () => import("@/pages/client/products"),
       },
+      {
+        path: "products/:productId",
+        lazy: () => import("@/pages/client/product-detail"),
+      },
     ],
   },
   {
@@ -30,6 +34,10 @@ export const router = createBrowserRouter([
       {
         path: "/login",
         lazy: () => import("@/pages/auth/login"),
+      },
+      {
+        path: "/register",
+        lazy: () => import("@/pages/auth/register"),
       },
     ],
   },
