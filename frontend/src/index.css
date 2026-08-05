@@ -208,3 +208,56 @@
     radial-gradient(ellipse 70% 50% at 50% 0%, black 60%, transparent 100%);
   -webkit-mask-composite: source-in;
 }
+
+@utility screen-border-top {
+  @apply relative;
+  &:before {
+    content: "";
+    @apply bg-border absolute top-0 left-[-100vw] -z-1 h-px w-[200vw];
+  }
+}
+
+@utility screen-border-bottom {
+  @apply relative;
+  &:after {
+    content: "";
+    @apply bg-border absolute bottom-0 left-[-100vw] -z-1 h-px w-[200vw];
+  }
+}
+
+@utility screen-dashed-border-top {
+  @apply screen-border-top;
+  &:before {
+    content: "";
+    @apply bg-inherit bg-[linear-gradient(to_right,var(--border)_4px,transparent_2px)] bg-size-[6px_1px] bg-repeat-x;
+  }
+}
+
+@utility screen-dashed-border-bottom {
+  @apply screen-border-bottom;
+  &:after {
+    content: "";
+    @apply bg-inherit bg-[linear-gradient(to_right,var(--border)_4px,transparent_2px)] bg-size-[6px_1px] bg-repeat-x;
+  }
+}
+
+@utility screen-border-top-none {
+  @apply before:content-none;
+}
+
+@utility screen-border-bottom-none {
+  @apply after:content-none;
+}
+
+@utility diagonal-stripes {
+  @apply [--pattern-foreground:var(--color-border)]/56;
+  @apply bg-[repeating-linear-gradient(315deg,var(--pattern-foreground)_0,var(--pattern-foreground)_1px,transparent_0,transparent_50%)] bg-size-[10px_10px];
+}
+
+@utility stripe-divider {
+  @apply relative h-8;
+  &:before {
+    content: "";
+    @apply absolute left-[-100vw] -z-1 h-full w-[200vw] diagonal-stripes;
+  }
+}
