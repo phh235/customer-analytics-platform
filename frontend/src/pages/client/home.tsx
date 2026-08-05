@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
 import { products } from "@/lib/products"
+import { ArrowRight } from "lucide-react"
 
 export const Component = () => {
   return (
@@ -11,7 +12,7 @@ export const Component = () => {
       <div className="[--separator-height:--spacing(8)]">
         <div className="mx-auto max-w-5xl">
           <Panel className="screen-border-top-none">
-            <PanelContent className="space-y-4">
+            <PanelContent className="flex flex-col items-center justify-center text-center">
               <h1 className="text-2xl font-bold">
                 Chào mừng bạn đến với Customer Analytics Platform!
               </h1>
@@ -48,7 +49,7 @@ export const Component = () => {
                 render={<Link to="/products" />}
                 variant="outline"
               >
-                Xem tất cả sản phẩm
+                Xem tất cả sản phẩm <ArrowRight />
               </Button>
             </PanelContent>
           </Panel>

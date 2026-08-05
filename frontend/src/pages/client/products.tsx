@@ -7,16 +7,14 @@ export const Component = () => {
     <main className="max-w-screen overflow-x-clip">
       <div className="[--separator-height:--spacing(8)]">
         <div className="mx-auto max-w-5xl">
-          <Panel className="screen-border-top-none">
-            <PanelContent className="pt-4 pb-6">
-              <h1 className="text-2xl font-bold">Sản phẩm</h1>
-              <p className="text-muted-foreground">
+          <Panel className="screen-border-bottom-none screen-border-top-none">
+            <PanelContent className="p-4">
+              <h1 className="text-xl font-bold">Sản phẩm</h1>
+              <p className="text-sm text-muted-foreground">
                 Khám phá những sản phẩm được lựa chọn dành cho bạn.
               </p>
             </PanelContent>
           </Panel>
-
-          <Separator />
 
           <Panel>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
