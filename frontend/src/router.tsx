@@ -1,10 +1,28 @@
-import { createBrowserRouter, Navigate } from "react-router"
+import { createBrowserRouter } from "react-router"
 import { PrivateRoute } from "@/components/common/private-route"
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/login" replace />,
+    lazy: async () => {
+      const { default: Component } = await import("@/layouts/client-layout")
+
+      return { Component }
+    },
+    children: [
+      {
+        index: true,
+        lazy: () => import("@/pages/client/home"),
+      },
+      {
+        path: "products",
+        lazy: () => import("@/pages/client/products"),
+      },
+      {
+        path: "products/:productId",
+        lazy: () => import("@/pages/client/product-detail"),
+      },
+    ],
   },
   {
     lazy: async () => {
@@ -16,6 +34,10 @@ export const router = createBrowserRouter([
       {
         path: "/login",
         lazy: () => import("@/pages/auth/login"),
+      },
+      {
+        path: "/register",
+        lazy: () => import("@/pages/auth/register"),
       },
     ],
   },
