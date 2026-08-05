@@ -24,7 +24,7 @@ export function Brightness(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-export function MainLogo() {
+export function MainLogo({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -32,7 +32,8 @@ export function MainLogo() {
       viewBox="0 0 200 200"
       width="50"
       height="50"
-      className="coolshapes triangle-14"
+      className={`coolshapes triangle-14 ${className ?? ""}`}
+      {...props}
     >
       <g clipPath="url(#cs_clip_1_triangle-14)">
         <mask
