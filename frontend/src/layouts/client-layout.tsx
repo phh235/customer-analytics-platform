@@ -4,7 +4,7 @@ import { Header } from "@/components/header"
 
 export const ClientLayout = () => {
   return (
-    <div className="mx-auto min-h-screen max-w-4xl bg-background">
+    <div className="mx-auto min-h-screen max-w-4xl border-x bg-background">
       <Header />
       <Outlet />
     </div>
