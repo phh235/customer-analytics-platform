@@ -217,6 +217,14 @@ export const Component = () => {
   const columns: CommonTableColumn<Product>[] = useMemo(
     () => [
       {
+        id: "id",
+        header: "Mã sản phẩm",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (product) => (
+          <span className="text-sm whitespace-nowrap">{product.id}</span>
+        ),
+      },
+      {
         id: "product",
         header: (
           <SortButton
@@ -229,7 +237,7 @@ export const Component = () => {
         ),
         className: "min-w-52 whitespace-nowrap",
         cell: (product) => (
-          <span className="font-medium whitespace-nowrap">{product.name}</span>
+          <span className="whitespace-nowrap">{product.name}</span>
         ),
         skeletonClassName: "h-6 w-4/5",
       },
@@ -240,16 +248,6 @@ export const Component = () => {
         cell: (product) => (
           <span className="font-mono text-sm whitespace-nowrap">
             {product.sku}
-          </span>
-        ),
-      },
-      {
-        id: "id",
-        header: "Mã sản phẩm",
-        className: "min-w-28 whitespace-nowrap",
-        cell: (product) => (
-          <span className="text-sm whitespace-nowrap text-muted-foreground">
-            {product.id}
           </span>
         ),
       },

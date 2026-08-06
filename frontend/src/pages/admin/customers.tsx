@@ -36,7 +36,6 @@ import {
 import { useDebounce } from "@/hooks/use-debounce"
 import {
   createId,
-  formatCurrency,
   formatDate,
   normalize,
   SAMPLE_CUSTOMERS,
@@ -172,6 +171,14 @@ export const Component = () => {
   const columns: CommonTableColumn<Customer>[] = useMemo(
     () => [
       {
+        id: "id",
+        header: "Mã khách hàng",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (customer) => (
+          <span className="text-sm whitespace-nowrap">{customer.id}</span>
+        ),
+      },
+      {
         id: "customer",
         header: (
           <SortButton
@@ -185,21 +192,11 @@ export const Component = () => {
         className: "min-w-52 whitespace-nowrap",
         cell: (customer) => (
           <div className="flex min-w-48 items-center gap-3 whitespace-nowrap">
-            <UserAvatar email={customer.email} name={customer.name} />
-            <span className="truncate font-medium">{customer.name}</span>
+            <UserAvatar email={customer.email} />
+            <span className="truncate">{customer.name}</span>
           </div>
         ),
         skeletonClassName: "h-8 w-4/5",
-      },
-      {
-        id: "id",
-        header: "Mã khách hàng",
-        className: "min-w-28 whitespace-nowrap",
-        cell: (customer) => (
-          <span className="text-sm whitespace-nowrap text-muted-foreground">
-            {customer.id}
-          </span>
-        ),
       },
       {
         id: "email",
@@ -230,24 +227,6 @@ export const Component = () => {
         ),
         className: "min-w-24 whitespace-nowrap",
         cell: (customer) => <span>{customer.orders}</span>,
-      },
-      {
-        id: "totalSpent",
-        header: (
-          <SortButton
-            label="Tổng chi tiêu"
-            sortKey="totalSpent"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("totalSpent")}
-          />
-        ),
-        className: "min-w-36 whitespace-nowrap",
-        cell: (customer) => (
-          <span className="font-medium whitespace-nowrap">
-            {formatCurrency(customer.totalSpent)}
-          </span>
-        ),
       },
       {
         id: "status",
