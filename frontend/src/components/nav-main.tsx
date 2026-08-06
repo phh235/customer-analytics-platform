@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 
 const ACTIVE_CLASSES =
-  "data-active:bg-primary data-active:text-primary-foreground data-active:hover:bg-primary data-active:hover:text-primary-foreground"
+  "data-active:bg-input/70! data-active:text-sidebar-accent-foreground data-active:hover:bg-input/70! data-active:hover:text-sidebar-accent-foreground"
 
 export const NavMain = ({
   items,
@@ -68,7 +68,6 @@ export const NavMain = ({
                   tooltip={item.title}
                   render={<Link to={item.url} />}
                   isActive={isParentActive}
-                  className={ACTIVE_CLASSES}
                 >
                   {item.icon}
                   <span>{item.title}</span>
@@ -112,7 +111,7 @@ export const NavMain = ({
                             className={cn(
                               "flex h-8 items-center rounded-md px-2.5 text-sm text-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                               isSubActive &&
-                                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+                                "bg-input/70 text-sidebar-accent-foreground hover:bg-input/70 hover:text-sidebar-accent-foreground"
                             )}
                           >
                             {subItem.title}
