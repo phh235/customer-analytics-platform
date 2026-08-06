@@ -3,6 +3,7 @@ import {
   ChartNoAxesCombinedIcon,
   LayoutDashboardIcon,
   MegaphoneIcon,
+  PackageIcon,
   SettingsIcon,
   UsersIcon,
 } from "lucide-react"
@@ -12,6 +13,21 @@ export const navMain = [
     title: "Tổng quan",
     url: "/dashboard",
     icon: <LayoutDashboardIcon />,
+  },
+  {
+    title: "Sản phẩm và danh mục",
+    url: "/dashboard/products",
+    icon: <PackageIcon />,
+    items: [
+      {
+        title: "Quản lý sản phẩm",
+        url: "/dashboard/products",
+      },
+      {
+        title: "Danh mục",
+        url: "/dashboard/categories",
+      },
+    ],
   },
   {
     title: "Khách hàng",

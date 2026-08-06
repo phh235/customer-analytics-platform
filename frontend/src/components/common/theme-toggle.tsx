@@ -7,6 +7,7 @@ export function ThemeToggle() {
 
   return (
     <Button
+      aria-label={theme === "dark" ? "Bật giao diện sáng" : "Bật giao diện tối"}
       variant="outline"
       size="icon"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

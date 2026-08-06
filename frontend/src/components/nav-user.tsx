@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/common/user-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +28,6 @@ export function NavUser({
   user: {
     name: string
     email: string
-    avatar: string
   }
 }) {
   const { isMobile } = useSidebar()
@@ -48,10 +47,7 @@ export function NavUser({
               <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
             }
           >
-            <Avatar>
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback>PH</AvatarFallback>
-            </Avatar>
+            <UserAvatar email={user.email} />
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
               <span className="truncate text-xs">{user.email}</span>
