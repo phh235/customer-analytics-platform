@@ -1,0 +1,27 @@
+"""
+Base class cho tất cả SQLAlchemy ORM models.
+
+Naming convention đảm bảo constraint/ix names dễ đọc và consistent.
+"""
+
+from __future__ import annotations
+
+from sqlalchemy import MetaData
+from sqlalchemy.orm import DeclarativeBase
+
+# ── Naming convention cho constraints ──────────────
+# Ví dụ: "uq_users_email" thay vì "uq_abc123xyz"
+convention: dict[str, str] = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+metadata_obj = MetaData(naming_convention=convention)
+
+
+class Base(DeclarativeBase):
+    """Base class for all SQLAlchemy ORM models."""
+
+    metadata = metadata_obj
