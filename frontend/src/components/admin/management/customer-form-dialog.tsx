@@ -1,25 +1,11 @@
 import type { FormEvent } from "react"
 import { useEffect, useState } from "react"
 
+import { AppDialog } from "@/components/common/app-dialog"
+import { AppSelect } from "@/components/common/app-select"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type {
   Customer,
   CustomerFormData,
@@ -82,112 +68,107 @@ export function CustomerFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <DialogHeader>
-            <DialogTitle>
-              {customer ? "Chỉnh sửa khách hàng" : "Thêm khách hàng mới"}
-            </DialogTitle>
-            <DialogDescription>
-              {customer
-                ? "Cập nhật thông tin liên hệ và trạng thái tài khoản."
-                : "Nhập thông tin cơ bản để tạo hồ sơ khách hàng mẫu."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <FieldGroup>
+    <AppDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={customer ? "Chỉnh sửa khách hàng" : "Thêm khách hàng mới"}
+      description={
+        customer
+          ? "Cập nhật thông tin liên hệ và trạng thái tài khoản."
+          : "Nhập thông tin cơ bản để tạo hồ sơ khách hàng mẫu."
+      }
+      className="sm:max-w-lg"
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Huỷ
+          </Button>
+          <Button type="submit" form="customer-form-dialog">
+            {customer ? "Lưu thay đổi" : "Thêm khách hàng"}
+          </Button>
+        </>
+      }
+    >
+      <form
+        id="customer-form-dialog"
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5"
+      >
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="customer-name">Họ và tên</FieldLabel>
+            <Input
+              id="customer-name"
+              value={form.name}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  name: event.target.value,
+                }))
+              }
+              placeholder="Ví dụ: Nguyễn Minh Anh"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="customer-email">Email</FieldLabel>
+            <Input
+              id="customer-email"
+              type="email"
+              value={form.email}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  email: event.target.value,
+                }))
+              }
+              placeholder="khachhang@example.com"
+              required
+            />
+          </Field>
+          <FieldGroup className="grid gap-4 sm:grid-cols-2">
             <Field>
-              <FieldLabel htmlFor="customer-name">Họ và tên</FieldLabel>
+              <FieldLabel htmlFor="customer-phone">Số điện thoại</FieldLabel>
               <Input
-                id="customer-name"
-                value={form.name}
+                id="customer-phone"
+                type="tel"
+                value={form.phone}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
-                    name: event.target.value,
+                    phone: event.target.value,
                   }))
                 }
-                placeholder="Ví dụ: Nguyễn Minh Anh"
+                placeholder="0901 234 567"
                 required
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="customer-email">Email</FieldLabel>
-              <Input
-                id="customer-email"
-                type="email"
-                value={form.email}
-                onChange={(event) =>
+              <FieldLabel htmlFor="customer-status">Trạng thái</FieldLabel>
+              <AppSelect
+                options={[
+                  { value: "active", label: "Đang hoạt động" },
+                  { value: "inactive", label: "Không hoạt động" },
+                ]}
+                value={form.status}
+                onChange={(value) =>
                   setForm((current) => ({
                     ...current,
-                    email: event.target.value,
+                    status: value as CustomerStatus,
                   }))
                 }
-                placeholder="khachhang@example.com"
-                required
+                id="customer-status"
+                className="w-full"
+                aria-label="Chọn trạng thái khách hàng"
               />
             </Field>
-            <FieldGroup className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="customer-phone">Số điện thoại</FieldLabel>
-                <Input
-                  id="customer-phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      phone: event.target.value,
-                    }))
-                  }
-                  placeholder="0901 234 567"
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="customer-status">Trạng thái</FieldLabel>
-                <Select
-                  value={form.status}
-                  onValueChange={(value) =>
-                    setForm((current) => ({
-                      ...current,
-                      status: (value ?? "active") as CustomerStatus,
-                    }))
-                  }
-                >
-                  <SelectTrigger id="customer-status" className="w-full">
-                    <SelectValue>
-                      {form.status === "active"
-                        ? "Đang hoạt động"
-                        : "Không hoạt động"}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="active">Đang hoạt động</SelectItem>
-                      <SelectItem value="inactive">Không hoạt động</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-            </FieldGroup>
           </FieldGroup>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Huỷ
-            </Button>
-            <Button type="submit">
-              {customer ? "Lưu thay đổi" : "Thêm khách hàng"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </FieldGroup>
+      </form>
+    </AppDialog>
   )
 }
