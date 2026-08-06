@@ -50,6 +50,17 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --animate-line-shadow: line-shadow 15s linear infinite;
+
+  @keyframes line-shadow {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 100% -100%;
+    }
+  }
 }
 
 :root {
@@ -135,6 +146,15 @@
   html {
     @apply font-sans;
   }
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: var(--foreground);
+    caret-color: var(--foreground);
+    transition: background-color 9999s ease-out 0s;
+  }
 }
 
 @utility auth-grid-mask {
@@ -187,4 +207,57 @@
     ),
     radial-gradient(ellipse 70% 50% at 50% 0%, black 60%, transparent 100%);
   -webkit-mask-composite: source-in;
+}
+
+@utility screen-border-top {
+  @apply relative;
+  &:before {
+    content: "";
+    @apply absolute top-0 left-[-100vw] z-10 pointer-events-none h-px w-[200vw] bg-border;
+  }
+}
+
+@utility screen-border-bottom {
+  @apply relative;
+  &:after {
+    content: "";
+    @apply absolute bottom-0 left-[-100vw] z-10 pointer-events-none h-px w-[200vw] bg-border;
+  }
+}
+
+@utility screen-dashed-border-top {
+  @apply screen-border-top;
+  &:before {
+    content: "";
+    @apply bg-inherit bg-[linear-gradient(to_right,var(--border)_4px,transparent_2px)] bg-size-[6px_1px] bg-repeat-x;
+  }
+}
+
+@utility screen-dashed-border-bottom {
+  @apply screen-border-bottom;
+  &:after {
+    content: "";
+    @apply bg-inherit bg-[linear-gradient(to_right,var(--border)_4px,transparent_2px)] bg-size-[6px_1px] bg-repeat-x;
+  }
+}
+
+@utility screen-border-top-none {
+  @apply before:content-none;
+}
+
+@utility screen-border-bottom-none {
+  @apply after:content-none;
+}
+
+@utility diagonal-stripes {
+  @apply [--pattern-foreground:var(--color-border)]/56;
+  @apply bg-[repeating-linear-gradient(315deg,var(--pattern-foreground)_0,var(--pattern-foreground)_1px,transparent_0,transparent_50%)] bg-size-[10px_10px];
+}
+
+@utility stripe-divider {
+  @apply relative h-8;
+  &:before {
+    content: "";
+    @apply absolute left-[-100vw] -z-1 h-full w-[200vw] diagonal-stripes;
+  }
 }

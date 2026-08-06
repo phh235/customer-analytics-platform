@@ -1,19 +1,43 @@
-import { createBrowserRouter, Navigate } from "react-router"
+import { createBrowserRouter } from "react-router"
 import { PrivateRoute } from "@/components/common/private-route"
-import AdminLayout from "@/layouts/admin-layout"
-import AuthLayout from "@/layouts/auth-layout"
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/login" replace />,
+    lazy: async () => {
+      const { default: Component } = await import("@/layouts/client-layout")
+
+      return { Component }
+    },
+    children: [
+      {
+        index: true,
+        lazy: () => import("@/pages/client/home"),
+      },
+      {
+        path: "products",
+        lazy: () => import("@/pages/client/products"),
+      },
+      {
+        path: "products/:productId",
+        lazy: () => import("@/pages/client/product-detail"),
+      },
+    ],
   },
   {
-    element: <AuthLayout />,
+    lazy: async () => {
+      const { default: Component } = await import("@/layouts/auth-layout")
+
+      return { Component }
+    },
     children: [
       {
         path: "/login",
         lazy: () => import("@/pages/auth/login"),
+      },
+      {
+        path: "/register",
+        lazy: () => import("@/pages/auth/register"),
       },
     ],
   },
@@ -22,11 +46,27 @@ export const router = createBrowserRouter([
     element: <PrivateRoute />,
     children: [
       {
-        element: <AdminLayout />,
+        lazy: async () => {
+          const { default: Component } = await import("@/layouts/admin-layout")
+
+          return { Component }
+        },
         children: [
           {
             index: true,
             lazy: () => import("@/pages/admin/dashboard"),
+          },
+          {
+            path: "products",
+            lazy: () => import("@/pages/admin/products"),
+          },
+          {
+            path: "categories",
+            lazy: () => import("@/pages/admin/categories"),
+          },
+          {
+            path: "customers",
+            lazy: () => import("@/pages/admin/customers"),
           },
         ],
       },

@@ -10,13 +10,13 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { navMain } from "@/config/navigation"
+import { BRAND_NAME } from "@/lib/brand"
 import { MainLogo } from "@/lib/svg"
 
 const data = {
   user: {
     name: "phh235",
     email: "phanhuyhoang.dev@gmail.com",
-    avatar: "https://github.com/phh235.png",
   },
   navMain,
 }
@@ -27,11 +27,11 @@ export const AppSidebar = ({
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className="flex h-14 items-center justify-center overflow-hidden whitespace-nowrap text-primary md:border-b [&>svg]:size-7 [&>svg]:shrink-0 group-data-[collapsible=icon]:[&>svg]:size-7">
+        <div className="flex h-14 items-center justify-center overflow-hidden border-b whitespace-nowrap text-primary [&>svg]:size-7 [&>svg]:shrink-0 group-data-[collapsible=icon]:[&>svg]:size-7">
           <MainLogo />
           <span className="ml-2 grid grid-cols-[1fr] opacity-100 transition-[grid-template-columns,margin,opacity] duration-150 ease-linear group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:grid-cols-[0fr] group-data-[collapsible=icon]:opacity-0">
-            <span className="min-w-0 overflow-hidden text-lg font-medium">
-              Customer Analytics
+            <span className="min-w-0 overflow-hidden text-base font-medium md:text-lg">
+              {BRAND_NAME}
             </span>
           </span>
         </div>
@@ -39,7 +39,7 @@ export const AppSidebar = ({
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-border">
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
