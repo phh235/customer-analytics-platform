@@ -60,7 +60,7 @@ const CarouselClient = () => {
       <CarouselContent className="ml-0">
         {images.map((image) => (
           <CarouselItem key={image}>
-            <div className="h-75 w-full">
+            <div className="h-58 w-full md:h-75">
               <img
                 alt="dddepth"
                 className="block h-full w-full object-cover"
@@ -78,9 +78,7 @@ const CarouselClient = () => {
             onClick={() => api?.scrollTo(index)}
             className={cn(
               "h-2 w-2 cursor-pointer rounded-full transition-all",
-              current === index
-                ? "w-4 bg-white"
-                : "bg-white/50 hover:bg-white/85"
+              current === index ? "bg-white" : "bg-white/50 hover:bg-white/85"
             )}
             aria-label={`Go to slide ${index + 1}`}
           />

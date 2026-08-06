@@ -56,6 +56,14 @@ export const router = createBrowserRouter([
             index: true,
             lazy: () => import("@/pages/admin/dashboard"),
           },
+          {
+            path: "products",
+            lazy: () => import("@/pages/admin/products"),
+          },
+          {
+            path: "customers",
+            lazy: () => import("@/pages/admin/customers"),
+          },
         ],
       },
     ],
