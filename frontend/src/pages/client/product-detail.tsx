@@ -61,7 +61,7 @@ export const Component = () => {
             <p className="text-xl font-semibold">
               {productPriceFormatter.format(product.price)}
             </p>
-            <p className="leading-7 text-muted-foreground">
+            <p className="text-sm leading-7 text-muted-foreground md:text-base">
               {product.description}
             </p>
           </div>
