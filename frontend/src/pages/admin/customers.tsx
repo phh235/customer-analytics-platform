@@ -5,7 +5,6 @@ import {
   PlusIcon,
   SearchIcon,
   Trash2Icon,
-  UsersRoundIcon,
 } from "lucide-react"
 import {
   debounce,
@@ -20,27 +19,20 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
+import { AppSelect } from "@/components/common/app-select"
+import { UserAvatar } from "@/components/common/user-avatar"
 import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delete-dialog"
 import { CustomerFormDialog } from "@/components/admin/management/customer-form-dialog"
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
 import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
 import type { DeleteTarget } from "@/components/admin/management/types"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
   createId,
@@ -190,32 +182,39 @@ export const Component = () => {
             onClick={() => toggleSort("name")}
           />
         ),
-        className: "w-[25%]",
+        className: "min-w-52 whitespace-nowrap",
         cell: (customer) => (
-          <div className="flex min-w-48 items-center gap-3">
-            <Badge variant="secondary" className="size-8 rounded-full p-0">
-              <UsersRoundIcon />
-            </Badge>
-            <div className="flex min-w-0 flex-col gap-1">
-              <span className="truncate font-medium">{customer.name}</span>
-              <span className="text-xs text-muted-foreground">
-                {customer.id}
-              </span>
-            </div>
+          <div className="flex min-w-48 items-center gap-3 whitespace-nowrap">
+            <UserAvatar email={customer.email} name={customer.name} />
+            <span className="truncate font-medium">{customer.name}</span>
           </div>
         ),
-        skeletonClassName: "h-10 w-4/5",
+        skeletonClassName: "h-8 w-4/5",
       },
       {
-        id: "contact",
-        header: "Liên hệ",
+        id: "id",
+        header: "Mã khách hàng",
+        className: "min-w-28 whitespace-nowrap",
         cell: (customer) => (
-          <div className="flex min-w-56 flex-col gap-1">
-            <span>{customer.email}</span>
-            <span className="text-xs text-muted-foreground">
-              {customer.phone}
-            </span>
-          </div>
+          <span className="text-sm whitespace-nowrap text-muted-foreground">
+            {customer.id}
+          </span>
+        ),
+      },
+      {
+        id: "email",
+        header: "Email",
+        className: "min-w-64 whitespace-nowrap",
+        cell: (customer) => (
+          <span className="whitespace-nowrap">{customer.email}</span>
+        ),
+      },
+      {
+        id: "phone",
+        header: "Số điện thoại",
+        className: "min-w-36 whitespace-nowrap",
+        cell: (customer) => (
+          <span className="whitespace-nowrap">{customer.phone}</span>
         ),
       },
       {
@@ -229,7 +228,8 @@ export const Component = () => {
             onClick={() => toggleSort("orders")}
           />
         ),
-        cell: (customer) => customer.orders,
+        className: "min-w-24 whitespace-nowrap",
+        cell: (customer) => <span>{customer.orders}</span>,
       },
       {
         id: "totalSpent",
@@ -242,8 +242,9 @@ export const Component = () => {
             onClick={() => toggleSort("totalSpent")}
           />
         ),
+        className: "min-w-36 whitespace-nowrap",
         cell: (customer) => (
-          <span className="font-medium">
+          <span className="font-medium whitespace-nowrap">
             {formatCurrency(customer.totalSpent)}
           </span>
         ),
@@ -251,6 +252,7 @@ export const Component = () => {
       {
         id: "status",
         header: "Trạng thái",
+        className: "min-w-32 whitespace-nowrap",
         cell: (customer) => (
           <StatusBadge status={customer.status} entity="customer" />
         ),
@@ -266,7 +268,12 @@ export const Component = () => {
             onClick={() => toggleSort("joinedAt")}
           />
         ),
-        cell: (customer) => formatDate(customer.joinedAt),
+        className: "min-w-28 whitespace-nowrap",
+        cell: (customer) => (
+          <span className="whitespace-nowrap">
+            {formatDate(customer.joinedAt)}
+          </span>
+        ),
       },
       {
         id: "actions",
@@ -321,33 +328,23 @@ export const Component = () => {
                 aria-label="Tìm kiếm khách hàng"
               />
             </InputGroup>
-            <Select
+            <AppSelect
+              options={[
+                { value: "all", label: "Tất cả trạng thái" },
+                { value: "active", label: "Đang hoạt động" },
+                { value: "inactive", label: "Không hoạt động" },
+              ]}
               value={status}
-              onValueChange={(value) =>
+              onChange={(value) =>
                 void setQuery({
-                  status: (value ??
+                  status: (value ||
                     "all") as (typeof CUSTOMER_STATUSES)[number],
                   page: 1,
                 })
               }
-            >
-              <SelectTrigger className="w-full lg:w-48">
-                <SelectValue>
-                  {status === "all"
-                    ? "Tất cả trạng thái"
-                    : status === "active"
-                      ? "Đang hoạt động"
-                      : "Không hoạt động"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="active">Đang hoạt động</SelectItem>
-                  <SelectItem value="inactive">Không hoạt động</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+              className="w-full lg:w-48"
+              aria-label="Lọc theo trạng thái"
+            />
             {(search || status !== "all") && (
               <Button type="button" variant="ghost" onClick={resetFilters}>
                 <FilterXIcon />

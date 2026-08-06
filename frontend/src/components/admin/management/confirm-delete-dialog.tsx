@@ -1,14 +1,7 @@
 import { Trash2Icon } from "lucide-react"
 
+import { AppDialog } from "@/components/common/app-dialog"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import type { DeleteTarget } from "@/components/admin/management/types"
 
 export function ConfirmDeleteDialog({
@@ -23,16 +16,19 @@ export function ConfirmDeleteDialog({
   const entityLabel = target?.type === "product" ? "sản phẩm" : "khách hàng"
 
   return (
-    <Dialog open={Boolean(target)} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Xác nhận xoá {entityLabel}</DialogTitle>
-          <DialogDescription>
-            Bạn có chắc muốn xoá <strong>{target?.name}</strong>? Hành động này
-            chỉ xoá dữ liệu mẫu khỏi bảng hiện tại.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
+    <AppDialog
+      open={Boolean(target)}
+      onOpenChange={onOpenChange}
+      title={`Xác nhận xoá ${entityLabel}`}
+      description={
+        <>
+          Bạn có chắc muốn xoá <strong>{target?.name}</strong>? Hành động này
+          chỉ xoá dữ liệu mẫu khỏi bảng hiện tại.
+        </>
+      }
+      className="sm:max-w-md"
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Huỷ
           </Button>
@@ -40,8 +36,8 @@ export function ConfirmDeleteDialog({
             <Trash2Icon data-icon="inline-start" />
             Xác nhận xoá
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    />
   )
 }

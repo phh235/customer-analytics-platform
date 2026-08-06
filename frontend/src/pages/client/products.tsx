@@ -12,20 +12,13 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { AppSelect } from "@/components/common/app-select"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useDebounce } from "@/hooks/use-debounce"
 import { normalizeProductText, products } from "@/lib/products"
 
@@ -101,28 +94,16 @@ export const Component = () => {
               aria-label="Tìm kiếm sản phẩm"
             />
           </InputGroup>
-          <Select
+          <AppSelect
+            options={[
+              { value: "all", label: "Tất cả danh mục" },
+              ...categories.map((item) => ({ value: item, label: item })),
+            ]}
             value={category}
-            onValueChange={(value) =>
-              void setQuery({ category: value ?? "all" })
-            }
-          >
-            <SelectTrigger className="w-full sm:w-56">
-              <SelectValue>
-                {category === "all" ? "Tất cả danh mục" : category}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="all">Tất cả danh mục</SelectItem>
-                {categories.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+            onChange={(value) => void setQuery({ category: value || "all" })}
+            className="w-full sm:w-56"
+            aria-label="Lọc theo danh mục"
+          />
           {(search || category !== "all") && (
             <Button type="button" variant="ghost" onClick={resetFilters}>
               <FilterXIcon data-icon="inline-start" />

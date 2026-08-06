@@ -19,6 +19,7 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
+import { AppSelect } from "@/components/common/app-select"
 import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delete-dialog"
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
 import { ProductFormDialog } from "@/components/admin/management/product-form-dialog"
@@ -31,14 +32,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
   createId,
@@ -204,16 +197,31 @@ export const Component = () => {
             onClick={() => toggleSort("name")}
           />
         ),
-        className: "w-[28%]",
+        className: "min-w-52 whitespace-nowrap",
         cell: (product) => (
-          <div className="flex min-w-52 flex-col gap-1">
-            <span className="font-medium">{product.name}</span>
-            <span className="text-xs text-muted-foreground">
-              {product.sku} · {product.id}
-            </span>
-          </div>
+          <span className="font-medium whitespace-nowrap">{product.name}</span>
         ),
-        skeletonClassName: "h-10 w-4/5",
+        skeletonClassName: "h-6 w-4/5",
+      },
+      {
+        id: "sku",
+        header: "SKU",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (product) => (
+          <span className="font-mono text-sm whitespace-nowrap">
+            {product.sku}
+          </span>
+        ),
+      },
+      {
+        id: "id",
+        header: "Mã sản phẩm",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (product) => (
+          <span className="text-sm whitespace-nowrap text-muted-foreground">
+            {product.id}
+          </span>
+        ),
       },
       {
         id: "category",
@@ -226,7 +234,10 @@ export const Component = () => {
             onClick={() => toggleSort("category")}
           />
         ),
-        cell: (product) => <span>{product.category}</span>,
+        className: "min-w-40 whitespace-nowrap",
+        cell: (product) => (
+          <span className="whitespace-nowrap">{product.category}</span>
+        ),
       },
       {
         id: "price",
@@ -239,13 +250,17 @@ export const Component = () => {
             onClick={() => toggleSort("price")}
           />
         ),
+        className: "min-w-32 whitespace-nowrap",
         cell: (product) => (
-          <span className="font-medium">{formatCurrency(product.price)}</span>
+          <span className="font-medium whitespace-nowrap">
+            {formatCurrency(product.price)}
+          </span>
         ),
       },
       {
         id: "status",
         header: "Trạng thái",
+        className: "min-w-28 whitespace-nowrap",
         cell: (product) => (
           <StatusBadge status={product.status} entity="product" />
         ),
@@ -253,7 +268,12 @@ export const Component = () => {
       {
         id: "updatedAt",
         header: "Cập nhật",
-        cell: (product) => formatDate(product.updatedAt),
+        className: "min-w-28 whitespace-nowrap",
+        cell: (product) => (
+          <span className="whitespace-nowrap">
+            {formatDate(product.updatedAt)}
+          </span>
+        ),
       },
       {
         id: "actions",
@@ -308,54 +328,34 @@ export const Component = () => {
                 aria-label="Tìm kiếm sản phẩm"
               />
             </InputGroup>
-            <Select
+            <AppSelect
+              options={[
+                { value: "all", label: "Tất cả danh mục" },
+                ...categories.map((item) => ({ value: item, label: item })),
+              ]}
               value={category}
-              onValueChange={(value) =>
-                void setQuery({ category: value ?? "all", page: 1 })
+              onChange={(value) =>
+                void setQuery({ category: value || "all", page: 1 })
               }
-            >
-              <SelectTrigger className="w-full lg:w-52">
-                <SelectValue>
-                  {category === "all" ? "Tất cả danh mục" : category}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">Tất cả danh mục</SelectItem>
-                  {categories.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {item}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Select
+              className="w-full lg:w-52"
+              aria-label="Lọc theo danh mục"
+            />
+            <AppSelect
+              options={[
+                { value: "all", label: "Tất cả trạng thái" },
+                { value: "active", label: "Đang bán" },
+                { value: "inactive", label: "Tạm ẩn" },
+              ]}
               value={status}
-              onValueChange={(value) =>
+              onChange={(value) =>
                 void setQuery({
-                  status: (value ?? "all") as (typeof PRODUCT_STATUSES)[number],
+                  status: (value || "all") as (typeof PRODUCT_STATUSES)[number],
                   page: 1,
                 })
               }
-            >
-              <SelectTrigger className="w-full lg:w-44">
-                <SelectValue>
-                  {status === "all"
-                    ? "Tất cả trạng thái"
-                    : status === "active"
-                      ? "Đang bán"
-                      : "Tạm ẩn"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="active">Đang bán</SelectItem>
-                  <SelectItem value="inactive">Tạm ẩn</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+              className="w-full lg:w-44"
+              aria-label="Lọc theo trạng thái"
+            />
             {(search || category !== "all" || status !== "all") && (
               <Button type="button" variant="ghost" onClick={resetFilters}>
                 <FilterXIcon />

@@ -15,9 +15,19 @@ export const navMain = [
     icon: <LayoutDashboardIcon />,
   },
   {
-    title: "Sản phẩm & danh mục",
+    title: "Sản phẩm và danh mục",
     url: "/dashboard/products",
     icon: <PackageIcon />,
+    items: [
+      {
+        title: "Quản lý sản phẩm",
+        url: "/dashboard/products",
+      },
+      {
+        title: "Danh mục",
+        url: "/dashboard/categories",
+      },
+    ],
   },
   {
     title: "Khách hàng",
