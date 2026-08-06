@@ -17,18 +17,19 @@ export function ProductCard({ product }: ProductCardProps) {
         <img
           alt={product.name}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          draggable={false}
           loading="lazy"
           src={product.image}
         />
       </div>
-      <div className="flex flex-1 flex-col gap-1.5 p-3">
-        <h3 className="line-clamp-1 text-sm font-medium text-foreground">
+      <div className="flex flex-1 flex-col gap-1 p-3">
+        <h3 className="line-clamp-1 text-sm font-medium text-foreground md:text-base">
           {product.name}
         </h3>
-        <span className="text-sm font-semibold">
+        <span className="text-sm font-semibold md:text-base">
           {productPriceFormatter.format(product.price)}
         </span>
-        <p className="line-clamp-2 text-xs text-muted-foreground">
+        <p className="line-clamp-2 text-xs text-muted-foreground md:text-sm">
           {product.shortDescription}
         </p>
       </div>
