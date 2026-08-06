@@ -3,6 +3,7 @@ import { Link } from "react-router"
 import { ThemeToggle } from "@/components/common/theme-toggle"
 import { MobileNav } from "@/components/mobile-nav"
 import { Button } from "@/components/ui/button"
+import { BRAND_NAME } from "@/lib/brand"
 import { MainLogo } from "@/lib/svg"
 
 export const navLinks = [
@@ -18,8 +19,15 @@ export function Header() {
         className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between border-x px-4 pl-1"
       >
         <div className="flex items-center gap-6">
-          <Link aria-label="Về trang chủ" className="p-2" to="/">
+          <Link
+            aria-label={`Về trang chủ ${BRAND_NAME}`}
+            className="flex items-center gap-2 p-2"
+            to="/"
+          >
             <MainLogo className="size-8" />
+            <span className="text-lg font-semibold tracking-tight">
+              {BRAND_NAME}
+            </span>
           </Link>
           <div className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
