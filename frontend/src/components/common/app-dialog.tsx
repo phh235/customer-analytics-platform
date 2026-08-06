@@ -48,7 +48,7 @@ export const AppDialog = ({
             )}
           </DialogHeader>
         )}
-        <div className="py-2">{children}</div>
+        {children && <div className="py-2">{children}</div>}
         {footer && (
           <DialogFooter className={footerClassName}>{footer}</DialogFooter>
         )}

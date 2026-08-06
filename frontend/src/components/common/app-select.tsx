@@ -43,6 +43,11 @@ export const AppSelect = ({
   id,
   "aria-label": ariaLabel,
 }: AppSelectProps) => {
+  const selectedValue = value ?? defaultValue
+  const selectedOption = options.find(
+    (option) => option.value === selectedValue
+  )
+
   return (
     <Select
       value={value}
@@ -57,7 +62,9 @@ export const AppSelect = ({
         size={size}
         className={className}
       >
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={placeholder}>
+          {selectedOption?.label}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent className={contentClassName}>
         {options.map((option) => (

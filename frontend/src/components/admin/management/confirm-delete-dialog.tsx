@@ -13,7 +13,12 @@ export function ConfirmDeleteDialog({
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
 }) {
-  const entityLabel = target?.type === "product" ? "sản phẩm" : "khách hàng"
+  const entityLabel =
+    target?.type === "product"
+      ? "sản phẩm"
+      : target?.type === "customer"
+        ? "khách hàng"
+        : "danh mục"
 
   return (
     <AppDialog

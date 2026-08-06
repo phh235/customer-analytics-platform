@@ -213,7 +213,7 @@
   @apply relative;
   &:before {
     content: "";
-    @apply bg-border absolute top-0 left-[-100vw] -z-1 h-px w-[200vw];
+    @apply absolute top-0 left-[-100vw] -z-1 h-px w-[200vw] bg-border;
   }
 }
 
@@ -221,7 +221,7 @@
   @apply relative;
   &:after {
     content: "";
-    @apply bg-border absolute bottom-0 left-[-100vw] -z-1 h-px w-[200vw];
+    @apply absolute bottom-0 left-[-100vw] -z-1 h-px w-[200vw] bg-border;
   }
 }
 
