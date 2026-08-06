@@ -1,28 +1,53 @@
+import { lazy, Suspense } from "react"
+
 import { Link } from "react-router"
 
 import { ClientPageLayout } from "@/components/client-page-layout"
 import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
+import { BRAND_NAME } from "@/lib/brand"
 import { products } from "@/lib/products"
-import CarouselClient from "@/components/carousel"
 import { ArrowRight } from "lucide-react"
+import { LineShadowText } from "@/components/line-shadow-text"
+// import Integrations from "@/integrations"
+
+const AsciiObject = lazy(() => import("@/components/ascii-object"))
 
 export const Component = () => {
   return (
     <ClientPageLayout>
       <Panel className="screen-border-top-none">
-        <PanelContent className="flex flex-col items-start justify-center gap-4 p-0 text-left md:flex-row md:items-center">
-          <div className="flex flex-col gap-4 px-4 pt-4 md:pt-0">
-            <h1 className="text-2xl font-bold">
-              Chào mừng bạn đến với Customer Analytics Platform!
+        <PanelContent className="flex flex-col items-center justify-center p-0 text-left md:flex-row">
+          <div className="flex w-full max-w-xl flex-col gap-3 px-6 py-8 md:flex-1 md:px-8 md:py-10">
+            <h1 className="text-xl font-bold md:text-3xl">
+              Chào mừng bạn đến với{" "}
+              <LineShadowText
+                shadowColor="var(--color-foreground)"
+                className="italic"
+              >
+                {BRAND_NAME}
+              </LineShadowText>
             </h1>
             <p className="text-muted-foreground">
-              Hệ thống phân tích khách hàng đa chiều hỗ trợ theo dõi hành vi,
-              doanh thu, và tối ưu hóa chuyển đổi.
+              Khám phá những sản phẩm được tuyển chọn với thiết kế hiện đại và
+              phong cách riêng dành cho bạn.
             </p>
           </div>
-          <CarouselClient />
+          <div className="flex w-full items-center justify-center md:flex-1">
+            <Suspense
+              fallback={<div className="h-80 w-full max-w-xl md:h-96" />}
+            >
+              <AsciiObject
+                autoRotate
+                autoRotateSpeed={2}
+                floatIntensity={2.8}
+                scale={3.4}
+                yOffset={-0.2}
+                className="h-80 w-full max-w-xl md:h-96"
+              />
+            </Suspense>
+          </div>
         </PanelContent>
       </Panel>
 
@@ -58,6 +83,12 @@ export const Component = () => {
       </Panel>
 
       <Separator />
+
+      {/* <Panel>
+        <Integrations />
+      </Panel>
+
+      <Separator /> */}
     </ClientPageLayout>
   )
 }
