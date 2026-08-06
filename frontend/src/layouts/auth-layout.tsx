@@ -1,5 +1,8 @@
-import { FullWidthDivider } from "@/components/ui/full-width-divider"
 import { Outlet } from "react-router"
+
+import { FullWidthDivider } from "@/components/ui/full-width-divider"
+import { BRAND_NAME } from "@/lib/brand"
+import { MainLogo } from "@/lib/svg"
 
 export const AuthLayout = () => {
   return (
@@ -8,6 +11,10 @@ export const AuthLayout = () => {
         <div className="relative w-full">
           <FullWidthDivider position="top" className="hidden sm:block" />
           <div className="relative w-full p-6">
+            <div className="flex items-center justify-center gap-2">
+              <MainLogo className="size-9" />
+              <span className="text-xl font-semibold">{BRAND_NAME}</span>
+            </div>
             <Outlet />
           </div>
           <FullWidthDivider position="bottom" className="hidden sm:block" />

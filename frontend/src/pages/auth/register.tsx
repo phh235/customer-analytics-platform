@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { PasswordInput } from "@/components/ui/password-input"
-import { MainLogo } from "@/lib/svg"
 
 const formSchema = z
   .object({
@@ -39,13 +38,10 @@ export const Component = () => {
 
   return (
     <>
-      <div className="flex justify-center">
-        <MainLogo />
-      </div>
       <div className="mt-4 space-y-1">
         <p className="text-center text-xl font-semibold">Tạo tài khoản</p>
         <p className="text-center text-sm text-muted-foreground">
-          Đăng ký để bắt đầu phân tích khách hàng
+          Đăng ký để bắt đầu khám phá sản phẩm
         </p>
       </div>
       <form

@@ -10,6 +10,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { navMain } from "@/config/navigation"
+import { BRAND_NAME } from "@/lib/brand"
 import { MainLogo } from "@/lib/svg"
 
 const data = {
@@ -30,7 +31,7 @@ export const AppSidebar = ({
           <MainLogo />
           <span className="ml-2 grid grid-cols-[1fr] opacity-100 transition-[grid-template-columns,margin,opacity] duration-150 ease-linear group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:grid-cols-[0fr] group-data-[collapsible=icon]:opacity-0">
             <span className="min-w-0 overflow-hidden text-base font-medium md:text-lg">
-              Customer Analytics
+              {BRAND_NAME}
             </span>
           </span>
         </div>

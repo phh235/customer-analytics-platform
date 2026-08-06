@@ -6,7 +6,6 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { PasswordInput } from "@/components/ui/password-input"
 import { Link, useNavigate } from "react-router"
-import { MainLogo } from "@/lib/svg"
 
 const formSchema = z.object({
   email: z.string().email("Địa chỉ email không hợp lệ"),
@@ -31,15 +30,10 @@ export const Component = () => {
 
   return (
     <>
-      <div className="flex justify-center">
-        <MainLogo />
-      </div>
       <div className="mt-4 space-y-1">
-        <p className="text-center text-xl font-semibold">
-          Hệ thống phân tích khách hàng
-        </p>
+        <p className="text-center text-xl font-semibold">Chào mừng trở lại</p>
         <p className="text-center text-sm text-muted-foreground">
-          Vui lòng nhập thông tin tài khoản để tiếp tục
+          Đăng nhập để tiếp tục khám phá sản phẩm
         </p>
       </div>
       <form
