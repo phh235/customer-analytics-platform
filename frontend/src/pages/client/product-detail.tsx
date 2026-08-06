@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { ArrowLeftIcon } from "lucide-react"
 import { Link, Navigate, useParams } from "react-router"
 import { PhotoProvider, PhotoView } from "react-photo-view"
@@ -17,9 +18,12 @@ export const Component = () => {
     return <Navigate replace to="/products" />
   }
 
-  const relatedProducts = products
-    .filter((p) => p.id !== product.id)
-    .slice(0, 4)
+  const relatedProducts = useMemo(() => {
+    return [...products]
+      .filter((p) => p.id !== product.id)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 4)
+  }, [product.id])
 
   return (
     <ClientPageLayout>

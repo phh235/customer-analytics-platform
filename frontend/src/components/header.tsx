@@ -12,7 +12,7 @@ export const navLinks = [
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 mx-auto w-full border-b border-border bg-background">
+    <header className="sticky top-0 z-50 mx-auto w-full border-b border-border bg-background px-2 md:p-0">
       <nav
         aria-label="Điều hướng chính"
         className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between border-x px-4 pl-1"
