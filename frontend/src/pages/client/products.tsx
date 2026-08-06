@@ -81,7 +81,7 @@ export const Component = () => {
         </PanelContent>
       </Panel>
 
-      <Panel>
+      <Panel className="screen-border-bottom-none">
         <PanelContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <InputGroup className="sm:flex-1">
             <InputGroupAddon>

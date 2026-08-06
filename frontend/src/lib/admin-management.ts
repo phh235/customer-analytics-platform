@@ -37,6 +37,17 @@ export interface CustomerFormData {
   status: CustomerStatus
 }
 
+export interface Category {
+  id: string
+  name: string
+  productCount: number
+  updatedAt: string
+}
+
+export interface CategoryFormData {
+  name: string
+}
+
 export const PRODUCT_CATEGORIES = [
   "Điện thoại",
   "Laptop",

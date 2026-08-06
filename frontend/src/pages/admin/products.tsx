@@ -21,6 +21,7 @@ import {
 } from "@/components/common/common-table"
 import { AppSelect } from "@/components/common/app-select"
 import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delete-dialog"
+import { ConfirmProductStatusDialog } from "@/components/admin/management/confirm-product-status-dialog"
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
 import { ProductFormDialog } from "@/components/admin/management/product-form-dialog"
 import { SortButton } from "@/components/admin/management/sort-button"
@@ -32,6 +33,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import { Switch } from "@/components/ui/switch"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
   createId,
@@ -42,6 +44,7 @@ import {
   SAMPLE_PRODUCTS,
   type Product,
   type ProductFormData,
+  type ProductStatus,
 } from "@/lib/admin-management"
 import { toastSuccess } from "@/utils/toast"
 
@@ -71,6 +74,11 @@ export const Component = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const [statusTarget, setStatusTarget] = useState<{
+    id: string
+    name: string
+    nextStatus: ProductStatus
+  } | null>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setLoading(false), 650)
@@ -156,6 +164,28 @@ export const Component = () => {
     )
     toastSuccess("Đã xoá sản phẩm")
     setDeleteTarget(null)
+  }
+
+  const handleStatusChange = () => {
+    if (!statusTarget) return
+
+    setProducts((current) =>
+      current.map((product) =>
+        product.id === statusTarget.id
+          ? {
+              ...product,
+              status: statusTarget.nextStatus,
+              updatedAt: new Date().toISOString(),
+            }
+          : product
+      )
+    )
+    toastSuccess(
+      statusTarget.nextStatus === "active"
+        ? "Đã hiển thị sản phẩm"
+        : "Đã ẩn sản phẩm"
+    )
+    setStatusTarget(null)
   }
 
   const toggleSort = (key: ProductSortKey) => {
@@ -261,9 +291,26 @@ export const Component = () => {
         id: "status",
         header: "Trạng thái",
         className: "min-w-28 whitespace-nowrap",
-        cell: (product) => (
-          <StatusBadge status={product.status} entity="product" />
-        ),
+        cell: (product) => {
+          const isActive = product.status === "active"
+
+          return (
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Switch
+                checked={isActive}
+                onCheckedChange={(checked) =>
+                  setStatusTarget({
+                    id: product.id,
+                    name: product.name,
+                    nextStatus: checked ? "active" : "inactive",
+                  })
+                }
+                aria-label={`${isActive ? "Ẩn" : "Hiển thị"} ${product.name}`}
+              />
+              <StatusBadge status={product.status} entity="product" />
+            </div>
+          )
+        },
       },
       {
         id: "updatedAt",
@@ -408,6 +455,13 @@ export const Component = () => {
           if (!open) setDeleteTarget(null)
         }}
         onConfirm={handleDelete}
+      />
+      <ConfirmProductStatusDialog
+        target={statusTarget}
+        onOpenChange={(open) => {
+          if (!open) setStatusTarget(null)
+        }}
+        onConfirm={handleStatusChange}
       />
     </div>
   )
