@@ -2,35 +2,33 @@ import Avvvatars from "avvvatars-react"
 
 interface UserAvatarProps {
   email: string
-  name: string
-  size?: number
 }
 
-const getInitials = (name: string) => {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
+const getEmailInitials = (email: string) => {
+  const localPart = email.split("@")[0] ?? email
+  const parts = localPart.split(/[._-]+/).filter(Boolean)
 
-  return parts
-    .slice(-2)
+  return (parts.length > 1 ? parts.slice(0, 2) : [localPart.slice(0, 2)])
     .map((part) => part[0])
     .join("")
     .toUpperCase()
     .slice(0, 2)
 }
 
-export function UserAvatar({ email, name, size = 32 }: UserAvatarProps) {
+export function UserAvatar({ email }: UserAvatarProps) {
   const avatarValue = email.trim().toLowerCase()
-  const initials = getInitials(name)
+  const initials = getEmailInitials(avatarValue)
 
   return (
     <div
       role="img"
-      aria-label={`Ảnh đại diện của ${name}`}
+      aria-label={`Ảnh đại diện của ${email}`}
       className="shrink-0"
     >
       <Avvvatars
         value={avatarValue}
         displayValue={initials || avatarValue.slice(0, 2).toUpperCase()}
-        size={size}
+        size={32}
         style="shape"
       />
     </div>
