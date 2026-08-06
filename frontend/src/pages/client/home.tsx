@@ -10,7 +10,7 @@ import { BRAND_NAME } from "@/lib/brand"
 import { products } from "@/lib/products"
 import { ArrowRight } from "lucide-react"
 import { LineShadowText } from "@/components/line-shadow-text"
-import Integrations from "@/integrations"
+// import Integrations from "@/integrations"
 
 const AsciiObject = lazy(() => import("@/components/ascii-object"))
 
