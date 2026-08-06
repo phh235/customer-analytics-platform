@@ -3,9 +3,9 @@ import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { useNavigate } from "react-router"
-import { MainLogo } from "@/lib/svg"
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
+import { PasswordInput } from "@/components/ui/password-input"
+import { Link, useNavigate } from "react-router"
 
 const formSchema = z.object({
   email: z.string().email("Địa chỉ email không hợp lệ"),
@@ -30,19 +30,14 @@ export const Component = () => {
 
   return (
     <>
-      <div className="flex justify-center">
-        <MainLogo />
-      </div>
-      <div className="mt-6 space-y-1">
-        <p className="text-center text-xl font-semibold">
-          Hệ thống phân tích khách hàng
-        </p>
+      <div className="mt-4 space-y-1">
+        <p className="text-center text-xl font-semibold">Chào mừng trở lại</p>
         <p className="text-center text-sm text-muted-foreground">
-          Vui lòng nhập thông tin tài khoản để tiếp tục
+          Đăng nhập để tiếp tục khám phá sản phẩm
         </p>
       </div>
       <form
-        className="mt-6 w-full space-y-4"
+        className="mt-6 w-full space-y-3"
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <Controller
@@ -50,14 +45,17 @@ export const Component = () => {
           name="email"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Email</FieldLabel>
-              <Input
-                aria-invalid={fieldState.invalid}
-                className="h-9 w-full"
-                placeholder="Email"
-                type="email"
-                {...field}
-              />
+              <FieldLabel htmlFor="login-email">Email</FieldLabel>
+              <InputGroup className="h-9 w-full">
+                <InputGroupInput
+                  id="login-email"
+                  aria-invalid={fieldState.invalid}
+                  autoComplete="username"
+                  placeholder="Email"
+                  type="email"
+                  {...field}
+                />
+              </InputGroup>
               <FieldError errors={[fieldState.error]} />
             </Field>
           )}
@@ -67,12 +65,13 @@ export const Component = () => {
           name="password"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Mật khẩu</FieldLabel>
-              <Input
+              <FieldLabel htmlFor="login-password">Mật khẩu</FieldLabel>
+              <PasswordInput
+                id="login-password"
                 aria-invalid={fieldState.invalid}
+                autoComplete="current-password"
                 className="h-9 w-full"
                 placeholder="Mật khẩu"
-                type="password"
                 {...field}
               />
               <FieldError errors={[fieldState.error]} />
@@ -83,6 +82,22 @@ export const Component = () => {
           Đăng nhập
         </Button>
       </form>
+      <p className="mt-4 text-center text-sm text-muted-foreground">
+        Chưa có tài khoản?{" "}
+        <Link
+          className="font-medium text-primary underline-offset-4 hover:underline"
+          to="/register"
+        >
+          Đăng ký
+        </Link>
+        <span className="mx-1">hoặc</span>
+        <Link
+          className="font-medium text-primary underline-offset-4 hover:underline"
+          to="/"
+        >
+          tìm hiểu thêm
+        </Link>
+      </p>
     </>
   )
 }
