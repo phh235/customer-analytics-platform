@@ -22,7 +22,7 @@ import {
 import { AppSelect } from "@/components/common/app-select"
 import { UserAvatar } from "@/components/common/user-avatar"
 import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delete-dialog"
-import { CustomerFormDialog } from "@/components/admin/management/customer-form-dialog"
+import { CustomerFormSheet } from "@/components/admin/management/customer-form-sheet"
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
 import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
@@ -68,7 +68,7 @@ export const Component = () => {
   )
   const debouncedSearch = useDebounce(search, 300)
   const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
@@ -104,9 +104,9 @@ export const Component = () => {
       })
   }, [customers, debouncedSearch, direction, sort, status])
 
-  const openCustomerDialog = (customer: Customer | null = null) => {
+  const openCustomerSheet = (customer: Customer | null = null) => {
     setEditingCustomer(customer)
-    setDialogOpen(true)
+    setSheetOpen(true)
   }
 
   const handleSave = (data: CustomerFormData) => {
@@ -133,7 +133,7 @@ export const Component = () => {
       toastSuccess("Đã thêm khách hàng mới")
     }
 
-    setDialogOpen(false)
+    setSheetOpen(false)
     setEditingCustomer(null)
   }
 
@@ -215,20 +215,6 @@ export const Component = () => {
         ),
       },
       {
-        id: "orders",
-        header: (
-          <SortButton
-            label="Đơn hàng"
-            sortKey="orders"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("orders")}
-          />
-        ),
-        className: "min-w-24 whitespace-nowrap",
-        cell: (customer) => <span>{customer.orders}</span>,
-      },
-      {
         id: "status",
         header: "Trạng thái",
         className: "min-w-32 whitespace-nowrap",
@@ -265,7 +251,7 @@ export const Component = () => {
               variant="outline"
               size="icon-sm"
               aria-label={`Chỉnh sửa ${customer.name}`}
-              onClick={() => openCustomerDialog(customer)}
+              onClick={() => openCustomerSheet(customer)}
             >
               <EditIcon />
             </Button>
@@ -288,7 +274,7 @@ export const Component = () => {
         ),
       },
     ],
-    [direction, openCustomerDialog, sort, toggleSort]
+    [direction, openCustomerSheet, sort, toggleSort]
   )
 
   return (
@@ -330,7 +316,7 @@ export const Component = () => {
                 Xoá lọc
               </Button>
             )}
-            <Button onClick={() => openCustomerDialog()} className="ml-auto">
+            <Button onClick={() => openCustomerSheet()} className="ml-auto">
               <PlusIcon />
               Thêm khách hàng
             </Button>
@@ -360,10 +346,10 @@ export const Component = () => {
         />
       </div>
 
-      <CustomerFormDialog
-        open={dialogOpen}
+      <CustomerFormSheet
+        open={sheetOpen}
         onOpenChange={(open) => {
-          setDialogOpen(open)
+          setSheetOpen(open)
           if (!open) setEditingCustomer(null)
         }}
         customer={editingCustomer}

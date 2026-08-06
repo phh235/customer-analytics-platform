@@ -39,6 +39,7 @@ export interface CustomerFormData {
 
 export interface Category {
   id: string
+  code: string
   name: string
   productCount: number
   updatedAt: string
@@ -46,6 +47,7 @@ export interface Category {
 
 export interface CategoryFormData {
   name: string
+  code: string
 }
 
 export const PRODUCT_CATEGORIES = [

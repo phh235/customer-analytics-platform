@@ -9,7 +9,7 @@ import {
   useQueryStates,
 } from "nuqs"
 
-import { CategoryFormDialog } from "@/components/admin/management/category-form-dialog"
+import { CategoryFormSheet } from "@/components/admin/management/category-form-sheet"
 import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delete-dialog"
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
 import { SortButton } from "@/components/admin/management/sort-button"
@@ -53,6 +53,7 @@ const categoryQueryOptions = { urlKeys: { search: "q" } }
 const createInitialCategories = (): Category[] =>
   PRODUCT_CATEGORIES.map((name, index) => ({
     id: `DM-${String(index + 1).padStart(4, "0")}`,
+    code: `DM-${String(index + 1).padStart(4, "0")}`,
     name,
     productCount: SAMPLE_PRODUCTS.filter((product) => product.category === name)
       .length,
@@ -67,7 +68,7 @@ export const Component = () => {
   )
   const debouncedSearch = useDebounce(search, 300)
   const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
@@ -80,7 +81,13 @@ export const Component = () => {
     const query = normalize(debouncedSearch.trim())
 
     return categories
-      .filter((category) => !query || normalize(category.name).includes(query))
+      .filter(
+        (category) =>
+          !query ||
+          [category.name, category.code].some((value) =>
+            normalize(value).includes(query)
+          )
+      )
       .sort((first, second) => {
         const sortMultiplier = direction === "asc" ? 1 : -1
         const comparison =
@@ -94,9 +101,9 @@ export const Component = () => {
       })
   }, [categories, debouncedSearch, direction, sort])
 
-  const openCategoryDialog = (category: Category | null = null) => {
+  const openCategorySheet = (category: Category | null = null) => {
     setEditingCategory(category)
-    setDialogOpen(true)
+    setSheetOpen(true)
   }
 
   const handleSave = (data: CategoryFormData) => {
@@ -106,7 +113,7 @@ export const Component = () => {
           category.id === editingCategory.id
             ? {
                 ...category,
-                name: data.name,
+                ...data,
                 updatedAt: new Date().toISOString(),
               }
             : category
@@ -117,7 +124,7 @@ export const Component = () => {
       setCategories((current) => [
         {
           id: createId("DM"),
-          name: data.name,
+          ...data,
           productCount: 0,
           updatedAt: new Date().toISOString(),
         },
@@ -126,7 +133,7 @@ export const Component = () => {
       toastSuccess("Đã thêm danh mục mới")
     }
 
-    setDialogOpen(false)
+    setSheetOpen(false)
     setEditingCategory(null)
   }
 
@@ -172,18 +179,16 @@ export const Component = () => {
         ),
         className: "min-w-56 whitespace-nowrap",
         cell: (category) => (
-          <span className="font-medium whitespace-nowrap">{category.name}</span>
+          <span className="whitespace-nowrap">{category.name}</span>
         ),
         skeletonClassName: "h-6 w-4/5",
       },
       {
-        id: "id",
+        id: "code",
         header: "Mã danh mục",
         className: "min-w-32 whitespace-nowrap",
         cell: (category) => (
-          <span className="text-sm whitespace-nowrap text-muted-foreground">
-            {category.id}
-          </span>
+          <span className="text-sm whitespace-nowrap">{category.code}</span>
         ),
       },
       {
@@ -233,7 +238,7 @@ export const Component = () => {
               variant="outline"
               size="icon-sm"
               aria-label={`Chỉnh sửa ${category.name}`}
-              onClick={() => openCategoryDialog(category)}
+              onClick={() => openCategorySheet(category)}
             >
               <EditIcon />
             </Button>
@@ -271,7 +276,7 @@ export const Component = () => {
               <InputGroupInput
                 value={search}
                 onChange={(event) => updateSearch(event.target.value)}
-                placeholder="Tìm tên danh mục..."
+                placeholder="Tìm tên hoặc mã danh mục..."
                 aria-label="Tìm kiếm danh mục"
               />
             </InputGroup>
@@ -284,7 +289,7 @@ export const Component = () => {
                 Xoá lọc
               </Button>
             )}
-            <Button onClick={() => openCategoryDialog()} className="ml-auto">
+            <Button onClick={() => openCategorySheet()} className="ml-auto">
               <PlusIcon />
               Thêm danh mục
             </Button>
@@ -314,10 +319,10 @@ export const Component = () => {
         />
       </div>
 
-      <CategoryFormDialog
-        open={dialogOpen}
+      <CategoryFormSheet
+        open={sheetOpen}
         onOpenChange={(open) => {
-          setDialogOpen(open)
+          setSheetOpen(open)
           if (!open) setEditingCategory(null)
         }}
         category={editingCategory}

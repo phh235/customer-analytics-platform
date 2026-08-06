@@ -23,7 +23,7 @@ import { AppSelect } from "@/components/common/app-select"
 import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delete-dialog"
 import { ConfirmProductStatusDialog } from "@/components/admin/management/confirm-product-status-dialog"
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
-import { ProductFormDialog } from "@/components/admin/management/product-form-dialog"
+import { ProductFormSheet } from "@/components/admin/management/product-form-sheet"
 import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
 import type { DeleteTarget } from "@/components/admin/management/types"
@@ -71,7 +71,7 @@ export const Component = () => {
     useQueryStates(productQueryParsers, productQueryOptions)
   const debouncedSearch = useDebounce(search, 300)
   const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const [statusTarget, setStatusTarget] = useState<{
@@ -125,9 +125,9 @@ export const Component = () => {
       })
   }, [category, debouncedSearch, direction, products, sort, status])
 
-  const openProductDialog = (product: Product | null = null) => {
+  const openProductSheet = (product: Product | null = null) => {
     setEditingProduct(product)
-    setDialogOpen(true)
+    setSheetOpen(true)
   }
 
   const handleSave = (data: ProductFormData) => {
@@ -152,7 +152,7 @@ export const Component = () => {
       toastSuccess("Đã thêm sản phẩm mới")
     }
 
-    setDialogOpen(false)
+    setSheetOpen(false)
     setEditingProduct(null)
   }
 
@@ -246,9 +246,7 @@ export const Component = () => {
         header: "SKU",
         className: "min-w-28 whitespace-nowrap",
         cell: (product) => (
-          <span className="font-mono text-sm whitespace-nowrap">
-            {product.sku}
-          </span>
+          <span className="text-sm whitespace-nowrap">{product.sku}</span>
         ),
       },
       {
@@ -280,7 +278,7 @@ export const Component = () => {
         ),
         className: "min-w-32 whitespace-nowrap",
         cell: (product) => (
-          <span className="font-medium whitespace-nowrap">
+          <span className="whitespace-nowrap">
             {formatCurrency(product.price)}
           </span>
         ),
@@ -331,7 +329,7 @@ export const Component = () => {
               variant="outline"
               size="icon"
               aria-label={`Chỉnh sửa ${product.name}`}
-              onClick={() => openProductDialog(product)}
+              onClick={() => openProductSheet(product)}
             >
               <Edit />
             </Button>
@@ -354,7 +352,7 @@ export const Component = () => {
         ),
       },
     ],
-    [direction, openProductDialog, sort, toggleSort]
+    [direction, openProductSheet, sort, toggleSort]
   )
 
   return (
@@ -407,7 +405,7 @@ export const Component = () => {
                 Xoá lọc
               </Button>
             )}
-            <Button onClick={() => openProductDialog()} className="ml-auto">
+            <Button onClick={() => openProductSheet()} className="ml-auto">
               <PlusIcon />
               Thêm sản phẩm
             </Button>
@@ -437,10 +435,10 @@ export const Component = () => {
         />
       </div>
 
-      <ProductFormDialog
-        open={dialogOpen}
+      <ProductFormSheet
+        open={sheetOpen}
         onOpenChange={(open) => {
-          setDialogOpen(open)
+          setSheetOpen(open)
           if (!open) setEditingProduct(null)
         }}
         product={editingProduct}
