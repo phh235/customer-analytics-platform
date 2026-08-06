@@ -213,7 +213,7 @@
   @apply relative;
   &:before {
     content: "";
-    @apply absolute top-0 left-[-100vw] -z-1 h-px w-[200vw] bg-border;
+    @apply absolute top-0 left-[-100vw] z-10 pointer-events-none h-px w-[200vw] bg-border;
   }
 }
 
@@ -221,7 +221,7 @@
   @apply relative;
   &:after {
     content: "";
-    @apply absolute bottom-0 left-[-100vw] -z-1 h-px w-[200vw] bg-border;
+    @apply absolute bottom-0 left-[-100vw] z-10 pointer-events-none h-px w-[200vw] bg-border;
   }
 }
 

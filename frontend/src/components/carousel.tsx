@@ -7,7 +7,7 @@ import type { CarouselApi } from "@/components/ui/carousel"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 
-const AUTOPLAY_INTERVAL = 3000
+const AUTOPLAY_INTERVAL = 4000
 
 const images = [
   "https://www.fffuel.co/images/dddepth-preview/dddepth-248.jpg",
