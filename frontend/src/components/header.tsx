@@ -4,7 +4,7 @@ import { LogOutIcon } from "lucide-react"
 import { ThemeToggle } from "@/components/common/theme-toggle"
 import { UserAvatar } from "@/components/common/user-avatar"
 import { MobileNav } from "@/components/mobile-nav"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,19 +63,8 @@ export function Header() {
         <div className="hidden items-center gap-2 md:flex">
           {user ? (
             <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    aria-label="Mở menu tài khoản"
-                    className="max-w-52 justify-start px-2"
-                    variant="ghost"
-                  />
-                }
-              >
+              <DropdownMenuTrigger>
                 <UserAvatar email={user.email} />
-                <span className="truncate text-sm font-medium">
-                  {user.full_name}
-                </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-50" sideOffset={8}>
                 <DropdownMenuGroup>
