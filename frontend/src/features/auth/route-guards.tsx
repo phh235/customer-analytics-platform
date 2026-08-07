@@ -56,6 +56,34 @@ export function AuthenticatedRoute({
   return <Outlet />
 }
 
+export function DefaultRoute() {
+  const status = useAuthStore((state) => state.status)
+  const user = useAuthStore((state) => state.user)
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const initializeSession = useAuthStore((state) => state.initializeSession)
+  const location = useLocation()
+
+  useEffect(() => {
+    if (status === "unknown") void initializeSession()
+  }, [initializeSession, status])
+
+  if (status === "unknown" || status === "loading") {
+    return <Outlet />
+  }
+
+  if (status !== "authenticated" || !accessToken || !user) {
+    return <Navigate to="/login" replace state={{ from: location }} />
+  }
+
+  const homePath = getHomePathForRole(user.role_code)
+
+  if (homePath !== "/") {
+    return <Navigate to={homePath} replace />
+  }
+
+  return <Outlet />
+}
+
 export function GuestRoute() {
   const status = useAuthStore((state) => state.status)
   const user = useAuthStore((state) => state.user)

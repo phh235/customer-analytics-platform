@@ -20,11 +20,13 @@ export function UserAvatar({ email }: UserAvatarProps) {
   const initials = getEmailInitials(avatarValue)
 
   return (
-    <Avvvatars
-      value={avatarValue}
-      displayValue={initials || avatarValue.slice(0, 2).toUpperCase()}
-      size={32}
-      style="shape"
-    />
+    <span className="inline-flex shrink-0 rounded-full contrast-100 transition-[filter] dark:contrast-125">
+      <Avvvatars
+        value={avatarValue}
+        displayValue={initials || avatarValue.slice(0, 2).toUpperCase()}
+        size={32}
+        style="shape"
+      />
+    </span>
   )
 }
