@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import uuid
 from abc import abstractmethod
 
 from customer_analytics.app.features.identity.application.dto.user_query_model import (
+    UserListQueryModel,
     UserListReadModel,
     UserReadModel,
 )
@@ -14,13 +16,13 @@ from customer_analytics.app.features.identity.domain.repositories.user_unit_of_w
 from customer_analytics.core.use_cases.use_case import BaseUseCase
 
 
-class GetUsersUseCase(BaseUseCase[tuple[int, int, str | None], UserListReadModel]):
+class GetUsersUseCase(BaseUseCase[UserListQueryModel, UserListReadModel]):
     """Get users use case interface."""
 
     unit_of_work: UserUnitOfWork
 
     @abstractmethod
-    async def __call__(self, args: tuple[int, int, str | None]) -> UserListReadModel:
+    async def __call__(self, args: UserListQueryModel) -> UserListReadModel:
         raise NotImplementedError()
 
 
@@ -30,16 +32,24 @@ class GetUsersUseCaseImpl(GetUsersUseCase):
     def __init__(self, unit_of_work: UserUnitOfWork):
         self.unit_of_work = unit_of_work
 
-    async def __call__(self, args: tuple[int, int, str | None]) -> UserListReadModel:
-        skip, limit, search = args
-
+    async def __call__(self, args: UserListQueryModel) -> UserListReadModel:
         users = await self.unit_of_work.repository.find_all(
-            skip=skip, limit=limit, search=search
+            skip=args.skip,
+            limit=args.limit,
+            search=args.search,
+            role_code=args.role_code,
+            status=args.status,
+            sort_by=args.sort_by,
+            sort_order=args.sort_order,
         )
-        total = await self.unit_of_work.repository.count_users(search=search)
+        total = await self.unit_of_work.repository.count_users(
+            search=args.search,
+            role_code=args.role_code,
+            status=args.status,
+        )
 
         # Batch load permissions for all users in a single query
-        user_ids = [u.id_ for u in users]
+        user_ids = [user.id_ for user in users if user.id_ is not None]
         permissions_map = (
             await self.unit_of_work.repository.get_users_permissions_batch(user_ids)
             if user_ids
@@ -48,10 +58,13 @@ class GetUsersUseCaseImpl(GetUsersUseCase):
 
         records = []
         for u in users:
+            if u.id_ is None:
+                raise ValueError("Persisted user is missing an ID")
+
             permissions = permissions_map.get(u.id_, [])
             records.append(
                 UserReadModel(
-                    id=u.id_,
+                    id=uuid.UUID(u.id_),
                     email=u.email,
                     full_name=u.full_name,
                     status=u.status,
@@ -62,12 +75,12 @@ class GetUsersUseCaseImpl(GetUsersUseCase):
                 )
             )
 
-        pages = (total + limit - 1) // limit if limit > 0 else 0
-        current = skip // limit + 1 if limit > 0 else 1
+        pages = (total + args.limit - 1) // args.limit
+        current = args.skip // args.limit + 1
 
         return UserListReadModel(
             current=current,
-            size=limit,
+            size=args.limit,
             total=total,
             pages=pages,
             records=records,

@@ -2,23 +2,24 @@ import * as React from "react"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 
-export interface SelectOption {
-  value: string
+export interface SelectOption<Value extends string = string> {
+  value: Value
   label: string
   disabled?: boolean
   icon?: React.ReactNode
 }
 
-export interface AppSelectProps {
-  options: SelectOption[]
-  value?: string
-  defaultValue?: string
-  onChange?: (value: string) => void
+export interface AppSelectProps<Value extends string = string> {
+  options: SelectOption<Value>[]
+  value?: Value
+  defaultValue?: Value
+  onChange?: (value: Value) => void
   placeholder?: string
   disabled?: boolean
   size?: "sm" | "default"
@@ -29,7 +30,7 @@ export interface AppSelectProps {
   "aria-label"?: string
 }
 
-export const AppSelect = ({
+export const AppSelect = <Value extends string = string>({
   options,
   value,
   defaultValue,
@@ -42,7 +43,7 @@ export const AppSelect = ({
   name,
   id,
   "aria-label": ariaLabel,
-}: AppSelectProps) => {
+}: AppSelectProps<Value>) => {
   const selectedValue = value ?? defaultValue
   const selectedOption = options.find(
     (option) => option.value === selectedValue
@@ -52,7 +53,9 @@ export const AppSelect = ({
     <Select
       value={value}
       defaultValue={defaultValue}
-      onValueChange={(val) => onChange?.(val ?? "")}
+      onValueChange={(val) => {
+        if (val !== null) onChange?.(val as Value)
+      }}
       disabled={disabled}
       name={name}
     >
@@ -67,18 +70,22 @@ export const AppSelect = ({
         </SelectValue>
       </SelectTrigger>
       <SelectContent className={contentClassName}>
-        {options.map((option) => (
-          <SelectItem
-            key={option.value}
-            value={option.value}
-            disabled={option.disabled}
-          >
-            <span className="flex items-center gap-2">
-              {option.icon && <span className="shrink-0">{option.icon}</span>}
-              <span>{option.label}</span>
-            </span>
-          </SelectItem>
-        ))}
+        <SelectGroup>
+          {options.map((option) => (
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              disabled={option.disabled}
+            >
+              <span className="flex items-center gap-2">
+                {option.icon ? (
+                  <span className="shrink-0">{option.icon}</span>
+                ) : null}
+                <span>{option.label}</span>
+              </span>
+            </SelectItem>
+          ))}
+        </SelectGroup>
       </SelectContent>
     </Select>
   )

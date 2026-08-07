@@ -4,9 +4,26 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
+
+UserRoleFilter = Literal["ADMIN", "ANALYST", "USER"]
+UserStatusFilter = Literal["ACTIVE", "DISABLED", "LOCKED"]
+UserSortField = Literal["created_at", "full_name", "last_login_at"]
+SortOrder = Literal["asc", "desc"]
+
+
+class UserListQueryModel(BaseModel):
+    """Validated filters and ordering for the paginated user list."""
+
+    skip: int = Field(default=0, ge=0)
+    limit: int = Field(default=10, ge=1, le=100)
+    search: str | None = None
+    role_code: UserRoleFilter | None = None
+    status: UserStatusFilter | None = None
+    sort_by: UserSortField = "created_at"
+    sort_order: SortOrder = "desc"
 
 
 class UserReadModel(BaseModel):

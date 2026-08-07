@@ -10,20 +10,23 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { navMain } from "@/config/navigation"
+import { useAuthStore } from "@/stores/use-auth-store"
 import { BRAND_NAME } from "@/lib/brand"
 import { MainLogo } from "@/lib/svg"
-
-const data = {
-  user: {
-    name: "phh235",
-    email: "phanhuyhoang.dev@gmail.com",
-  },
-  navMain,
-}
 
 export const AppSidebar = ({
   ...props
 }: React.ComponentProps<typeof Sidebar>) => {
+  const authUser = useAuthStore((state) => state.user)
+
+  if (!authUser) return null
+
+  const user = { name: authUser.full_name, email: authUser.email }
+  const visibleNavItems = navMain.filter(
+    (item) =>
+      !item.requiredRoles || item.requiredRoles.includes(authUser.role_code)
+  )
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -37,10 +40,10 @@ export const AppSidebar = ({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={visibleNavItems} />
       </SidebarContent>
       <SidebarFooter className="border-t border-border">
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
