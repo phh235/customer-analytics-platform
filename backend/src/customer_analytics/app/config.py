@@ -1,4 +1,8 @@
-"""Application configuration — Settings loaded from environment variables."""
+"""Application configuration — Settings loaded from environment variables.
+
+Source of truth: .env file (copy from .env.example)
+Config.py only defines types and validation — no hardcoded defaults.
+"""
 
 from __future__ import annotations
 
@@ -9,34 +13,30 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # ── App ──────────────────────────────────────────────
-    APP_NAME: str = "customer-analytics"
-    APP_ENV: str = "development"
-    APP_DEBUG: bool = True
-    APP_VERSION: str = "0.1.0"
+    APP_NAME: str
+    APP_ENV: str
+    APP_DEBUG: bool
+    APP_VERSION: str
 
     # ── API ──────────────────────────────────────────────
-    API_V1_PREFIX: str = "/api/v1"
+    API_V1_PREFIX: str
 
     # ── CORS ─────────────────────────────────────────────
-    BACKEND_CORS_ORIGINS: list[str] = [
-        "http://localhost:4000",
-        "http://127.0.0.1:4000",
-        "https://customer-analytics-app.vercel.app",
-    ]
+    BACKEND_CORS_ORIGINS: list[str]
 
     # ── Database ─────────────────────────────────────────
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "customer_analytics"
-    POSTGRES_USER: str = "customer_analytics"
-    POSTGRES_PASSWORD: str = "change_me"
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    POSTGRES_DB: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
 
     # ── Connection Pool ──────────────────────────────────
-    DB_POOL_SIZE: int = 10
-    DB_MAX_OVERFLOW: int = 20
-    DB_POOL_PRE_PING: bool = True
-    DB_POOL_TIMEOUT: int = 30
-    DB_POOL_RECYCLE: int = 1800
+    DB_POOL_SIZE: int
+    DB_MAX_OVERFLOW: int
+    DB_POOL_PRE_PING: bool
+    DB_POOL_TIMEOUT: int
+    DB_POOL_RECYCLE: int
 
     @property
     def database_url(self) -> str:
@@ -61,19 +61,19 @@ class Settings(BaseSettings):
         return self.database_url.replace("+asyncpg", "")
 
     # ── JWT ──────────────────────────────────────────────
-    JWT_SECRET_KEY: str = "change_me"
-    JWT_ALGORITHM: str = "HS256"
-    JWT_ACCESS_TOKEN_TTL_MINUTES: int = 15
-    JWT_REFRESH_TOKEN_TTL_DAYS: int = 7
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str
+    JWT_ACCESS_TOKEN_TTL_MINUTES: int
+    JWT_REFRESH_TOKEN_TTL_DAYS: int
 
     @property
     def jwt_access_token_ttl_seconds(self) -> int:
         return self.JWT_ACCESS_TOKEN_TTL_MINUTES * 60
 
     # ── Logging ──────────────────────────────────────────
-    LOG_LEVEL: str = "INFO"
+    LOG_LEVEL: str
 
-    # ── Validation helpers ───────────────────────────────
+    # ── Validation ───────────────────────────────────────
 
     @field_validator("APP_ENV")
     @classmethod
@@ -98,7 +98,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
-        # Không cho phép field lạ — fail early nếu config sai
+        # Fail early nếu config sai hoặc thiếu
         extra="forbid",
     )
 

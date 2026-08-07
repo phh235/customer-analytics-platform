@@ -10,3 +10,4 @@ argon2-cffi>=25.1.0
 pyjwt[crypto]>=2.13.0
 pydantic[email]>=2.13.4
 uuid-utils>=0.17.0
+python-multipart>=0.0.32

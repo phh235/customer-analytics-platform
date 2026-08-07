@@ -86,10 +86,10 @@ class RegisterRequest(BaseModel):
         examples=["Nguyen Van A"],
     )
     role_code: str = Field(
-        default="ANALYST",
+        default="CLIENT",
         max_length=50,
-        description="Role code (ADMIN or ANALYST)",
-        examples=["ANALYST"],
+        description="Role code (ADMIN or CLIENT)",
+        examples=["CLIENT"],
     )
 
     model_config = {
@@ -99,7 +99,7 @@ class RegisterRequest(BaseModel):
                     "email": "newuser@example.com",
                     "password": "StrongPassword123!",
                     "full_name": "Nguyen Van A",
-                    "role_code": "ANALYST",
+                    "role_code": "CLIENT",
                 }
             ]
         }
@@ -146,7 +146,7 @@ class UserResponse(BaseModel):
                     "email": "user@example.com",
                     "full_name": "Nguyen Van A",
                     "status": "ACTIVE",
-                    "role_code": "ANALYST",
+                    "role_code": "CLIENT",
                     "permissions": [
                         "customers:read",
                         "customers:export",
@@ -229,7 +229,7 @@ class PaginatedUsersResponse(BaseModel):
                             "email": "user@example.com",
                             "full_name": "Nguyen Van A",
                             "status": "ACTIVE",
-                            "role_code": "ANALYST",
+                            "role_code": "CLIENT",
                             "permissions": [
                                 "customers:read",
                                 "customers:export",

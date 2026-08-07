@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
+import uuid
+from abc import abstractmethod, ABC
 from datetime import datetime
 
 
-class RefreshTokenRepository:
-    """Refresh token repository interface — Defines refresh token data access operations."""
+class RefreshTokenRepository(ABC):
+    """Refresh token repository interface."""
 
     @abstractmethod
     async def save(
         self,
         token_hash: str,
-        user_id: str,
+        user_id: uuid.UUID,
         family_id: str,
         expires_at: datetime,
         created_ip: str | None = None,
@@ -38,16 +39,16 @@ class RefreshTokenRepository:
         raise NotImplementedError()
 
     @abstractmethod
-    async def revoke_all_by_user(self, user_id: str) -> int:
+    async def revoke_all_by_user(self, user_id: uuid.UUID) -> int:
         """Revoke all refresh tokens for a user. Returns count of revoked tokens."""
         raise NotImplementedError()
 
     @abstractmethod
     async def delete_expired(self) -> int:
-        """Delete expired and revoked refresh tokens. Returns count of deleted tokens."""
+        """Delete expired and revoked refresh tokens."""
         raise NotImplementedError()
 
     @abstractmethod
-    async def find_active_by_user(self, user_id: str) -> list[dict]:
+    async def find_active_by_user(self, user_id: uuid.UUID) -> list[dict]:
         """Find all active (non-revoked, non-expired) refresh tokens for a user."""
         raise NotImplementedError()

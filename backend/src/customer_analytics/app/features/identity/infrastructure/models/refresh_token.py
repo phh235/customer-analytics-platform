@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from customer_analytics.core.database import Base
@@ -27,9 +28,9 @@ class RefreshTokenModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         index=True,
         comment="SHA-256 hash of refresh token",
     )
-    user_id: Mapped[str] = mapped_column(
-        String(36),
-        ForeignKey("users.id"),
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

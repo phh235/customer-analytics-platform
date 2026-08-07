@@ -11,7 +11,7 @@ class UserCreateModel(BaseModel):
     email: EmailStr = Field(..., description="Email address")
     password: str = Field(..., min_length=8, max_length=128, description="Password")
     full_name: str = Field(..., min_length=1, max_length=100, description="Full name")
-    role_code: str = Field(default="ANALYST", max_length=50, description="Role code")
+    role_code: str = Field(default="CLIENT", max_length=50, description="Role code")
 
 
 class UserUpdateModel(BaseModel):

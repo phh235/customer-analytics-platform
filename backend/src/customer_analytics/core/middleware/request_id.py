@@ -1,10 +1,10 @@
 """
 Request ID middleware — gắn request_id vào mọi request.
 
-Mỗi request nhận một UUID duy nhất, được:
-1. Gán vào structlog context → mọi log tự động có request_id
-2. Trả về trong response header `X-Request-ID`
-3. Ghi log method + path + status + duration khi kết thúc
+Logic:
+1. Nếu Client gửi header `X-Request-ID` → dùng cái đó (để client report lỗi)
+2. Nếu Client không gửi → tự sinh UUID7 mới
+3. Response luôn trả về `X-Request-ID` trong header
 """
 
 from __future__ import annotations
@@ -29,8 +29,8 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
-        # 1. Sinh UUID duy nhất cho request này
-        request_id = str(uuid_utils.uuid7())
+        # 1. Lấy request_id từ client hoặc tự sinh
+        request_id = request.headers.get("x-request-id") or str(uuid_utils.uuid7())
 
         # 2. Gán vào structlog context — mọi log trong request sẽ có request_id
         structlog.contextvars.bind_contextvars(request_id=request_id)
