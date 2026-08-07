@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
-from sqlalchemy import func, select
+import uuid
+
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from customer_analytics.app.features.identity.domain.entities.user_entity import (
     UserEntity,
 )
+from customer_analytics.app.features.identity.domain.enums import UserStatus
 from customer_analytics.app.features.identity.domain.repositories.user_repository import (  # noqa: E501
     UserRepository,
 )
 from customer_analytics.app.features.identity.infrastructure.models.user import (
     PermissionModel,
+    RoleModel,
     RolePermissionModel,
     UserModel,
 )
@@ -40,6 +44,7 @@ class UserRepositoryImpl(UserRepository):
             if hasattr(model.status, "value")
             else model.status,
             role_code=model.role.code if model.role else "ANALYST",
+            role_id=str(model.role_id),
             is_active=model.status.value == "ACTIVE"
             if hasattr(model.status, "value")
             else model.status == "ACTIVE",
@@ -65,6 +70,7 @@ class UserRepositoryImpl(UserRepository):
             email=entity.email,
             password_hash=entity.password_hash,
             full_name=entity.full_name,
+            role_id=uuid.UUID(entity.role_id) if entity.role_id else None,
             status=status,
             failed_login_count=entity.failed_login_count,
             locked_until=entity.locked_until,
@@ -73,12 +79,25 @@ class UserRepositoryImpl(UserRepository):
 
     async def create(self, entity: UserEntity) -> UserEntity:
         """Create a new user."""
+        if entity.role_id is None:
+            role_id = await self.find_role_id_by_code(entity.role_code)
+            if role_id is None:
+                raise ValueError(f"Role '{entity.role_code}' not found")
+            entity.role_id = str(role_id)
+
         model = self._to_model(entity)
         self._session.add(model)
         await self._session.flush()
         # Refresh model to load server-generated values (id, created_at, etc.)
         await self._session.refresh(model)
         return await self._to_entity(model)
+
+    async def find_role_id_by_code(self, role_code: str) -> uuid.UUID | None:
+        """Find a role primary key by its code."""
+        result = await self._session.execute(
+            select(RoleModel.id).where(func.upper(RoleModel.code) == role_code.upper())
+        )
+        return result.scalar_one_or_none()
 
     async def find_by_id(self, id_: str) -> UserEntity | None:
         """Find a user by ID."""
@@ -112,11 +131,11 @@ class UserRepositoryImpl(UserRepository):
                 PermissionModel.code.label("permission_code"),
             )
             .options(selectinload(UserModel.role))
-            .join(
+            .outerjoin(
                 RolePermissionModel,
                 UserModel.role_id == RolePermissionModel.role_id,
             )
-            .join(
+            .outerjoin(
                 PermissionModel,
                 RolePermissionModel.permission_id == PermissionModel.id,
             )
@@ -131,7 +150,9 @@ class UserRepositoryImpl(UserRepository):
 
         # First row has the user model (with role loaded via selectinload)
         model = rows[0][0]
-        permissions = [row.permission_code for row in rows]
+        permissions = [
+            row.permission_code for row in rows if row.permission_code is not None
+        ]
 
         entity = await self._to_entity(model)
         return entity, permissions
@@ -141,34 +162,78 @@ class UserRepositoryImpl(UserRepository):
         skip: int = 0,
         limit: int = 100,
         search: str | None = None,
+        role_code: str | None = None,
+        status: str | None = None,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
     ) -> list[UserEntity]:
-        """Find all users with pagination and search.
+        """Find users with pagination, filters, and ordering.
 
         Uses selectinload to eagerly load role relationship in a single query.
+        Administrators are always ordered before other roles.
         """
         stmt = (
             select(UserModel)
+            .join(RoleModel, UserModel.role_id == RoleModel.id)
             .options(selectinload(UserModel.role))
-            .order_by(UserModel.created_at.desc())
         )
         if search:
             stmt = stmt.where(
                 func.lower(UserModel.email).contains(search.lower())
                 | func.lower(UserModel.full_name).contains(search.lower())
             )
+        if role_code:
+            stmt = stmt.where(func.upper(RoleModel.code) == role_code.upper())
+        if status:
+            stmt = stmt.where(UserModel.status == UserStatus(status))
+
+        sort_expression = {
+            "created_at": UserModel.created_at,
+            "full_name": func.lower(UserModel.full_name),
+            "last_login_at": UserModel.last_login_at,
+        }.get(sort_by, UserModel.created_at)
+        ordered_sort_expression = (
+            sort_expression.asc() if sort_order == "asc" else sort_expression.desc()
+        )
+        if sort_by == "last_login_at":
+            ordered_sort_expression = ordered_sort_expression.nulls_last()
+
+        admin_first = case(
+            (func.upper(RoleModel.code) == "ADMIN", 0),
+            else_=1,
+        )
+        stmt = stmt.order_by(
+            admin_first.asc(),
+            ordered_sort_expression,
+            UserModel.created_at.desc(),
+            UserModel.id.asc(),
+        )
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         models = result.scalars().all()
         return [await self._to_entity(m) for m in models]
 
-    async def count_users(self, search: str | None = None) -> int:
-        """Count total users."""
-        stmt = select(func.count()).select_from(UserModel)
+    async def count_users(
+        self,
+        search: str | None = None,
+        role_code: str | None = None,
+        status: str | None = None,
+    ) -> int:
+        """Count users matching the supplied filters."""
+        stmt = (
+            select(func.count())
+            .select_from(UserModel)
+            .join(RoleModel, UserModel.role_id == RoleModel.id)
+        )
         if search:
             stmt = stmt.where(
                 func.lower(UserModel.email).contains(search.lower())
                 | func.lower(UserModel.full_name).contains(search.lower())
             )
+        if role_code:
+            stmt = stmt.where(func.upper(RoleModel.code) == role_code.upper())
+        if status:
+            stmt = stmt.where(UserModel.status == UserStatus(status))
         result = await self._session.execute(stmt)
         return result.scalar_one()
 
@@ -250,6 +315,8 @@ class UserRepositoryImpl(UserRepository):
         # Update model fields
         model.email = entity.email
         model.full_name = entity.full_name
+        if entity.role_id:
+            model.role_id = uuid.UUID(entity.role_id)
         model.failed_login_count = entity.failed_login_count
         model.locked_until = entity.locked_until
         model.last_login_at = entity.last_login_at
@@ -266,6 +333,8 @@ class UserRepositoryImpl(UserRepository):
         await self._session.flush()
         # Refresh model to load server-generated values (updated_at, etc.)
         await self._session.refresh(model)
+        # Refresh the relationship too when the role was changed in this unit.
+        await self._session.refresh(model, ["role"])
         return await self._to_entity(model)
 
     async def delete(self, id_: str) -> None:

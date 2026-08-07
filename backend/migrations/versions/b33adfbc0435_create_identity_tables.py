@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-08-05 16:24:32.418082
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -29,9 +30,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_permissions")),
     )
-    op.create_index(
-        op.f("ix_permissions_code"), "permissions", ["code"], unique=True
-    )
+    op.create_index(op.f("ix_permissions_code"), "permissions", ["code"], unique=True)
 
     # roles
     op.create_table(
@@ -109,7 +108,9 @@ def downgrade() -> None:
         "products",
         sa.Column("productid", sa.INTEGER(), autoincrement=False, nullable=False),
         sa.Column("product", sa.VARCHAR(length=50), autoincrement=False, nullable=True),
-        sa.Column("category", sa.VARCHAR(length=50), autoincrement=False, nullable=True),
+        sa.Column(
+            "category", sa.VARCHAR(length=50), autoincrement=False, nullable=True
+        ),
         sa.Column("price", sa.INTEGER(), autoincrement=False, nullable=True),
         sa.PrimaryKeyConstraint("productid", name=op.f("products_pkey")),
     )

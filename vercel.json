@@ -14,7 +14,7 @@
     "backend": {
       "root": "backend",
       "framework": "fastapi",
-      "entrypoint": "app/app.py"
+      "entrypoint": "src/customer_analytics/main.py"
     }
   },
   "rewrites": [

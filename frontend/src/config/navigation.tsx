@@ -6,9 +6,23 @@ import {
   PackageIcon,
   SettingsIcon,
   UsersIcon,
+  UserCogIcon,
 } from "lucide-react"
+import type { UserRole } from "@/types/user"
 
-export const navMain = [
+export interface NavigationItem {
+  title: string
+  url: string
+  icon?: React.ReactNode
+  isActive?: boolean
+  requiredRoles?: readonly UserRole[]
+  items?: {
+    title: string
+    url: string
+  }[]
+}
+
+export const navMain: NavigationItem[] = [
   {
     title: "Tổng quan",
     url: "/dashboard",
@@ -33,6 +47,12 @@ export const navMain = [
     title: "Khách hàng",
     url: "/dashboard/customers",
     icon: <UsersIcon />,
+  },
+  {
+    title: "Quản lý tài khoản",
+    url: "/dashboard/users",
+    icon: <UserCogIcon />,
+    requiredRoles: ["ADMIN"],
   },
   {
     title: "Giao dịch",

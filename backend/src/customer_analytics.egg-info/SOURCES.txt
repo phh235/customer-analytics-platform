@@ -31,6 +31,7 @@ src/customer_analytics/app/features/identity/domain/exceptions.py
 src/customer_analytics/app/features/identity/domain/entities/__init__.py
 src/customer_analytics/app/features/identity/domain/entities/user_entity.py
 src/customer_analytics/app/features/identity/domain/repositories/__init__.py
+src/customer_analytics/app/features/identity/domain/repositories/refresh_token_repository.py
 src/customer_analytics/app/features/identity/domain/repositories/user_repository.py
 src/customer_analytics/app/features/identity/domain/repositories/user_unit_of_work.py
 src/customer_analytics/app/features/identity/domain/usecases/__init__.py
@@ -38,6 +39,7 @@ src/customer_analytics/app/features/identity/infrastructure/__init__.py
 src/customer_analytics/app/features/identity/infrastructure/jwt_service.py
 src/customer_analytics/app/features/identity/infrastructure/password_hasher.py
 src/customer_analytics/app/features/identity/infrastructure/models/__init__.py
+src/customer_analytics/app/features/identity/infrastructure/models/refresh_token.py
 src/customer_analytics/app/features/identity/infrastructure/models/user.py
 src/customer_analytics/app/features/identity/infrastructure/repositories/__init__.py
 src/customer_analytics/app/features/identity/infrastructure/repositories/user_repository_impl.py
@@ -67,6 +69,7 @@ src/customer_analytics/core/logging/__init__.py
 src/customer_analytics/core/logging/sanitizers.py
 src/customer_analytics/core/middleware/__init__.py
 src/customer_analytics/core/middleware/cors.py
+src/customer_analytics/core/middleware/gzip.py
 src/customer_analytics/core/middleware/request_id.py
 src/customer_analytics/core/repositories/__init__.py
 src/customer_analytics/core/repositories/base_repository.py

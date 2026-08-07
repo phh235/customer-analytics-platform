@@ -41,7 +41,7 @@ PERMISSIONS = [
 
 async def seed_permissions() -> dict[str, PermissionModel]:
     """Seed permissions and return mapping."""
-    permissions = {}
+    permissions: dict[str, PermissionModel] = {}
     async with AsyncSessionFactory() as session:
         for code, resource, action, description in PERMISSIONS:
             # Check if exists
@@ -69,13 +69,23 @@ async def seed_permissions() -> dict[str, PermissionModel]:
 
 async def seed_roles(permissions: dict[str, PermissionModel]) -> dict[str, RoleModel]:
     """Seed roles and assign permissions."""
-    roles = {}
+    roles: dict[str, RoleModel] = {}
     async with AsyncSessionFactory() as session:
+        # Re-load permission models in this session. The objects returned by
+        # seed_permissions belong to a different, already-closed session.
+        permission_result = await session.execute(
+            select(PermissionModel).where(PermissionModel.code.in_(permissions.keys()))
+        )
+        permission_models = {
+            permission.code: permission
+            for permission in permission_result.scalars().all()
+        }
+
         # ADMIN role
-        result = await session.execute(
+        admin_result = await session.execute(
             select(RoleModel).where(RoleModel.code == "ADMIN")
         )
-        admin_role = result.scalar_one_or_none()
+        admin_role = admin_result.scalar_one_or_none()
         if not admin_role:
             admin_role = RoleModel(
                 id=uuid_utils.uuid7(),
@@ -84,14 +94,14 @@ async def seed_roles(permissions: dict[str, PermissionModel]) -> dict[str, RoleM
                 description="Quản trị viên hệ thống",
             )
             session.add(admin_role)
-        admin_role.permissions = list(permissions.values())
+        admin_role.permissions = list(permission_models.values())
         roles["ADMIN"] = admin_role
 
         # ANALYST role
-        result = await session.execute(
+        analyst_result = await session.execute(
             select(RoleModel).where(RoleModel.code == "ANALYST")
         )
-        analyst_role = result.scalar_one_or_none()
+        analyst_role = analyst_result.scalar_one_or_none()
         if not analyst_role:
             analyst_role = RoleModel(
                 id=uuid_utils.uuid7(),
@@ -102,18 +112,32 @@ async def seed_roles(permissions: dict[str, PermissionModel]) -> dict[str, RoleM
             session.add(analyst_role)
         # ANALYST gets read-only + analytics permissions
         analyst_permissions = [
-            p
-            for code, p in permissions.items()
-            if code
-            in [
+            permission_models[code]
+            for code in [
                 "customers:read",
                 "customers:export",
                 "analytics:read",
                 "analytics:predict",
             ]
+            if code in permission_models
         ]
         analyst_role.permissions = analyst_permissions
         roles["ANALYST"] = analyst_role
+
+        # USER role. It intentionally starts without back-office permissions.
+        user_result = await session.execute(
+            select(RoleModel).where(RoleModel.code == "USER")
+        )
+        user_role = user_result.scalar_one_or_none()
+        if not user_role:
+            user_role = RoleModel(
+                id=uuid_utils.uuid7(),
+                code="USER",
+                name="Customer",
+                description="Người dùng ứng dụng",
+            )
+            session.add(user_role)
+        roles["USER"] = user_role
 
         await session.commit()
     return roles

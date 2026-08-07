@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -85,11 +85,10 @@ class RegisterRequest(BaseModel):
         description="Full name",
         examples=["Nguyen Van A"],
     )
-    role_code: str = Field(
-        default="ANALYST",
-        max_length=50,
-        description="Role code (ADMIN or ANALYST)",
-        examples=["ANALYST"],
+    role_code: Literal["ADMIN", "ANALYST", "USER"] = Field(
+        default="USER",
+        description="Role code (ADMIN, ANALYST, or USER)",
+        examples=["USER"],
     )
 
     model_config = {
@@ -99,11 +98,30 @@ class RegisterRequest(BaseModel):
                     "email": "newuser@example.com",
                     "password": "StrongPassword123!",
                     "full_name": "Nguyen Van A",
-                    "role_code": "ANALYST",
+                    "role_code": "USER",
                 }
             ]
         }
     }
+
+
+class UpdateUserRequest(BaseModel):
+    """Update an account's profile, role, or status (admin only)."""
+
+    full_name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+        description="Full name",
+    )
+    role_code: Literal["ADMIN", "ANALYST", "USER"] | None = Field(
+        default=None,
+        description="Role code",
+    )
+    status: Literal["ACTIVE", "DISABLED", "LOCKED"] | None = Field(
+        default=None,
+        description="Account status",
+    )
 
 
 # ── Response schemas ───────────────────────────────────────
