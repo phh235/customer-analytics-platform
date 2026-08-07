@@ -14,7 +14,8 @@ Flow:
 
 from __future__ import annotations
 
-from typing import Annotated
+import uuid
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Request, Response, status
 
@@ -56,8 +57,23 @@ REFRESH_TOKEN_COOKIE = "refresh_token"
 # SameSite=Strict: Browser won't send on cross-site requests (prevents CSRF)
 # secure=True: Only send over HTTPS (set False for local dev only)
 COOKIE_SECURE = settings.APP_ENV == "production"
-COOKIE_SAMESITE = "strict"
+COOKIE_SAMESITE: Literal["strict"] = "strict"
 COOKIE_PATH = "/api/v1/auth"  # Only send to auth endpoints
+
+
+def _require_user_id(
+    value: str | None,
+    *,
+    error_code: ErrorCode,
+    message: str,
+) -> tuple[str, uuid.UUID]:
+    if value is None:
+        raise AppException(error_code=error_code, message=message)
+
+    try:
+        return value, uuid.UUID(value)
+    except ValueError:
+        raise AppException(error_code=error_code, message=message) from None
 
 
 def _set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
@@ -122,14 +138,19 @@ async def login(
     """
     use_case = LoginUserUseCaseImpl(unit_of_work)
     user = await use_case((body.email, body.password))
+    _, user_uuid = _require_user_id(
+        user.id_,
+        error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+        message="User account has an invalid ID.",
+    )
 
     # Create tokens
     access_token = create_access_token(
-        user_id=user.id_,
+        user_id=user_uuid,
         role_code=user.role_code,
         permissions=user.permissions,
     )
-    refresh_token = create_refresh_token(user_id=user.id_)
+    refresh_token = create_refresh_token(user_id=user_uuid)
 
     # Set refresh token in HTTP-only cookie
     _set_refresh_token_cookie(response, refresh_token)
@@ -178,21 +199,31 @@ async def refresh_token(
 
     # Decode and validate refresh token
     payload = decode_refresh_token(refresh_token_value)
-    user_id = payload.get("sub")
+    token_subject = payload.get("sub")
 
-    if not user_id:
+    if not isinstance(token_subject, str) or not token_subject:
         raise AppException(
             error_code=ErrorCode.INVALID_REFRESH_TOKEN,
             message="Invalid refresh token payload.",
         )
 
     # Find user
-    user = await unit_of_work.repository.find_by_id(user_id)
+    user = await unit_of_work.repository.find_by_id(token_subject)
     if not user:
         raise AppException(
             error_code=ErrorCode.INVALID_CREDENTIALS,
             message="User not found.",
         )
+
+    # Refresh tokens only contain the user ID. Load the current role
+    # permissions before minting a new access token so permission changes
+    # take effect after refresh instead of producing permissions: [].
+    user_id, user_uuid = _require_user_id(
+        user.id_,
+        error_code=ErrorCode.INVALID_REFRESH_TOKEN,
+        message="Invalid user ID in refresh session.",
+    )
+    user.permissions = await unit_of_work.repository.get_user_permissions(user_id)
 
     # Check if user is active
     if user.status != "ACTIVE":
@@ -203,11 +234,11 @@ async def refresh_token(
 
     # Create new tokens
     access_token = create_access_token(
-        user_id=user.id_,
+        user_id=user_uuid,
         role_code=user.role_code,
         permissions=user.permissions,
     )
-    new_refresh_token = create_refresh_token(user_id=user.id_)
+    new_refresh_token = create_refresh_token(user_id=user_uuid)
 
     # Set new refresh token in HTTP-only cookie
     _set_refresh_token_cookie(response, new_refresh_token)

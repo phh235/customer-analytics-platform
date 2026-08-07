@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router"
 import { UserAvatar } from "@/components/common/user-avatar"
 import {
   DropdownMenu,
@@ -21,6 +20,8 @@ import {
   LogOutIcon,
   UserRoundIcon,
 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
+import { useLogout } from "@/hooks/use-logout"
 
 export function NavUser({
   user,
@@ -31,12 +32,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    navigate("/login", { replace: true })
-  }
+  const { handleLogout, isLoggingOut } = useLogout()
 
   return (
     <SidebarMenu>
@@ -82,8 +78,12 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} variant="destructive">
-              <LogOutIcon />
+            <DropdownMenuItem
+              disabled={isLoggingOut}
+              onClick={() => void handleLogout()}
+              variant="destructive"
+            >
+              {isLoggingOut ? <Spinner /> : <LogOutIcon />}
               Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
