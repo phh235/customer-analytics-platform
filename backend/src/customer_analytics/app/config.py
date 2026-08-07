@@ -21,7 +21,8 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: list[str] = [
         "http://localhost:4000",
         "http://127.0.0.1:4000",
-        "https://customer-analytics-app.vercel.app",
+        "https://azuki-store.vercel.app",
+        "https://azuki-store-dev.vercel.app",
     ]
 
     # ── Database ─────────────────────────────────────────

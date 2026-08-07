@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from datetime import datetime
+from typing import Any
 
 
 class RefreshTokenRepository:
-    """Refresh token repository interface — Defines refresh token data access operations."""
+    """Refresh token repository interface."""
 
     @abstractmethod
     async def save(
@@ -23,7 +24,7 @@ class RefreshTokenRepository:
         raise NotImplementedError()
 
     @abstractmethod
-    async def find_by_token_hash(self, token_hash: str) -> dict | None:
+    async def find_by_token_hash(self, token_hash: str) -> dict[str, Any] | None:
         """Find a refresh token by its hash."""
         raise NotImplementedError()
 
@@ -44,10 +45,10 @@ class RefreshTokenRepository:
 
     @abstractmethod
     async def delete_expired(self) -> int:
-        """Delete expired and revoked refresh tokens. Returns count of deleted tokens."""
+        """Delete expired and revoked refresh tokens."""
         raise NotImplementedError()
 
     @abstractmethod
-    async def find_active_by_user(self, user_id: str) -> list[dict]:
+    async def find_active_by_user(self, user_id: str) -> list[dict[str, Any]]:
         """Find all active (non-revoked, non-expired) refresh tokens for a user."""
         raise NotImplementedError()

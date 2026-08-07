@@ -20,17 +20,11 @@ export function UserAvatar({ email }: UserAvatarProps) {
   const initials = getEmailInitials(avatarValue)
 
   return (
-    <div
-      role="img"
-      aria-label={`Ảnh đại diện của ${email}`}
-      className="shrink-0"
-    >
-      <Avvvatars
-        value={avatarValue}
-        displayValue={initials || avatarValue.slice(0, 2).toUpperCase()}
-        size={32}
-        style="shape"
-      />
-    </div>
+    <Avvvatars
+      value={avatarValue}
+      displayValue={initials || avatarValue.slice(0, 2).toUpperCase()}
+      size={32}
+      style="shape"
+    />
   )
 }

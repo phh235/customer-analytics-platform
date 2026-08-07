@@ -10,7 +10,6 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy.ext.asyncio import create_async_engine
 
 # Import project modules
 from customer_analytics.configuration.database import Base
@@ -23,6 +22,7 @@ from customer_analytics.identity.domain.entities import (  # noqa: F401
     RolePermission,
     User,
 )
+from sqlalchemy.ext.asyncio import create_async_engine
 
 # Alembic Config object
 config = context.config
@@ -37,7 +37,7 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     """Chạy migration ở offline mode (không cần database).
-    
+
     Dùng khi muốn generate SQL script mà không chạy thật.
     """
     url = settings.database_url_sync
