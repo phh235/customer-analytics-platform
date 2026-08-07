@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router"
 import {
   AuthenticatedRoute,
+  DefaultRoute,
   GuestRoute,
   RoleRoute,
 } from "@/features/auth/route-guards"
@@ -9,6 +10,24 @@ import { ADMIN_ROLES, CLIENT_ROLES, STAFF_ROLES } from "@/lib/auth-routing"
 export const router = createBrowserRouter([
   {
     path: "/",
+    element: <DefaultRoute />,
+    children: [
+      {
+        lazy: async () => {
+          const { default: Component } = await import("@/layouts/client-layout")
+
+          return { Component }
+        },
+        children: [
+          {
+            index: true,
+            lazy: () => import("@/pages/client/home"),
+          },
+        ],
+      },
+    ],
+  },
+  {
     lazy: async () => {
       const { default: Component } = await import("@/layouts/client-layout")
 
@@ -21,10 +40,6 @@ export const router = createBrowserRouter([
           {
             element: <RoleRoute allowedRoles={CLIENT_ROLES} />,
             children: [
-              {
-                index: true,
-                lazy: () => import("@/pages/client/home"),
-              },
               {
                 path: "products",
                 lazy: () => import("@/pages/client/products"),
