@@ -63,7 +63,7 @@ export function UserFormSheet({
       email: "",
       full_name: "",
       password: "",
-      role_code: "USER",
+      role_code: "CLIENT",
       status: "ACTIVE",
     },
     resolver: zodResolver(formSchema),
@@ -76,7 +76,7 @@ export function UserFormSheet({
       email: user?.email ?? "",
       full_name: user?.full_name ?? "",
       password: "",
-      role_code: user?.role_code ?? "USER",
+      role_code: user?.role_code ?? "CLIENT",
       status: user?.status ?? "ACTIVE",
     })
   }, [form, open, user])
