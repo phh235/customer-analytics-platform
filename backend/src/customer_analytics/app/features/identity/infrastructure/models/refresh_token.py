@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, func
+from sqlalchemy import DateTime, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from customer_analytics.core.database import Base
@@ -59,9 +59,7 @@ class RefreshTokenModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         comment="User-Agent for audit",
     )
 
-    __table_args__ = (
-        Index("ix_refresh_tokens_user_family", "user_id", "family_id"),
-    )
+    __table_args__ = (Index("ix_refresh_tokens_user_family", "user_id", "family_id"),)
 
     @property
     def is_revoked(self) -> bool:
