@@ -21,4 +21,7 @@ engine = create_async_engine(
     pool_pre_ping=settings.DB_POOL_PRE_PING,
     pool_timeout=settings.DB_POOL_TIMEOUT,
     pool_recycle=settings.DB_POOL_RECYCLE,
+    # Disable statement caching to avoid InvalidCachedStatementError
+    # after schema changes (e.g., running migrations)
+    connect_args={"statement_cache_size": 0},
 )

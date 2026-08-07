@@ -1,23 +1,11 @@
-"""Identity domain exceptions — Deprecated.
+"""Identity domain exceptions.
 
-All exceptions now use AppException + ErrorCode from shared layer.
-This file is kept for backward compatibility only.
+All exceptions use AppException + ErrorCode from shared layer.
 """
 
 from __future__ import annotations
 
-# Re-export AppException for backward compatibility
+# Re-export AppException for convenience
 from customer_analytics.app.shared.exceptions import AppException
 
-# Legacy aliases (deprecated — use AppException directly)
-UserNotFoundError = AppException
-InvalidCredentialsError = AppException
-UserDisabledError = AppException
-UserLockedError = AppException
-EmailAlreadyExistsError = AppException
-RoleNotFoundError = AppException
-InsufficientPermissionsError = AppException
-RefreshTokenError = AppException
-RefreshTokenReuseError = AppException
-CannotDisableSelfError = AppException
-IdentityError = AppException
+__all__ = ["AppException"]

@@ -27,11 +27,14 @@ def upgrade() -> None:
     user_status_enum.create(op.get_bind(), checkfirst=True)
 
     # Alter the status column from VARCHAR to ENUM
+    # Using explicit casting for existing data
+    op.execute(
+        "ALTER TABLE users ALTER COLUMN status TYPE userstatus "
+        "USING status::userstatus"
+    )
     op.alter_column(
         "users",
         "status",
-        existing_type=sa.String(length=20),
-        type_=user_status_enum,
         nullable=False,
         server_default="ACTIVE",
     )

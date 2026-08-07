@@ -12,7 +12,7 @@ from http import HTTPStatus
 from typing import Any
 
 import structlog
-from fastapi import Request, status
+from fastapi import HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -88,6 +88,32 @@ def app_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         request=request,
         status_code=exc.status_code,
         message=exc.message,
+        error=error_phrase,
+    )
+
+
+def http_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Xử lý HTTPException — format JSON đồng nhất."""
+    assert isinstance(exc, HTTPException)
+    logger.warning(
+        "http_exception",
+        status_code=exc.status_code,
+        detail=str(exc.detail),
+        path=request.url.path,
+    )
+    error_phrase = HTTPStatus(exc.status_code).phrase
+    # Map detail to ErrorCode message if possible
+    message = str(exc.detail)
+    if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+        message = "Authentication required"
+    elif exc.status_code == status.HTTP_403_FORBIDDEN:
+        message = "Access denied"
+    elif exc.status_code == status.HTTP_404_NOT_FOUND:
+        message = "Resource not found"
+    return _build_error_response(
+        request=request,
+        status_code=exc.status_code,
+        message=message,
         error=error_phrase,
     )
 

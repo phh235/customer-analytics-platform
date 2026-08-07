@@ -80,6 +80,7 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
             # Record failed attempt
             updated_user = user.record_failed_login()
             await self.unit_of_work.repository.update(updated_user)
+            # Commit immediately for failed login (security audit)
             await self.unit_of_work.commit()
             # Generic message to not leak info
             raise AppException(
@@ -87,10 +88,9 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
                 message="Email hoặc mật khẩu không chính xác.",
             )
 
-        # 5. Record successful login
+        # 5. Record successful login (don't commit here - caller will commit)
         updated_user = user.record_successful_login()
         await self.unit_of_work.repository.update(updated_user)
-        await self.unit_of_work.commit()
 
         # 6. Attach permissions (already loaded from query)
         updated_user.permissions = permissions

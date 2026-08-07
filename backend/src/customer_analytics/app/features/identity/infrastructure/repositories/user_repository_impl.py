@@ -39,7 +39,7 @@ class UserRepositoryImpl(UserRepository):
             status=model.status.value
             if hasattr(model.status, "value")
             else model.status,
-            role_code=model.role.code if model.role else "ANALYST",
+            role_code=model.role.code if model.role else "CLIENT",
             is_active=model.status.value == "ACTIVE"
             if hasattr(model.status, "value")
             else model.status == "ACTIVE",

@@ -14,6 +14,8 @@ Flow:
 
 from __future__ import annotations
 
+import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, Response, status
@@ -25,7 +27,12 @@ from customer_analytics.app.features.identity.application.usecases.login_user im
 from customer_analytics.app.features.identity.infrastructure.jwt_service import (
     create_access_token,
     create_refresh_token,
+    create_refresh_token_family,
     decode_refresh_token,
+    hash_refresh_token,
+)
+from customer_analytics.app.features.identity.infrastructure.repositories.refresh_token_repository_impl import (  # noqa: E501
+    RefreshTokenRepositoryImpl,
 )
 from customer_analytics.app.features.identity.infrastructure.repositories.user_unit_of_work_impl import (  # noqa: E501
     UserUnitOfWorkImpl,
@@ -58,6 +65,7 @@ REFRESH_TOKEN_COOKIE = "refresh_token"
 COOKIE_SECURE = settings.APP_ENV == "production"
 COOKIE_SAMESITE = "strict"
 COOKIE_PATH = "/api/v1/auth"  # Only send to auth endpoints
+COOKIE_MAX_AGE_SECONDS = settings.JWT_REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60
 
 
 def _set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
@@ -65,7 +73,7 @@ def _set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE,
         value=refresh_token,
-        max_age=settings.JWT_REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60,
+        max_age=COOKIE_MAX_AGE_SECONDS,
         httponly=True,
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
@@ -89,8 +97,25 @@ def _get_user_unit_of_work(session: DatabaseSessionDep) -> UserUnitOfWorkImpl:
     return UserUnitOfWorkImpl(session)
 
 
+def _get_refresh_token_repository(
+    session: DatabaseSessionDep,
+) -> RefreshTokenRepositoryImpl:
+    """Dependency to get refresh token repository."""
+    return RefreshTokenRepositoryImpl(session)
+
+
 # Type alias for UnitOfWork dependency
 UnitOfWorkDep = Annotated[UserUnitOfWorkImpl, Depends(_get_user_unit_of_work)]
+
+# Type alias for RefreshTokenRepository dependency
+RefreshTokenRepoDep = Annotated[
+    RefreshTokenRepositoryImpl, Depends(_get_refresh_token_repository)
+]
+
+
+def _to_uuid(value: str | uuid.UUID) -> uuid.UUID:
+    """Convert value to UUID (handles both str and UUID)."""
+    return uuid.UUID(value) if isinstance(value, str) else value
 
 
 @router.post(
@@ -112,8 +137,10 @@ UnitOfWorkDep = Annotated[UserUnitOfWorkImpl, Depends(_get_user_unit_of_work)]
 )
 async def login(
     body: LoginRequest,
+    request: Request,
     response: Response,
     unit_of_work: UnitOfWorkDep,
+    refresh_token_repo: RefreshTokenRepoDep,
 ) -> LoginResponse:
     """Dang nhap bang email/password.
 
@@ -129,7 +156,23 @@ async def login(
         role_code=user.role_code,
         permissions=user.permissions,
     )
-    refresh_token = create_refresh_token(user_id=user.id_)
+    family_id = create_refresh_token_family()
+    refresh_token = create_refresh_token(user_id=user.id_, family_id=family_id)
+
+    # Save refresh token to DB
+    token_hash = hash_refresh_token(refresh_token)
+    expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_TTL_DAYS)
+    await refresh_token_repo.save(
+        token_hash=token_hash,
+        user_id=_to_uuid(user.id_),
+        family_id=family_id,
+        expires_at=expires_at,
+        created_ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+
+    # Commit all changes (user update + refresh token insert)
+    await unit_of_work.commit()
 
     # Set refresh token in HTTP-only cookie
     _set_refresh_token_cookie(response, refresh_token)
@@ -161,12 +204,14 @@ async def refresh_token(
     request: Request,
     response: Response,
     unit_of_work: UnitOfWorkDep,
+    refresh_token_repo: RefreshTokenRepoDep,
 ) -> LoginResponse:
     """Lam moi access token bang refresh token.
 
     - Reads refresh_token from HTTP-only cookie (auto-sent by browser)
     - Returns new access_token in response body
     - Sets new refresh_token in HTTP-only cookie
+    - Revokes old refresh token (rotation)
     """
     # Read refresh token from cookie
     refresh_token_value = request.cookies.get(REFRESH_TOKEN_COOKIE)
@@ -179,11 +224,24 @@ async def refresh_token(
     # Decode and validate refresh token
     payload = decode_refresh_token(refresh_token_value)
     user_id = payload.get("sub")
+    family_id = payload.get("family_id")
 
     if not user_id:
         raise AppException(
             error_code=ErrorCode.INVALID_REFRESH_TOKEN,
             message="Invalid refresh token payload.",
+        )
+
+    # Check if token is revoked in DB
+    token_hash = hash_refresh_token(refresh_token_value)
+    stored_token = await refresh_token_repo.find_by_token_hash(token_hash)
+    if stored_token and stored_token.get("revoked_at"):
+        # Token reuse detected — revoke all tokens in this family
+        if family_id:
+            await refresh_token_repo.revoke_all_by_family(family_id)
+        raise AppException(
+            error_code=ErrorCode.REFRESH_TOKEN_REUSED,
+            message="Refresh token đã bị sử dụng lại — tất cả session đã bị thu hồi.",
         )
 
     # Find user
@@ -201,20 +259,39 @@ async def refresh_token(
             message="Tài khoản đã bị vô hiệu hóa.",
         )
 
-    # Create new tokens
-    access_token = create_access_token(
+    # Revoke old refresh token
+    await refresh_token_repo.revoke_by_token_hash(token_hash)
+
+    # Create new tokens with same family_id
+    new_access_token = create_access_token(
         user_id=user.id_,
         role_code=user.role_code,
         permissions=user.permissions,
     )
-    new_refresh_token = create_refresh_token(user_id=user.id_)
+    new_family_id = family_id or create_refresh_token_family()
+    new_refresh_token = create_refresh_token(user_id=user.id_, family_id=new_family_id)
+
+    # Save new refresh token to DB
+    new_token_hash = hash_refresh_token(new_refresh_token)
+    expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_TTL_DAYS)
+    await refresh_token_repo.save(
+        token_hash=new_token_hash,
+        user_id=_to_uuid(user.id_),
+        family_id=new_family_id,
+        expires_at=expires_at,
+        created_ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+
+    # Commit all changes (revoke old token + insert new token)
+    await unit_of_work.commit()
 
     # Set new refresh token in HTTP-only cookie
     _set_refresh_token_cookie(response, new_refresh_token)
 
     # Return new access token in response body
     return LoginResponse(
-        access_token=access_token,
+        access_token=new_access_token,
         role_code=user.role_code,
     )
 
@@ -256,14 +333,23 @@ async def get_me(
     },
 )
 async def logout(
+    request: Request,
     response: Response,
     current_user: CurrentUserDep,
+    refresh_token_repo: RefreshTokenRepoDep,
 ) -> MessageResponse:
     """Dang xuat (thu hoi current session).
 
-    Clears refresh token HTTP-only cookie.
-    Frontend should also clear access_token from memory.
+    - Clears refresh token HTTP-only cookie
+    - Revokes refresh token in database (blacklist)
+    - Frontend should also clear access_token from memory
     """
+    # Read refresh token from cookie and revoke in DB
+    refresh_token_value = request.cookies.get(REFRESH_TOKEN_COOKIE)
+    if refresh_token_value:
+        token_hash = hash_refresh_token(refresh_token_value)
+        await refresh_token_repo.revoke_by_token_hash(token_hash)
+
+    # Clear refresh token cookie
     _clear_refresh_token_cookie(response)
-    # TODO: Add refresh token to blacklist in DB for extra security
     return MessageResponse(message="Dang xuat thanh cong.")

@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import copy
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from customer_analytics.core.error.exception import InvalidOperationError
+from customer_analytics.app.shared.errors import ErrorCode
+from customer_analytics.app.shared.exceptions import AppException
 
 if TYPE_CHECKING:
     from customer_analytics.app.features.identity.application.dto.user_command_model import (  # noqa: E501
@@ -24,7 +25,7 @@ class UserEntity:
         password_hash: str,
         full_name: str,
         status: str = "ACTIVE",
-        role_code: str = "ANALYST",
+        role_code: str = "CLIENT",
         permissions: list[str] | None = None,
         is_active: bool = True,
         created_at: datetime | None = None,
@@ -41,7 +42,7 @@ class UserEntity:
         self.role_code = role_code
         self.permissions = permissions or []
         self.is_active = is_active
-        self.created_at = created_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(UTC)
         self.updated_at = updated_at
         self.last_login_at = last_login_at
         self.failed_login_count = failed_login_count
@@ -54,47 +55,42 @@ class UserEntity:
     ) -> UserEntity:
         """Update entity with new data."""
         update_data = get_update_data_fn(entity_update_model)
-        update_entity = copy.deepcopy(self)
+        updated_entity = copy.deepcopy(self)
 
         for attr_name, value in update_data.items():
-            update_entity.__setattr__(attr_name, value)
+            setattr(updated_entity, attr_name, value)
 
-        return update_entity
+        return updated_entity
+
+    def _set_status(self, new_status: str) -> UserEntity:
+        """Set user status (internal method for disable/enable)."""
+        if self.status == new_status:
+            raise AppException(
+                error_code=ErrorCode.INVALID_OPERATION,
+                message=f"User is already {new_status.lower()}",
+            )
+
+        entity = copy.deepcopy(self)
+        entity.status = new_status
+        entity.is_active = new_status == "ACTIVE"
+
+        if new_status == "ACTIVE":
+            entity.failed_login_count = 0
+            entity.locked_until = None
+
+        return entity
 
     def mark_entity_as_deleted(self) -> UserEntity:
         """Mark entity as deleted (soft delete)."""
-        if self.status == "DISABLED":
-            raise InvalidOperationError("User is already disabled")
-
-        marked_entity = copy.deepcopy(self)
-        marked_entity.status = "DISABLED"
-        marked_entity.is_active = False
-
-        return marked_entity
+        return self._set_status("DISABLED")
 
     def disable(self) -> UserEntity:
         """Disable user account."""
-        if self.status == "DISABLED":
-            raise InvalidOperationError("User is already disabled")
-
-        disabled_entity = copy.deepcopy(self)
-        disabled_entity.status = "DISABLED"
-        disabled_entity.is_active = False
-
-        return disabled_entity
+        return self._set_status("DISABLED")
 
     def enable(self) -> UserEntity:
         """Enable user account."""
-        if self.status == "ACTIVE":
-            raise InvalidOperationError("User is already active")
-
-        enabled_entity = copy.deepcopy(self)
-        enabled_entity.status = "ACTIVE"
-        enabled_entity.is_active = True
-        enabled_entity.failed_login_count = 0
-        enabled_entity.locked_until = None
-
-        return enabled_entity
+        return self._set_status("ACTIVE")
 
     def record_failed_login(self) -> UserEntity:
         """Record a failed login attempt."""
@@ -102,10 +98,8 @@ class UserEntity:
         updated_entity.failed_login_count += 1
 
         if updated_entity.failed_login_count >= 5:
-            from datetime import timedelta
-
             updated_entity.status = "LOCKED"
-            updated_entity.locked_until = datetime.utcnow() + timedelta(minutes=15)
+            updated_entity.locked_until = datetime.now(UTC) + timedelta(minutes=15)
 
         return updated_entity
 
@@ -114,7 +108,7 @@ class UserEntity:
         updated_entity = copy.deepcopy(self)
         updated_entity.failed_login_count = 0
         updated_entity.locked_until = None
-        updated_entity.last_login_at = datetime.utcnow()
+        updated_entity.last_login_at = datetime.now(UTC)
 
         return updated_entity
 

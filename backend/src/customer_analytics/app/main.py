@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import HTTPException, RequestValidationError
 
 from customer_analytics.app.config import settings
 from customer_analytics.app.features.identity.presentation.routes.auth_routes import (
@@ -16,6 +16,7 @@ from customer_analytics.app.shared.exceptions import (
     AppException,
     app_exception_handler,
     general_exception_handler,
+    http_exception_handler,
     validation_exception_handler,
 )
 from customer_analytics.app.shared.health import router as health_router
@@ -55,7 +56,7 @@ Get a token via `POST /api/v1/auth/login`.
 
 ### Roles
 - **ADMIN**: Full access to all endpoints
-- **ANALYST**: Read-only access to customer data and analytics
+- **CLIENT**: Read-only access to customer data and analytics
     """,
     openapi_tags=openapi_tags,
     docs_url="/docs",
@@ -69,6 +70,7 @@ register_middleware(app)
 
 # ── Exception Handlers ──────────────────────────────
 app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 

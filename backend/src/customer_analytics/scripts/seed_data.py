@@ -32,10 +32,8 @@ PERMISSIONS = [
     ("users:delete", "users", "delete", "Xóa người dùng"),
     # Customers
     ("customers:read", "customers", "read", "Xem dữ liệu khách hàng"),
-    ("customers:export", "customers", "export", "Xuất dữ liệu khách hàng"),
     # Analytics
     ("analytics:read", "analytics", "read", "Xem phân tích"),
-    ("analytics:predict", "analytics", "predict", "Chạy dự đoán"),
 ]
 
 
@@ -71,7 +69,7 @@ async def seed_roles(permissions: dict[str, PermissionModel]) -> dict[str, RoleM
     """Seed roles and assign permissions."""
     roles = {}
     async with AsyncSessionFactory() as session:
-        # ADMIN role
+        # ADMIN role — full access
         result = await session.execute(
             select(RoleModel).where(RoleModel.code == "ADMIN")
         )
@@ -87,33 +85,27 @@ async def seed_roles(permissions: dict[str, PermissionModel]) -> dict[str, RoleM
         admin_role.permissions = list(permissions.values())
         roles["ADMIN"] = admin_role
 
-        # ANALYST role
+        # CLIENT role — basic user
         result = await session.execute(
-            select(RoleModel).where(RoleModel.code == "ANALYST")
+            select(RoleModel).where(RoleModel.code == "CLIENT")
         )
-        analyst_role = result.scalar_one_or_none()
-        if not analyst_role:
-            analyst_role = RoleModel(
+        client_role = result.scalar_one_or_none()
+        if not client_role:
+            client_role = RoleModel(
                 id=uuid_utils.uuid7(),
-                code="ANALYST",
-                name="Data Analyst",
-                description="Phân tích dữ liệu",
+                code="CLIENT",
+                name="Client",
+                description="Người dùng thông thường",
             )
-            session.add(analyst_role)
-        # ANALYST gets read-only + analytics permissions
-        analyst_permissions = [
+            session.add(client_role)
+        # CLIENT gets read-only permissions
+        client_permissions = [
             p
             for code, p in permissions.items()
-            if code
-            in [
-                "customers:read",
-                "customers:export",
-                "analytics:read",
-                "analytics:predict",
-            ]
+            if code in ["users:read", "customers:read", "analytics:read"]
         ]
-        analyst_role.permissions = analyst_permissions
-        roles["ANALYST"] = analyst_role
+        client_role.permissions = client_permissions
+        roles["CLIENT"] = client_role
 
         await session.commit()
     return roles

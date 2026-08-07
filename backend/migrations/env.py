@@ -12,17 +12,21 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
-# Import project modules
-from customer_analytics.configuration.database import Base
-from customer_analytics.configuration.settings import settings
+from customer_analytics.app.config import settings
+from customer_analytics.app.features.identity.infrastructure.models.refresh_token import (  # noqa: E501, F401
+    RefreshTokenModel,
+)
 
 # Import all ORM models so Alembic can detect them
-from customer_analytics.identity.domain.entities import (  # noqa: F401
-    Permission,
-    Role,
-    RolePermission,
-    User,
+from customer_analytics.app.features.identity.infrastructure.models.user import (  # noqa: F401
+    PermissionModel,
+    RoleModel,
+    RolePermissionModel,
+    UserModel,
 )
+
+# Import project modules
+from customer_analytics.core.database import Base
 
 # Alembic Config object
 config = context.config

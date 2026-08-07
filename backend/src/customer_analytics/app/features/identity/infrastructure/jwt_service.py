@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -14,6 +15,67 @@ from customer_analytics.app.shared.errors import ErrorCode
 from customer_analytics.app.shared.exceptions import AppException
 
 
+def _create_token(
+    payload: dict[str, Any],
+    secret_key: str,
+    algorithm: str,
+) -> str:
+    """Create JWT token with given payload."""
+    return jwt.encode(payload, secret_key, algorithm=algorithm)
+
+
+def _decode_token(
+    token: str,
+    secret_key: str,
+    algorithm: str,
+    expected_type: str,
+    app_name: str,
+) -> dict[str, Any]:
+    """Decode and verify JWT token."""
+    try:
+        payload = jwt.decode(
+            token,
+            secret_key,
+            algorithms=[algorithm],
+            issuer=app_name,
+            audience=f"{app_name}-web",
+        )
+    except jwt.ExpiredSignatureError:
+        error_code = (
+            ErrorCode.TOKEN_EXPIRED
+            if expected_type == "access"
+            else ErrorCode.INVALID_REFRESH_TOKEN
+        )
+        raise AppException(
+            error_code=error_code,
+            message=f"{expected_type.capitalize()} token đã hết hạn.",
+        ) from None
+    except jwt.InvalidTokenError:
+        error_code = (
+            ErrorCode.TOKEN_INVALID
+            if expected_type == "access"
+            else ErrorCode.INVALID_REFRESH_TOKEN
+        )
+        raise AppException(
+            error_code=error_code,
+            message=f"{expected_type.capitalize()} token không hợp lệ.",
+        ) from None
+
+    # Verify token type
+    if payload.get("type") != expected_type:
+        error_code = (
+            ErrorCode.TOKEN_INVALID
+            if expected_type == "access"
+            else ErrorCode.INVALID_REFRESH_TOKEN
+        )
+        raise AppException(
+            error_code=error_code,
+            message="Token type không hợp lệ.",
+        )
+
+    return payload
+
+
 def create_access_token(
     user_id: uuid.UUID,
     role_code: str,
@@ -23,7 +85,7 @@ def create_access_token(
 
     Args:
         user_id: User's UUID.
-        role_code: User's role code (e.g., ADMIN, ANALYST).
+        role_code: User's role code (e.g., ADMIN, CLIENT).
         permissions: List of permission codes.
 
     Returns:
@@ -44,11 +106,7 @@ def create_access_token(
         "aud": f"{settings.APP_NAME}-web",
     }
 
-    return jwt.encode(
-        payload,
-        settings.JWT_SECRET_KEY,
-        algorithm=settings.JWT_ALGORITHM,
-    )
+    return _create_token(payload, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
 
 
 def decode_access_token(token: str) -> dict[str, Any]:
@@ -63,40 +121,21 @@ def decode_access_token(token: str) -> dict[str, Any]:
     Raises:
         AppException: If token is invalid or expired.
     """
-    try:
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET_KEY,
-            algorithms=[settings.JWT_ALGORITHM],
-            issuer=settings.APP_NAME,
-            audience=f"{settings.APP_NAME}-web",
-        )
-    except jwt.ExpiredSignatureError:
-        raise AppException(
-            error_code=ErrorCode.TOKEN_EXPIRED,
-            message="Access token đã hết hạn.",
-        ) from None
-    except jwt.InvalidTokenError:
-        raise AppException(
-            error_code=ErrorCode.TOKEN_INVALID,
-            message="Access token không hợp lệ.",
-        ) from None
-
-    # Verify token type
-    if payload.get("type") != "access":
-        raise AppException(
-            error_code=ErrorCode.TOKEN_INVALID,
-            message="Token type không hợp lệ.",
-        )
-
-    return payload
+    return _decode_token(
+        token,
+        settings.JWT_SECRET_KEY,
+        settings.JWT_ALGORITHM,
+        expected_type="access",
+        app_name=settings.APP_NAME,
+    )
 
 
-def create_refresh_token(user_id: uuid.UUID) -> str:
+def create_refresh_token(user_id: uuid.UUID, family_id: str | None = None) -> str:
     """Create JWT refresh token.
 
     Args:
         user_id: User's UUID.
+        family_id: Token family ID for rotation tracking (optional).
 
     Returns:
         Encoded JWT refresh token string.
@@ -108,17 +147,14 @@ def create_refresh_token(user_id: uuid.UUID) -> str:
         "sub": str(user_id),
         "jti": str(uuid_utils.uuid7()),
         "type": "refresh",
+        "family_id": family_id or str(uuid_utils.uuid7()),
         "iat": int(now.timestamp()),
         "exp": int(exp.timestamp()),
         "iss": settings.APP_NAME,
         "aud": f"{settings.APP_NAME}-web",
     }
 
-    return jwt.encode(
-        payload,
-        settings.JWT_SECRET_KEY,
-        algorithm=settings.JWT_ALGORITHM,
-    )
+    return _create_token(payload, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
 
 
 def decode_refresh_token(token: str) -> dict[str, Any]:
@@ -133,33 +169,13 @@ def decode_refresh_token(token: str) -> dict[str, Any]:
     Raises:
         AppException: If token is invalid or expired.
     """
-    try:
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET_KEY,
-            algorithms=[settings.JWT_ALGORITHM],
-            issuer=settings.APP_NAME,
-            audience=f"{settings.APP_NAME}-web",
-        )
-    except jwt.ExpiredSignatureError:
-        raise AppException(
-            error_code=ErrorCode.INVALID_REFRESH_TOKEN,
-            message="Refresh token đã hết hạn.",
-        ) from None
-    except jwt.InvalidTokenError:
-        raise AppException(
-            error_code=ErrorCode.INVALID_REFRESH_TOKEN,
-            message="Refresh token không hợp lệ.",
-        ) from None
-
-    # Verify token type
-    if payload.get("type") != "refresh":
-        raise AppException(
-            error_code=ErrorCode.INVALID_REFRESH_TOKEN,
-            message="Token type không hợp lệ.",
-        )
-
-    return payload
+    return _decode_token(
+        token,
+        settings.JWT_SECRET_KEY,
+        settings.JWT_ALGORITHM,
+        expected_type="refresh",
+        app_name=settings.APP_NAME,
+    )
 
 
 def create_refresh_token_family() -> str:
@@ -180,6 +196,4 @@ def hash_refresh_token(token: str) -> str:
     Returns:
         SHA-256 hash of token.
     """
-    import hashlib
-
     return hashlib.sha256(token.encode()).hexdigest()
