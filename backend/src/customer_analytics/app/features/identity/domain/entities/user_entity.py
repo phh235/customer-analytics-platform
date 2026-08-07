@@ -25,6 +25,7 @@ class UserEntity:
         full_name: str,
         status: str = "ACTIVE",
         role_code: str = "ANALYST",
+        role_id: str | None = None,
         permissions: list[str] | None = None,
         is_active: bool = True,
         created_at: datetime | None = None,
@@ -39,6 +40,7 @@ class UserEntity:
         self.full_name = full_name
         self.status = status
         self.role_code = role_code
+        self.role_id = role_id
         self.permissions = permissions or []
         self.is_active = is_active
         self.created_at = created_at or datetime.utcnow()
@@ -132,6 +134,7 @@ class UserEntity:
             "full_name": self.full_name,
             "status": self.status,
             "role_code": self.role_code,
+            "role_id": self.role_id,
             "permissions": self.permissions,
             "is_active": self.is_active,
             "created_at": self.created_at,

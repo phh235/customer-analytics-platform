@@ -1,5 +1,10 @@
 import { createBrowserRouter } from "react-router"
-import { PrivateRoute } from "@/components/common/private-route"
+import {
+  AuthenticatedRoute,
+  GuestRoute,
+  RoleRoute,
+} from "@/features/auth/route-guards"
+import { ADMIN_ROLES, CLIENT_ROLES, STAFF_ROLES } from "@/lib/auth-routing"
 
 export const router = createBrowserRouter([
   {
@@ -11,16 +16,36 @@ export const router = createBrowserRouter([
     },
     children: [
       {
-        index: true,
-        lazy: () => import("@/pages/client/home"),
+        element: <AuthenticatedRoute renderPendingOutlet />,
+        children: [
+          {
+            element: <RoleRoute allowedRoles={CLIENT_ROLES} />,
+            children: [
+              {
+                index: true,
+                lazy: () => import("@/pages/client/home"),
+              },
+              {
+                path: "products",
+                lazy: () => import("@/pages/client/products"),
+              },
+            ],
+          },
+        ],
       },
       {
-        path: "products",
-        lazy: () => import("@/pages/client/products"),
-      },
-      {
-        path: "products/:productId",
-        lazy: () => import("@/pages/client/product-detail"),
+        element: <AuthenticatedRoute />,
+        children: [
+          {
+            element: <RoleRoute allowedRoles={CLIENT_ROLES} />,
+            children: [
+              {
+                path: "products/:productId",
+                lazy: () => import("@/pages/client/product-detail"),
+              },
+            ],
+          },
+        ],
       },
     ],
   },
@@ -32,41 +57,63 @@ export const router = createBrowserRouter([
     },
     children: [
       {
-        path: "/login",
-        lazy: () => import("@/pages/auth/login"),
-      },
-      {
-        path: "/register",
-        lazy: () => import("@/pages/auth/register"),
+        element: <GuestRoute />,
+        children: [
+          {
+            path: "/login",
+            lazy: () => import("@/pages/auth/login"),
+          },
+          {
+            path: "/register",
+            lazy: () => import("@/pages/auth/register"),
+          },
+        ],
       },
     ],
   },
   {
     path: "/dashboard",
-    element: <PrivateRoute />,
+    element: <AuthenticatedRoute dashboardFallback />,
     children: [
       {
-        lazy: async () => {
-          const { default: Component } = await import("@/layouts/admin-layout")
-
-          return { Component }
-        },
+        element: <RoleRoute allowedRoles={STAFF_ROLES} />,
         children: [
           {
-            index: true,
-            lazy: () => import("@/pages/admin/dashboard"),
-          },
-          {
-            path: "products",
-            lazy: () => import("@/pages/admin/products"),
-          },
-          {
-            path: "categories",
-            lazy: () => import("@/pages/admin/categories"),
-          },
-          {
-            path: "customers",
-            lazy: () => import("@/pages/admin/customers"),
+            lazy: async () => {
+              const { default: Component } =
+                await import("@/layouts/admin-layout")
+
+              return { Component }
+            },
+            children: [
+              {
+                index: true,
+                lazy: () => import("@/pages/admin/dashboard"),
+              },
+              {
+                path: "products",
+                lazy: () => import("@/pages/admin/products"),
+              },
+              {
+                path: "categories",
+                lazy: () => import("@/pages/admin/categories"),
+              },
+              {
+                path: "customers",
+                lazy: () => import("@/pages/admin/customers"),
+              },
+              {
+                element: (
+                  <RoleRoute allowedRoles={ADMIN_ROLES} redirectToPrevious />
+                ),
+                children: [
+                  {
+                    path: "users",
+                    lazy: () => import("@/pages/admin/users"),
+                  },
+                ],
+              },
+            ],
           },
         ],
       },

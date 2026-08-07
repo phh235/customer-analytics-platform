@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, Field
+
+from customer_analytics.app.features.identity.domain.enums import UserStatus
+
+UserRoleCode = Literal["ADMIN", "ANALYST", "USER"]
 
 
 class UserCreateModel(BaseModel):
@@ -11,15 +17,17 @@ class UserCreateModel(BaseModel):
     email: EmailStr = Field(..., description="Email address")
     password: str = Field(..., min_length=8, max_length=128, description="Password")
     full_name: str = Field(..., min_length=1, max_length=100, description="Full name")
-    role_code: str = Field(default="ANALYST", max_length=50, description="Role code")
+    role_code: UserRoleCode = Field(
+        default="USER", description="Role code (ADMIN, ANALYST, or USER)"
+    )
 
 
 class UserUpdateModel(BaseModel):
     """Model for updating user information."""
 
     full_name: str | None = Field(default=None, min_length=1, max_length=100)
-    role_code: str | None = Field(default=None, max_length=50)
-    status: str | None = Field(default=None)
+    role_code: UserRoleCode | None = Field(default=None)
+    status: UserStatus | None = Field(default=None)
 
 
 class UserDisableModel(BaseModel):
