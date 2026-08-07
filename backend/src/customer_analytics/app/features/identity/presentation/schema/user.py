@@ -106,6 +106,41 @@ class RegisterRequest(BaseModel):
     }
 
 
+class UpdateUserRequest(BaseModel):
+    """Update user request body (admin only)."""
+
+    full_name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+        description="Full name",
+        examples=["Nguyen Van A Updated"],
+    )
+    role_code: str | None = Field(
+        default=None,
+        max_length=50,
+        description="Role code (ADMIN or CLIENT)",
+        examples=["ADMIN"],
+    )
+    status: str | None = Field(
+        default=None,
+        description="Account status (ACTIVE, DISABLED)",
+        examples=["ACTIVE"],
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "full_name": "Nguyen Van A Updated",
+                    "role_code": "ADMIN",
+                    "status": "ACTIVE",
+                }
+            ]
+        }
+    }
+
+
 # ── Response schemas ───────────────────────────────────────
 
 

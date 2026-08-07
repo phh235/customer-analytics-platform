@@ -34,7 +34,6 @@ src/customer_analytics/app/features/identity/domain/repositories/__init__.py
 src/customer_analytics/app/features/identity/domain/repositories/refresh_token_repository.py
 src/customer_analytics/app/features/identity/domain/repositories/user_repository.py
 src/customer_analytics/app/features/identity/domain/repositories/user_unit_of_work.py
-src/customer_analytics/app/features/identity/domain/usecases/__init__.py
 src/customer_analytics/app/features/identity/infrastructure/__init__.py
 src/customer_analytics/app/features/identity/infrastructure/jwt_service.py
 src/customer_analytics/app/features/identity/infrastructure/password_hasher.py

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import uuid
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -14,6 +16,7 @@ from customer_analytics.app.features.identity.domain.repositories.user_repositor
 )
 from customer_analytics.app.features.identity.infrastructure.models.user import (
     PermissionModel,
+    RoleModel,
     RolePermissionModel,
     UserModel,
 )
@@ -136,39 +139,93 @@ class UserRepositoryImpl(UserRepository):
         entity = await self._to_entity(model)
         return entity, permissions
 
+    async def find_role_id_by_code(self, role_code: str) -> uuid.UUID | None:
+        """Find a role ID by its stable role code."""
+        result = await self._session.execute(
+            select(RoleModel.id).where(RoleModel.code == role_code)
+        )
+        row = result.scalar_one_or_none()
+        return row
+
     async def find_all(
         self,
         skip: int = 0,
         limit: int = 100,
         search: str | None = None,
+        role_code: str | None = None,
+        status: str | None = None,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
     ) -> list[UserEntity]:
-        """Find all users with pagination and search.
+        """Find all users with pagination, filters, and deterministic ordering.
 
         Uses selectinload to eagerly load role relationship in a single query.
         """
         stmt = (
             select(UserModel)
             .options(selectinload(UserModel.role))
-            .order_by(UserModel.created_at.desc())
         )
+
+        # Search filter
         if search:
             stmt = stmt.where(
                 func.lower(UserModel.email).contains(search.lower())
                 | func.lower(UserModel.full_name).contains(search.lower())
             )
+
+        # Role filter
+        if role_code:
+            stmt = stmt.join(RoleModel).where(RoleModel.code == role_code)
+
+        # Status filter
+        if status:
+            from customer_analytics.app.features.identity.domain.enums import UserStatus
+
+            try:
+                status_enum = UserStatus(status)
+                stmt = stmt.where(UserModel.status == status_enum)
+            except ValueError:
+                pass
+
+        # Sorting
+        sort_column = getattr(UserModel, sort_by, UserModel.created_at)
+        if sort_order == "desc":
+            stmt = stmt.order_by(sort_column.desc())
+        else:
+            stmt = stmt.order_by(sort_column.asc())
+
         stmt = stmt.offset(skip).limit(limit)
         result = await self._session.execute(stmt)
         models = result.scalars().all()
         return [await self._to_entity(m) for m in models]
 
-    async def count_users(self, search: str | None = None) -> int:
-        """Count total users."""
+    async def count_users(
+        self,
+        search: str | None = None,
+        role_code: str | None = None,
+        status: str | None = None,
+    ) -> int:
+        """Count users matching the supplied filters."""
         stmt = select(func.count()).select_from(UserModel)
+
         if search:
             stmt = stmt.where(
                 func.lower(UserModel.email).contains(search.lower())
                 | func.lower(UserModel.full_name).contains(search.lower())
             )
+
+        if role_code:
+            stmt = stmt.join(RoleModel).where(RoleModel.code == role_code)
+
+        if status:
+            from customer_analytics.app.features.identity.domain.enums import UserStatus
+
+            try:
+                status_enum = UserStatus(status)
+                stmt = stmt.where(UserModel.status == status_enum)
+            except ValueError:
+                pass
+
         result = await self._session.execute(stmt)
         return result.scalar_one()
 
