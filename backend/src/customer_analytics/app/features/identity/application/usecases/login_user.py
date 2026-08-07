@@ -12,6 +12,7 @@ from customer_analytics.app.features.identity.domain.repositories.user_unit_of_w
     UserUnitOfWork,
 )
 from customer_analytics.app.features.identity.infrastructure.password_hasher import (
+    hash_password,
     verify_password,
 )
 from customer_analytics.app.shared.errors import ErrorCode
@@ -45,9 +46,6 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
         if result is None:
             # Generic message to not leak email existence
             # Run dummy verify to keep timing constant
-            from customer_analytics.app.features.identity.infrastructure.\
-                password_hasher import hash_password
-
             verify_password(password, hash_password("dummy"))
             raise AppException(
                 error_code=ErrorCode.INVALID_CREDENTIALS,
