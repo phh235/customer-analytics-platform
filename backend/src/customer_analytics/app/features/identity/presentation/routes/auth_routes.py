@@ -50,6 +50,7 @@ from customer_analytics.app.features.identity.presentation.schema.user import (
 from customer_analytics.app.shared.errors import ErrorCode
 from customer_analytics.app.shared.exceptions import AppException
 from customer_analytics.core.dependencies import DatabaseSessionDep
+from customer_analytics.core.middleware.rate_limit import limiter
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
@@ -135,9 +136,10 @@ def _to_uuid(value: str | uuid.UUID) -> uuid.UUID:
         },
     },
 )
+@limiter.limit("5/minute")
 async def login(
-    body: LoginRequest,
     request: Request,
+    body: LoginRequest,
     response: Response,
     unit_of_work: UnitOfWorkDep,
     refresh_token_repo: RefreshTokenRepoDep,
@@ -200,6 +202,7 @@ async def login(
         },
     },
 )
+@limiter.limit("10/minute")
 async def refresh_token(
     request: Request,
     response: Response,
