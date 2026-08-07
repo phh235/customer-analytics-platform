@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-UserRoleFilter = Literal["ADMIN", "ANALYST", "USER"]
+UserRoleFilter = Literal["ADMIN", "ANALYST", "CLIENT"]
 UserStatusFilter = Literal["ACTIVE", "DISABLED", "LOCKED"]
 UserSortField = Literal["created_at", "full_name", "last_login_at"]
 SortOrder = Literal["asc", "desc"]
