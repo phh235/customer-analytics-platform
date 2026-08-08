@@ -15,6 +15,7 @@
     "format:frontend": "pnpm --dir frontend format",
     "format:backend": "cd backend && uv run ruff format .",
     "typecheck": "pnpm --dir frontend typecheck",
+    "test": "pnpm --dir frontend test",
     "build": "pnpm build:frontend",
     "build:frontend": "pnpm --dir frontend build"
   },

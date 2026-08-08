@@ -44,7 +44,10 @@ export const AppSelect = <Value extends string = string>({
   id,
   "aria-label": ariaLabel,
 }: AppSelectProps<Value>) => {
-  const selectedValue = value ?? defaultValue
+  const [uncontrolledValue, setUncontrolledValue] = React.useState<
+    Value | undefined
+  >(defaultValue)
+  const selectedValue = value ?? uncontrolledValue
   const selectedOption = options.find(
     (option) => option.value === selectedValue
   )
@@ -54,7 +57,10 @@ export const AppSelect = <Value extends string = string>({
       value={value}
       defaultValue={defaultValue}
       onValueChange={(val) => {
-        if (val !== null) onChange?.(val as Value)
+        if (val !== null) {
+          if (value === undefined) setUncontrolledValue(val as Value)
+          onChange?.(val as Value)
+        }
       }}
       disabled={disabled}
       name={name}
