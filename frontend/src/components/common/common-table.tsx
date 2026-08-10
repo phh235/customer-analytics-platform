@@ -92,9 +92,9 @@ export function CommonTable<T>({
   const skeletonRows = Math.min(pagination?.pageSize ?? 6, 6)
 
   return (
-    <div aria-busy={loading} className="flex flex-col gap-2">
-      <div className="overflow-x-auto">
-        <Table className="min-w-full table-auto">
+    <div aria-busy={loading} className="flex flex-col gap-2 px-3 pb-3">
+      <div className="overflow-hidden rounded-xl border border-border">
+        <Table className="min-w-full table-auto border-y-0 [&_td]:px-4 [&_th]:px-4">
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
