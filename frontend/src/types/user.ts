@@ -1,10 +1,10 @@
-export const USER_ROLES = ["ADMIN", "ANALYST", "USER"] as const
+export const USER_ROLES = ["ADMIN", "ANALYST", "CLIENT"] as const
 export type UserRole = (typeof USER_ROLES)[number]
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: "Quản trị viên",
   ANALYST: "Phân tích viên",
-  USER: "Người dùng",
+  CLIENT: "Khách hàng",
 }
 
 export const USER_STATUSES = ["ACTIVE", "DISABLED", "LOCKED"] as const

@@ -69,6 +69,7 @@ src/customer_analytics/core/logging/sanitizers.py
 src/customer_analytics/core/middleware/__init__.py
 src/customer_analytics/core/middleware/cors.py
 src/customer_analytics/core/middleware/gzip.py
+src/customer_analytics/core/middleware/rate_limit.py
 src/customer_analytics/core/middleware/request_id.py
 src/customer_analytics/core/repositories/__init__.py
 src/customer_analytics/core/repositories/base_repository.py

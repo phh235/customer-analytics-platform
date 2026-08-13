@@ -62,6 +62,7 @@ function usersQueryOptions(params: ListUsersParams) {
   return queryOptions({
     queryKey: userQueryKeys.list(normalizedParams),
     queryFn: () => listUsers(normalizedParams),
+    refetchOnMount: "always",
   })
 }
 

@@ -7,12 +7,12 @@ import { getHomePathForRole } from "@/lib/auth-routing"
 import { useAuthStore } from "@/stores/use-auth-store"
 import type { UserRole } from "@/types/user"
 
-function ClientSessionPending() {
+function SessionPending() {
   return (
     <main
       aria-busy="true"
       aria-label="Đang xác thực phiên đăng nhập"
-      className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center"
+      className="flex min-h-screen items-center justify-center"
       role="status"
     >
       <Spinner />
@@ -22,12 +22,10 @@ function ClientSessionPending() {
 
 interface AuthenticatedRouteProps {
   dashboardFallback?: boolean
-  renderPendingOutlet?: boolean
 }
 
 export function AuthenticatedRoute({
   dashboardFallback = false,
-  renderPendingOutlet = false,
 }: AuthenticatedRouteProps) {
   const status = useAuthStore((state) => state.status)
   const user = useAuthStore((state) => state.user)
@@ -40,13 +38,7 @@ export function AuthenticatedRoute({
   }, [initializeSession, status])
 
   if (status === "unknown" || status === "loading") {
-    if (renderPendingOutlet) return <Outlet />
-
-    return dashboardFallback ? (
-      <DashboardSessionSkeleton />
-    ) : (
-      <ClientSessionPending />
-    )
+    return dashboardFallback ? <DashboardSessionSkeleton /> : <SessionPending />
   }
 
   if (status !== "authenticated" || !accessToken || !user) {
@@ -68,7 +60,7 @@ export function DefaultRoute() {
   }, [initializeSession, status])
 
   if (status === "unknown" || status === "loading") {
-    return <Outlet />
+    return <SessionPending />
   }
 
   if (status !== "authenticated" || !accessToken || !user) {
@@ -135,7 +127,7 @@ export function RoleRoute({
   }, [isAllowed, location.key, navigate, redirectToPrevious, user])
 
   if (status === "unknown" || status === "loading") {
-    return <Outlet />
+    return <SessionPending />
   }
 
   if (!user) {
