@@ -66,6 +66,7 @@ export const Component = () => {
       <form
         aria-busy={isFormDisabled}
         className="mt-6 flex w-full flex-col gap-3"
+        noValidate
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <FieldGroup className="gap-3">

@@ -35,7 +35,7 @@ export const router = createBrowserRouter([
     },
     children: [
       {
-        element: <AuthenticatedRoute renderPendingOutlet />,
+        element: <AuthenticatedRoute />,
         children: [
           {
             element: <RoleRoute allowedRoles={CLIENT_ROLES} />,

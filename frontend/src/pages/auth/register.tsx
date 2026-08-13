@@ -46,6 +46,7 @@ export const Component = () => {
       </div>
       <form
         className="mt-6 w-full space-y-3"
+        noValidate
         onSubmit={form.handleSubmit(onSubmit)}
       >
         <Controller
