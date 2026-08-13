@@ -26,9 +26,9 @@ export function DashboardSessionSkeleton() {
       aria-busy="true"
       aria-label="Đang xác thực phiên đăng nhập"
     >
-      <Sidebar collapsible="icon">
+      <Sidebar collapsible="icon" variant="inset">
         <SidebarHeader>
-          <div className="flex h-14 items-center overflow-hidden border-b px-2">
+          <div className="flex h-14 items-center overflow-hidden px-2">
             <Skeleton className="size-7 shrink-0 rounded-lg" />
             <Skeleton className="ml-2 h-5 w-28 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:w-0" />
           </div>
@@ -43,7 +43,7 @@ export function DashboardSessionSkeleton() {
             ))}
           </div>
         </SidebarContent>
-        <SidebarFooter className="border-t border-border">
+        <SidebarFooter>
           <div className="flex items-center gap-2 p-2">
             <Skeleton className="size-8 shrink-0 rounded-full" />
             <div className="grid min-w-0 flex-1 gap-1 group-data-[collapsible=icon]:hidden">
