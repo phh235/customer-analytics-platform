@@ -54,7 +54,7 @@ export function MainLogo({ className, ...props }: SVGProps<SVGSVGElement>) {
           <path fill="#fff" d="M200 0H0v200h200V0z"></path>
           <path
             fill="#FF6C02"
-            fill-opacity="0.13"
+            fillOpacity="0.13"
             d="M200 0H0v200h200V0z"
           ></path>
           <g filter="url(#filter0_f_748_4873)">
@@ -79,10 +79,10 @@ export function MainLogo({ className, ...props }: SVGProps<SVGSVGElement>) {
           height="417"
           x="-124.331"
           y="-95"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
           filterUnits="userSpaceOnUse"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+          <feFlood floodOpacity="0" result="BackgroundImageFix"></feFlood>
           <feBlend
             in="SourceGraphic"
             in2="BackgroundImageFix"

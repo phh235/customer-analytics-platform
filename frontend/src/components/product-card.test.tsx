@@ -1,0 +1,38 @@
+import { render, screen } from "@testing-library/react"
+import { MemoryRouter } from "react-router"
+import { describe, expect, it } from "vitest"
+
+import { ProductCard } from "@/components/product-card"
+
+describe("ProductCard", () => {
+  it("hiển thị thông tin sản phẩm và liên kết đến trang chi tiết", () => {
+    render(
+      <MemoryRouter>
+        <ProductCard
+          product={{
+            id: "urban-run",
+            name: "Giày thể thao Urban Run",
+            category: "Giày dép",
+            price: 1290000,
+            shortDescription: "Thiết kế nhẹ cho những buổi chạy hằng ngày.",
+            description: "Mô tả chi tiết",
+            image: "/images/urban-run.jpg",
+          }}
+        />
+      </MemoryRouter>
+    )
+
+    const link = screen.getByRole("link", {
+      name: "Xem chi tiết Giày thể thao Urban Run",
+    })
+
+    expect(link).toHaveAttribute("href", "/products/urban-run")
+    expect(
+      screen.getByRole("img", { name: "Giày thể thao Urban Run" })
+    ).toHaveAttribute("src", "/images/urban-run.jpg")
+    expect(screen.getByText("1.290.000", { exact: false })).toBeInTheDocument()
+    expect(
+      screen.getByText("Thiết kế nhẹ cho những buổi chạy hằng ngày.")
+    ).toBeInTheDocument()
+  })
+})
