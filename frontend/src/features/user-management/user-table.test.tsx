@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import { UserTable } from "@/features/user-management/user-table"
@@ -19,7 +18,6 @@ const createUser = (overrides: Partial<User> = {}): User => ({
 
 describe("UserTable", () => {
   it("cho phép thao tác với người dùng hợp lệ và khóa tài khoản không được sửa", async () => {
-    const user = userEvent.setup()
     const editableUser = createUser()
     const currentUser = createUser({
       id: "user-current",
@@ -55,31 +53,41 @@ describe("UserTable", () => {
       />
     )
 
-    const editButton = screen.getByRole("button", {
-      name: "Chỉnh sửa Nguyễn An",
+    const actionButton = screen.getByRole("button", {
+      name: "Thao tác với Nguyễn An",
     })
-    const deleteButton = screen.getByRole("button", {
-      name: "Vô hiệu hóa Nguyễn An",
+    fireEvent.click(actionButton)
+
+    const editItem = await screen.findByRole("menuitem", {
+      name: "Chỉnh sửa",
+    })
+    const deleteItem = screen.getByRole("menuitem", {
+      name: "Vô hiệu hóa",
     })
 
-    expect(editButton).toBeEnabled()
-    expect(deleteButton).toBeEnabled()
+    expect(editItem).not.toHaveAttribute("data-disabled")
+    expect(deleteItem).not.toHaveAttribute("data-disabled")
 
-    await user.click(editButton)
-    await user.click(deleteButton)
-
+    fireEvent.click(editItem)
     expect(onEdit).toHaveBeenCalledWith(editableUser)
+
+    fireEvent.click(actionButton)
+    const deleteItemReopened = await screen.findByRole("menuitem", {
+      name: "Vô hiệu hóa",
+    })
+    fireEvent.click(deleteItemReopened)
     expect(onDelete).toHaveBeenCalledWith(editableUser)
+
+    const currentActionBtn = screen.getByRole("button", {
+      name: "Thao tác với Tài khoản hiện tại",
+    })
+    fireEvent.click(currentActionBtn)
+    const disabledEditItem = await screen.findByRole("menuitem", {
+      name: "Chỉnh sửa",
+    })
+    expect(disabledEditItem).toHaveAttribute("data-disabled")
     expect(
-      screen.getByRole("button", { name: "Chỉnh sửa Tài khoản hiện tại" })
-    ).toBeDisabled()
-    expect(
-      screen.getByRole("button", {
-        name: "Không thể vô hiệu hóa tài khoản hiện tại",
-      })
-    ).toBeDisabled()
-    expect(
-      screen.getByRole("button", { name: "Chỉnh sửa Quản trị viên" })
-    ).toBeDisabled()
+      screen.getByRole("menuitem", { name: "Vô hiệu hóa" })
+    ).toHaveAttribute("data-disabled")
   })
 })

@@ -27,6 +27,7 @@ import { EmptyTableState } from "@/components/admin/management/empty-table-state
 import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
 import type { DeleteTarget } from "@/components/admin/management/types"
+import { AppDropdown } from "@/components/common/app-dropdown"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
@@ -242,34 +243,33 @@ export const Component = () => {
       },
       {
         id: "actions",
-        header: "Thao tác",
-        className: "w-28 text-right",
+        header: <span className="sr-only">Thao tác</span>,
+        className: "w-14 text-right",
         cell: (customer) => (
-          <div className="flex justify-end gap-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              aria-label={`Chỉnh sửa ${customer.name}`}
-              onClick={() => openCustomerSheet(customer)}
-            >
-              <EditIcon />
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon-sm"
-              aria-label={`Xoá ${customer.name}`}
-              onClick={() =>
-                setDeleteTarget({
-                  type: "customer",
-                  id: customer.id,
-                  name: customer.name,
-                })
-              }
-            >
-              <Trash2Icon />
-            </Button>
+          <div className="flex justify-end">
+            <AppDropdown
+              aria-label={`Thao tác với ${customer.name}`}
+              items={[
+                {
+                  key: "edit",
+                  label: "Chỉnh sửa",
+                  icon: <EditIcon />,
+                  onClick: () => openCustomerSheet(customer),
+                },
+                {
+                  key: "delete",
+                  label: "Xoá",
+                  icon: <Trash2Icon />,
+                  variant: "destructive",
+                  onClick: () =>
+                    setDeleteTarget({
+                      type: "customer",
+                      id: customer.id,
+                      name: customer.name,
+                    }),
+                },
+              ]}
+            />
           </div>
         ),
       },

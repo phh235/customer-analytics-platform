@@ -14,6 +14,7 @@ import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delet
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
 import { SortButton } from "@/components/admin/management/sort-button"
 import type { DeleteTarget } from "@/components/admin/management/types"
+import { AppDropdown } from "@/components/common/app-dropdown"
 import {
   CommonTable,
   type CommonTableColumn,
@@ -229,34 +230,33 @@ export const Component = () => {
       },
       {
         id: "actions",
-        header: "Thao tác",
-        className: "w-28 text-right whitespace-nowrap",
+        header: <span className="sr-only">Thao tác</span>,
+        className: "w-14 text-right whitespace-nowrap",
         cell: (category) => (
-          <div className="flex justify-end gap-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              aria-label={`Chỉnh sửa ${category.name}`}
-              onClick={() => openCategorySheet(category)}
-            >
-              <EditIcon />
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon-sm"
-              aria-label={`Xoá ${category.name}`}
-              onClick={() =>
-                setDeleteTarget({
-                  type: "category",
-                  id: category.id,
-                  name: category.name,
-                })
-              }
-            >
-              <Trash2Icon />
-            </Button>
+          <div className="flex justify-end">
+            <AppDropdown
+              aria-label={`Thao tác với ${category.name}`}
+              items={[
+                {
+                  key: "edit",
+                  label: "Chỉnh sửa",
+                  icon: <EditIcon />,
+                  onClick: () => openCategorySheet(category),
+                },
+                {
+                  key: "delete",
+                  label: "Xoá",
+                  icon: <Trash2Icon />,
+                  variant: "destructive",
+                  onClick: () =>
+                    setDeleteTarget({
+                      type: "category",
+                      id: category.id,
+                      name: category.name,
+                    }),
+                },
+              ]}
+            />
           </div>
         ),
       },
