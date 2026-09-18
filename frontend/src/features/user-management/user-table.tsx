@@ -2,13 +2,13 @@ import { useMemo } from "react"
 import { EditIcon, Trash2Icon } from "lucide-react"
 
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
+import { AppDropdown } from "@/components/common/app-dropdown"
 import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
 import { UserAvatar } from "@/components/common/user-avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   USER_ROLE_LABELS,
   type User,
@@ -108,44 +108,36 @@ export function UserTable({
       },
       {
         id: "actions",
-        header: "Thao tác",
-        className: "w-28 text-right",
+        header: <span className="sr-only">Thao tác</span>,
+        className: "w-14 text-right",
         cell: (user) => {
           const isCurrentUser = user.id === currentUserId
           const isAdmin = user.role_code === "ADMIN"
+          const isActionDisabled =
+            isCurrentUser || isAdmin || user.status === "DISABLED"
 
           return (
-            <div className="flex justify-end gap-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label={`Chỉnh sửa ${user.full_name}`}
-                disabled={
-                  isCurrentUser || isAdmin || user.status === "DISABLED"
-                }
-                onClick={() => onEdit(user)}
-              >
-                <EditIcon />
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon-sm"
-                aria-label={
-                  isCurrentUser
-                    ? "Không thể vô hiệu hóa tài khoản hiện tại"
-                    : isAdmin
-                      ? "Không thể vô hiệu hóa tài khoản quản trị viên"
-                      : `Vô hiệu hóa ${user.full_name}`
-                }
-                disabled={
-                  isCurrentUser || isAdmin || user.status === "DISABLED"
-                }
-                onClick={() => onDelete(user)}
-              >
-                <Trash2Icon />
-              </Button>
+            <div className="flex justify-end">
+              <AppDropdown
+                aria-label={`Thao tác với ${user.full_name}`}
+                items={[
+                  {
+                    key: "edit",
+                    label: "Chỉnh sửa",
+                    icon: <EditIcon />,
+                    disabled: isActionDisabled,
+                    onClick: () => onEdit(user),
+                  },
+                  {
+                    key: "delete",
+                    label: "Vô hiệu hóa",
+                    icon: <Trash2Icon />,
+                    variant: "destructive",
+                    disabled: isActionDisabled,
+                    onClick: () => onDelete(user),
+                  },
+                ]}
+              />
             </div>
           )
         },

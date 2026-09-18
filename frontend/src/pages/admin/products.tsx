@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import {
-  Edit,
+  EditIcon,
   FilterXIcon,
   PlusIcon,
   SearchIcon,
@@ -27,6 +27,7 @@ import { ProductFormSheet } from "@/components/admin/management/product-form-she
 import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
 import type { DeleteTarget } from "@/components/admin/management/types"
+import { AppDropdown } from "@/components/common/app-dropdown"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
@@ -320,34 +321,33 @@ export const Component = () => {
       },
       {
         id: "actions",
-        header: "Thao tác",
-        className: "w-28 text-right",
+        header: <span className="sr-only">Thao tác</span>,
+        className: "w-14 text-right",
         cell: (product) => (
-          <div className="flex justify-end gap-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              aria-label={`Chỉnh sửa ${product.name}`}
-              onClick={() => openProductSheet(product)}
-            >
-              <Edit />
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              aria-label={`Xoá ${product.name}`}
-              onClick={() =>
-                setDeleteTarget({
-                  type: "product",
-                  id: product.id,
-                  name: product.name,
-                })
-              }
-            >
-              <Trash2Icon />
-            </Button>
+          <div className="flex justify-end">
+            <AppDropdown
+              aria-label={`Thao tác với ${product.name}`}
+              items={[
+                {
+                  key: "edit",
+                  label: "Chỉnh sửa",
+                  icon: <EditIcon />,
+                  onClick: () => openProductSheet(product),
+                },
+                {
+                  key: "delete",
+                  label: "Xoá",
+                  icon: <Trash2Icon />,
+                  variant: "destructive",
+                  onClick: () =>
+                    setDeleteTarget({
+                      type: "product",
+                      id: product.id,
+                      name: product.name,
+                    }),
+                },
+              ]}
+            />
           </div>
         ),
       },
