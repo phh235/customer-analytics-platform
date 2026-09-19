@@ -9,16 +9,8 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
 
-const SKELETON_NAV_ITEMS = [
-  "w-full",
-  "w-11/12",
-  "w-4/5",
-  "w-10/12",
-  "w-full",
-  "w-9/12",
-]
+const SKELETON_NAV_ITEMS = 6
 
 export function DashboardSessionSkeleton() {
   return (
@@ -36,9 +28,9 @@ export function DashboardSessionSkeleton() {
         </SidebarHeader>
         <SidebarContent>
           <div className="flex flex-col gap-2 p-2">
-            {SKELETON_NAV_ITEMS.map((width, index) => (
+            {Array.from({ length: SKELETON_NAV_ITEMS }, (_, index) => (
               <Skeleton
-                className={cn("h-9 rounded-lg", width)}
+                className="h-9 w-full rounded-lg"
                 key={`sidebar-nav-${index}`}
               />
             ))}

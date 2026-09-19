@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 
+import { cn } from "@/lib/utils"
 import {
   Pagination,
   PaginationContent,
@@ -48,6 +49,7 @@ interface CommonTableProps<T> {
   itemLabel?: string
   getRowId?: (item: T, index: number) => string | number
   pagination?: CommonTablePagination
+  variant?: "default" | "embedded"
 }
 
 function getPageCount(total: number, pageSize: number) {
@@ -98,7 +100,9 @@ export function CommonTable<T>({
   itemLabel,
   getRowId,
   pagination,
+  variant = "default",
 }: CommonTableProps<T>) {
+  const embedded = variant === "embedded"
   const total = pagination?.total ?? data.length
   const pageCount = pagination
     ? Math.max(
@@ -143,11 +147,22 @@ export function CommonTable<T>({
         : undefined))
 
   return (
-    <div aria-busy={loading} className="flex min-w-0 flex-col gap-2 px-3 pb-3">
-      <div className="overflow-hidden rounded-lg border border-border bg-background">
+    <div
+      aria-busy={loading}
+      className={cn("flex min-w-0 flex-col gap-2 pb-3", !embedded && "px-3")}
+    >
+      <div
+        className={cn(
+          "overflow-hidden",
+          !embedded && "rounded-lg border border-border bg-background"
+        )}
+      >
         <Table
           aria-label={itemLabel ? `Danh sách ${itemLabel}` : undefined}
-          className="min-w-full table-auto border-y-0 [&_td]:px-4 [&_th]:px-4"
+          className={cn(
+            "min-w-full table-auto border-y-0 [&_td]:px-4 [&_th]:px-4",
+            embedded && "[&_thead]:bg-transparent! [&_th]:bg-transparent!"
+          )}
         >
           <TableHeader>
             <TableRow>
