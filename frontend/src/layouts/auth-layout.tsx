@@ -1,23 +1,30 @@
 import { Outlet } from "react-router"
 
-import { FullWidthDivider } from "@/components/ui/full-width-divider"
+import { ShaderBackdrop } from "@/components/auth/shader-backdrop"
+import { SquircleSurface } from "@/components/ui/squircle-card"
 import { BRAND_NAME } from "@/lib/brand"
 import { MainLogo } from "@/lib/svg"
 
 export const AuthLayout = () => {
   return (
-    <div className="relative flex h-screen items-center justify-center overflow-hidden">
-      <div className="flex min-h-screen w-full max-w-sm items-center justify-center border-x-0 sm:border-x">
-        <div className="relative w-full">
-          <FullWidthDivider position="top" className="hidden sm:block" />
-          <div className="relative w-full p-6">
-            <div className="flex items-center justify-center gap-2">
-              <MainLogo className="size-11" />
-              <span className="text-xl font-semibold">{BRAND_NAME}</span>
-            </div>
-            <Outlet />
+    <div className="relative flex min-h-svh items-center justify-center overflow-x-hidden overflow-y-auto bg-[#f6f6f6] ps-(--safe-area-left) pe-(--safe-area-right) pt-[calc(1.5rem+var(--safe-area-top))] pb-[calc(1.5rem+var(--safe-area-bottom))] dark:bg-[#191919]">
+      <ShaderBackdrop />
+      <div className="relative z-10 flex min-h-[calc(100svh-3rem-var(--safe-area-top)-var(--safe-area-bottom))] w-full max-w-sm items-center justify-center">
+        <div className="w-full max-w-sm">
+          <div className="rounded-[26px] shadow-[0_1px_2px_rgba(0,0,0,0.06),0_24px_60px_rgba(0,0,0,0.10)] sm:rounded-[50px]">
+            <SquircleSurface className="flex flex-col rounded-[26px] border border-border/80 bg-[#f6f6f6] p-1 text-card-foreground [--card-clip-handle:2.25px] [--card-clip-radius:14px] sm:rounded-[50px] sm:[--card-clip-handle:3px] sm:[--card-clip-radius:20px] dark:border-border/60 dark:bg-[#191919]">
+              <div className="flex h-11 items-center gap-2 pr-3 pl-3.5">
+                <MainLogo className="size-7" />
+                <span className="text-sm font-medium text-foreground/80">
+                  {BRAND_NAME}
+                </span>
+              </div>
+
+              <SquircleSurface className="relative overflow-hidden rounded-[22px] border border-border/60 bg-white p-6 shadow-xs [--card-clip-radius:12px] sm:rounded-[44px] sm:[--card-clip-radius:17px] dark:bg-[#212121]">
+                <Outlet />
+              </SquircleSurface>
+            </SquircleSurface>
           </div>
-          <FullWidthDivider position="bottom" className="hidden sm:block" />
         </div>
       </div>
     </div>

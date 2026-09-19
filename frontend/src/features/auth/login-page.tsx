@@ -13,10 +13,10 @@ import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { PasswordInput } from "@/components/ui/password-input"
 import { Spinner } from "@/components/ui/spinner"
 import { getApiErrorMessage } from "@/api/errors"
-import { getPostLoginPath } from "@/lib/auth-routing"
 import { useAuthStore } from "@/stores/use-auth-store"
+import { cn } from "@/lib/utils"
 import { toastError, toastSuccess } from "@/utils/toast"
-import { Link, useLocation, useNavigate } from "react-router"
+import { Link } from "react-router"
 
 const formSchema = z.object({
   email: z.string().email("Địa chỉ email không hợp lệ"),
@@ -24,8 +24,6 @@ const formSchema = z.object({
 })
 
 export const Component = () => {
-  const location = useLocation()
-  const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
   const authStatus = useAuthStore((state) => state.status)
   const form = useForm<z.infer<typeof formSchema>>({
@@ -40,11 +38,8 @@ export const Component = () => {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      const user = await login(data)
+      await login(data)
       toastSuccess("Đăng nhập thành công")
-      navigate(getPostLoginPath(user.role_code, location.state), {
-        replace: true,
-      })
     } catch (error) {
       toastError(
         getApiErrorMessage(
@@ -56,16 +51,16 @@ export const Component = () => {
   }
 
   return (
-    <>
-      <div className="mt-4 flex flex-col gap-1">
-        <p className="text-center text-xl font-semibold">Chào mừng trở lại</p>
-        <p className="text-center text-sm text-muted-foreground">
-          Đăng nhập để tiếp tục khám phá sản phẩm
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 className="text-base font-medium">Chào mừng trở lại!</h1>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Vui lòng nhập thông tin tài khoản để tiếp tục
         </p>
       </div>
       <form
         aria-busy={isFormDisabled}
-        className="mt-6 flex w-full flex-col gap-3"
+        className="flex w-full flex-col gap-4"
         noValidate
         onSubmit={form.handleSubmit(onSubmit)}
       >
@@ -102,7 +97,23 @@ export const Component = () => {
                 data-disabled={isFormDisabled}
                 data-invalid={fieldState.invalid}
               >
-                <FieldLabel htmlFor="login-password">Mật khẩu</FieldLabel>
+                <div className="flex items-center justify-between gap-3">
+                  <FieldLabel htmlFor="login-password">Mật khẩu</FieldLabel>
+                  <Link
+                    aria-disabled={isFormDisabled}
+                    tabIndex={isFormDisabled ? -1 : undefined}
+                    onClick={(event) => {
+                      if (isFormDisabled) event.preventDefault()
+                    }}
+                    className={cn(
+                      "text-sm font-medium text-primary underline-offset-4 hover:underline",
+                      isFormDisabled && "pointer-events-none opacity-50"
+                    )}
+                    to="/forgot-password"
+                  >
+                    Quên mật khẩu?
+                  </Link>
+                </div>
                 <PasswordInput
                   id="login-password"
                   aria-invalid={fieldState.invalid}
@@ -117,34 +128,45 @@ export const Component = () => {
             )}
           />
         </FieldGroup>
-        <Button
-          className="w-full"
-          type="submit"
-          size="lg"
-          disabled={isFormDisabled}
-        >
+        <Button className="h-9 w-full" type="submit" disabled={isFormDisabled}>
           {form.formState.isSubmitting ? (
             <Spinner data-icon="inline-start" />
           ) : null}
           Đăng nhập
         </Button>
       </form>
-      <p className="mt-4 text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm text-muted-foreground">
         Chưa có tài khoản?{" "}
         <Link
-          className="font-medium text-primary underline-offset-4 hover:underline"
+          aria-disabled={isFormDisabled}
+          tabIndex={isFormDisabled ? -1 : undefined}
+          onClick={(event) => {
+            if (isFormDisabled) event.preventDefault()
+          }}
+          className={cn(
+            "font-medium text-primary underline-offset-4 hover:underline",
+            isFormDisabled && "pointer-events-none opacity-50"
+          )}
           to="/register"
         >
           Đăng ký
         </Link>
         <span className="mx-1">hoặc</span>
         <Link
-          className="font-medium text-primary underline-offset-4 hover:underline"
+          aria-disabled={isFormDisabled}
+          tabIndex={isFormDisabled ? -1 : undefined}
+          onClick={(event) => {
+            if (isFormDisabled) event.preventDefault()
+          }}
+          className={cn(
+            "font-medium text-primary underline-offset-4 hover:underline",
+            isFormDisabled && "pointer-events-none opacity-50"
+          )}
           to="/"
         >
           tìm hiểu thêm
         </Link>
       </p>
-    </>
+    </div>
   )
 }

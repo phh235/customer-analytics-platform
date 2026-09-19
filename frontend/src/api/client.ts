@@ -1,4 +1,8 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios"
+import axios, {
+  type AxiosError,
+  type AxiosInstance,
+  type InternalAxiosRequestConfig,
+} from "axios"
 
 import {
   clearAccessToken,
@@ -6,14 +10,21 @@ import {
   setAccessToken,
 } from "@/api/access-token"
 
-// In development, keep auth requests same-origin so the browser can send the
-// HttpOnly SameSite refresh cookie. Vite proxies /api to VITE_API_URL.
-const API_URL = import.meta.env.DEV
-  ? "/api/v1"
-  : (import.meta.env.VITE_API_URL ?? "/api/v1")
+const DATA_API_URL = import.meta.env.VITE_API_URL ?? "/api/v1"
+const AUTH_API_URL = import.meta.env.VITE_API_URL ?? "/api/v1"
 
 const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: DATA_API_URL,
+  timeout: 30000,
+  withCredentials: false,
+  headers: {
+    "Content-Type": "application/json",
+  },
+})
+
+// Auth calls the configured backend directly and includes the refresh cookie.
+export const authClient = axios.create({
+  baseURL: AUTH_API_URL,
   timeout: 30000,
   withCredentials: true,
   headers: {
@@ -21,9 +32,8 @@ const apiClient = axios.create({
   },
 })
 
-// Refresh requests must not pass through the access-token retry interceptor.
 const refreshClient = axios.create({
-  baseURL: API_URL,
+  baseURL: AUTH_API_URL,
   timeout: 30000,
   withCredentials: true,
   headers: {
@@ -66,44 +76,47 @@ async function refreshAccessTokenOnce() {
   return refreshPromise
 }
 
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = getAccessToken()
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => Promise.reject(error)
-)
+function attachAuthInterceptors(client: AxiosInstance) {
+  client.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+      const token = getAccessToken()
+      if (token) config.headers.Authorization = `Bearer ${token}`
+      return config
+    },
+    (error) => Promise.reject(error)
+  )
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as RetriableRequestConfig | undefined
+  client.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const originalRequest = error.config as RetriableRequestConfig | undefined
 
-    if (
-      error.response?.status !== 401 ||
-      !originalRequest ||
-      originalRequest._retry ||
-      isAuthEndpoint(originalRequest.url)
-    ) {
-      return Promise.reject(error)
-    }
-
-    const token = await refreshAccessTokenOnce()
-    if (!token) {
-      clearAccessToken()
-      if (window.location.pathname !== "/login") {
-        window.location.assign("/login")
+      if (
+        error.response?.status !== 401 ||
+        !originalRequest ||
+        originalRequest._retry ||
+        isAuthEndpoint(originalRequest.url)
+      ) {
+        return Promise.reject(error)
       }
-      return Promise.reject(error)
-    }
 
-    originalRequest._retry = true
-    originalRequest.headers.Authorization = `Bearer ${token}`
-    return apiClient(originalRequest)
-  }
-)
+      const token = await refreshAccessTokenOnce()
+      if (!token) {
+        clearAccessToken()
+        if (window.location.pathname !== "/login") {
+          window.location.assign("/login")
+        }
+        return Promise.reject(error)
+      }
+
+      originalRequest._retry = true
+      originalRequest.headers.Authorization = `Bearer ${token}`
+      return client(originalRequest)
+    }
+  )
+}
+
+attachAuthInterceptors(apiClient)
+attachAuthInterceptors(authClient)
 
 export default apiClient

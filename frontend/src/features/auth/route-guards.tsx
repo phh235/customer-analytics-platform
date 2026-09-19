@@ -20,6 +20,24 @@ function SessionPending() {
   )
 }
 
+function GuestRedirectPending({ to }: { to: string }) {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    navigate(to, { replace: true })
+  }, [navigate, to])
+
+  return (
+    <div
+      aria-label="Đang chuyển trang"
+      className="flex min-h-40 items-center justify-center"
+      role="status"
+    >
+      <Spinner />
+    </div>
+  )
+}
+
 interface AuthenticatedRouteProps {
   dashboardFallback?: boolean
 }
@@ -88,7 +106,9 @@ export function GuestRoute() {
 
   if (status === "authenticated" && user) {
     return (
-      <Navigate to={getPostLoginPath(user.role_code, location.state)} replace />
+      <GuestRedirectPending
+        to={getPostLoginPath(user.role_code, location.state)}
+      />
     )
   }
 

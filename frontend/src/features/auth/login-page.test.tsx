@@ -35,4 +35,25 @@ describe("LoginPage", () => {
       await screen.findByText("Mật khẩu phải dài ít nhất 8 ký tự")
     ).toBeInTheDocument()
   })
+
+  it("khóa các liên kết khi đang đăng nhập", () => {
+    useAuthStore.setState({ status: "loading" })
+
+    render(
+      <MemoryRouter>
+        <Component />
+      </MemoryRouter>
+    )
+
+    for (const name of ["Quên mật khẩu?", "Đăng ký", "tìm hiểu thêm"]) {
+      expect(screen.getByRole("link", { name })).toHaveAttribute(
+        "aria-disabled",
+        "true"
+      )
+      expect(screen.getByRole("link", { name })).toHaveAttribute(
+        "tabindex",
+        "-1"
+      )
+    }
+  })
 })

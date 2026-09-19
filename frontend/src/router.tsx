@@ -82,6 +82,10 @@ export const router = createBrowserRouter([
             path: "/register",
             lazy: () => import("@/pages/auth/register"),
           },
+          {
+            path: "/forgot-password",
+            lazy: () => import("@/pages/auth/forgot-password"),
+          },
         ],
       },
     ],
