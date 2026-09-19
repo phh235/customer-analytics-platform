@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   EditIcon,
   FilterXIcon,
@@ -18,7 +19,6 @@ import {
 import {
   createProduct,
   deleteProduct,
-  getProducts,
   updateProduct,
   uploadProductImage,
   type ProductRecord,
@@ -46,14 +46,15 @@ import {
 } from "@/components/ui/input-group"
 import { Switch } from "@/components/ui/switch"
 import { useDebounce } from "@/hooks/use-debounce"
+import { productQueryKeys, useProducts } from "@/hooks/use-products"
+import { hasPermission } from "@/lib/authorization"
 import {
-  formatCurrency,
-  formatDate,
-  normalize,
   type Product,
   type ProductFormData,
   type ProductStatus,
 } from "@/lib/admin-management"
+import { formatDate } from "@/lib/date"
+import { formatCurrency, normalizeText } from "@/lib/format"
 import { toastError, toastSuccess } from "@/utils/toast"
 const mapProduct = (product: ProductRecord): Product => ({
   id: product.id,
@@ -72,7 +73,7 @@ const SORT_DIRECTIONS = ["asc", "desc"] as const
 const PRODUCT_STATUSES = ["all", "active", "inactive"] as const
 
 type ProductSortKey = (typeof PRODUCT_SORT_KEYS)[number]
-const PRODUCT_PAGE_SIZE = 4
+const PRODUCT_PAGE_SIZE = 10
 
 const productQueryParsers = {
   search: parseAsString.withDefault(""),
@@ -85,11 +86,10 @@ const productQueryParsers = {
 const productQueryOptions = { urlKeys: { search: "q" } }
 
 export const Component = () => {
-  const [products, setProducts] = useState<Product[]>([])
+  const queryClient = useQueryClient()
   const [{ search, category, status, sort, direction, page }, setQuery] =
     useQueryStates(productQueryParsers, productQueryOptions)
   const debouncedSearch = useDebounce(search, 300)
-  const [loading, setLoading] = useState(true)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
@@ -99,25 +99,15 @@ export const Component = () => {
     nextStatus: ProductStatus
   } | null>(null)
   const currentUser = useAuthStore((state) => state.user)
-  const canManageProducts = currentUser?.role_code === "ADMIN"
-
-  useEffect(() => {
-    let cancelled = false
-    void getProducts({ page: 1, size: 100 })
-      .then((response) => {
-        if (!cancelled) setProducts(response.records.map(mapProduct))
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) toastError(getApiErrorMessage(error))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const canCreateProduct = hasPermission(currentUser, "products:create")
+  const canUpdateProduct = hasPermission(currentUser, "products:update")
+  const canDeleteProduct = hasPermission(currentUser, "products:delete")
+  const productsQuery = useProducts({ page: 1, size: 100 })
+  const products = useMemo(
+    () => (productsQuery.data?.records ?? []).map(mapProduct),
+    [productsQuery.data?.records]
+  )
+  const loading = productsQuery.isPending
 
   const categories = useMemo(
     () =>
@@ -128,14 +118,14 @@ export const Component = () => {
   )
 
   const filteredProducts = useMemo(() => {
-    const query = normalize(debouncedSearch.trim())
+    const query = normalizeText(debouncedSearch.trim())
 
     return products
       .filter((product) => {
         const matchesSearch =
           !query ||
           [product.name, product.sku, product.category].some((value) =>
-            normalize(value).includes(query)
+            normalizeText(value).includes(query)
           )
         const matchesCategory =
           category === "all" || product.category === category
@@ -161,8 +151,14 @@ export const Component = () => {
     setSheetOpen(true)
   }, [])
 
-  const handleSave = async (data: ProductFormData) => {
-    try {
+  const saveProductMutation = useMutation({
+    mutationFn: async ({
+      product,
+      data,
+    }: {
+      product: Product | null
+      data: ProductFormData
+    }) => {
       const payload = {
         name: data.name,
         sku: data.sku,
@@ -173,66 +169,63 @@ export const Component = () => {
             ? ("ACTIVE" as const)
             : ("INACTIVE" as const),
       }
-      const savedProduct = editingProduct
-        ? await updateProduct(editingProduct.id, payload)
+      const savedProduct = product
+        ? await updateProduct(product.id, payload)
         : await createProduct(payload)
-      const productWithImage = data.image
+      return data.image
         ? await uploadProductImage(savedProduct.id, data.image)
         : savedProduct
-      const mappedProduct = mapProduct(productWithImage)
-
-      setProducts((current) =>
-        editingProduct
-          ? current.map((product) =>
-              product.id === editingProduct.id ? mappedProduct : product
-            )
-          : [mappedProduct, ...current]
-      )
+    },
+    onSuccess: async (_, variables) => {
       toastSuccess(
-        editingProduct ? "Đã cập nhật sản phẩm" : "Đã thêm sản phẩm mới"
+        variables.product ? "Đã cập nhật sản phẩm" : "Đã thêm sản phẩm mới"
       )
-    } catch (error: unknown) {
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.all })
+    },
+    onError: (error) => {
       toastError(getApiErrorMessage(error))
-      throw error
-    }
-  }
+    },
+  })
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return
-
-    try {
-      await deleteProduct(deleteTarget.id)
-      setProducts((current) =>
-        current.filter((product) => product.id !== deleteTarget.id)
-      )
+  const deleteProductMutation = useMutation({
+    mutationFn: (productId: string) => deleteProduct(productId),
+    onSuccess: async () => {
       toastSuccess("Đã xoá sản phẩm")
       setDeleteTarget(null)
-    } catch (error: unknown) {
-      toastError(getApiErrorMessage(error))
-    }
-  }
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.all })
+    },
+    onError: (error) => toastError(getApiErrorMessage(error)),
+  })
 
-  const handleStatusChange = async () => {
-    if (!statusTarget) return
-
-    try {
-      const savedProduct = await updateProduct(statusTarget.id, {
-        status: statusTarget.nextStatus === "active" ? "ACTIVE" : "INACTIVE",
-      })
-      const mappedProduct = mapProduct(savedProduct)
-      setProducts((current) =>
-        current.map((product) =>
-          product.id === statusTarget.id ? mappedProduct : product
-        )
-      )
+  const updateStatusMutation = useMutation({
+    mutationFn: (target: NonNullable<typeof statusTarget>) =>
+      updateProduct(target.id, {
+        status: target.nextStatus === "active" ? "ACTIVE" : "INACTIVE",
+      }),
+    onSuccess: async (_, target) => {
       toastSuccess(
-        statusTarget.nextStatus === "active"
+        target.nextStatus === "active"
           ? "Đã hiển thị sản phẩm"
           : "Đã ẩn sản phẩm"
       )
       setStatusTarget(null)
-    } catch (error: unknown) {
-      toastError(getApiErrorMessage(error))
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.all })
+    },
+    onError: (error) => toastError(getApiErrorMessage(error)),
+  })
+
+  const handleSave = (data: ProductFormData) =>
+    saveProductMutation.mutateAsync({ product: editingProduct, data })
+
+  const handleDelete = () => {
+    if (deleteTarget && !deleteProductMutation.isPending) {
+      deleteProductMutation.mutate(deleteTarget.id)
+    }
+  }
+
+  const handleStatusChange = () => {
+    if (statusTarget && !updateStatusMutation.isPending) {
+      updateStatusMutation.mutate(statusTarget)
     }
   }
 
@@ -320,7 +313,9 @@ export const Component = () => {
         header: "SKU",
         className: "min-w-28 whitespace-nowrap",
         cell: (product) => (
-          <span className="text-sm whitespace-nowrap">{product.sku}</span>
+          <span className="text-sm whitespace-nowrap">
+            {product.sku || "-"}
+          </span>
         ),
       },
       {
@@ -368,7 +363,7 @@ export const Component = () => {
             <div className="flex items-center gap-2 whitespace-nowrap">
               <Switch
                 checked={isActive}
-                disabled={!canManageProducts}
+                disabled={!canUpdateProduct}
                 onCheckedChange={(checked) =>
                   setStatusTarget({
                     id: product.id,
@@ -404,14 +399,14 @@ export const Component = () => {
                 key: "edit",
                 label: "Chỉnh sửa",
                 icon: <EditIcon />,
-                disabled: !canManageProducts,
+                disabled: !canUpdateProduct,
                 onClick: () => openProductSheet(product),
               },
               {
                 key: "delete",
                 label: "Xoá",
                 icon: <Trash2Icon />,
-                disabled: !canManageProducts,
+                disabled: !canDeleteProduct,
                 variant: "destructive",
                 onClick: () =>
                   setDeleteTarget({
@@ -425,66 +420,77 @@ export const Component = () => {
         ),
       },
     ],
-    [canManageProducts, direction, openProductSheet, sort, toggleSort]
+    [
+      canDeleteProduct,
+      canUpdateProduct,
+      direction,
+      openProductSheet,
+      sort,
+      toggleSort,
+    ]
   )
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-6">
-      <div className="overflow-hidden">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2 p-3 lg:flex-row">
-            <InputGroup className="lg:max-w-sm">
-              <InputGroupAddon>
-                <SearchIcon />
-              </InputGroupAddon>
-              <InputGroupInput
-                value={search}
-                onChange={(event) => updateSearch(event.target.value)}
-                placeholder="Tìm tên, SKU, danh mục..."
-                aria-label="Tìm kiếm sản phẩm"
-              />
-            </InputGroup>
-            <AppSelect
-              options={[
-                { value: "all", label: "Tất cả danh mục" },
-                ...categories.map((item) => ({ value: item, label: item })),
-              ]}
-              value={category}
-              onChange={(value) =>
-                void setQuery({ category: value || "all", page: 1 })
-              }
-              className="w-full lg:w-52"
-              aria-label="Lọc theo danh mục"
+    <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
+      <header className="px-3 pt-3">
+        <h1 className="text-2xl font-semibold">Sản phẩm</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Quản lý sản phẩm, danh mục, giá bán và trạng thái hiển thị.
+        </p>
+      </header>
+      <div className="flex min-w-0 flex-col gap-4">
+        <div className="flex flex-col gap-2 px-3 lg:flex-row">
+          <InputGroup className="lg:max-w-sm">
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={search}
+              onChange={(event) => updateSearch(event.target.value)}
+              placeholder="Tìm tên, SKU, danh mục..."
+              aria-label="Tìm kiếm sản phẩm"
             />
-            <AppSelect
-              options={[
-                { value: "all", label: "Tất cả trạng thái" },
-                { value: "active", label: "Đang bán" },
-                { value: "inactive", label: "Tạm ẩn" },
-              ]}
-              value={status}
-              onChange={(value) =>
-                void setQuery({
-                  status: (value || "all") as (typeof PRODUCT_STATUSES)[number],
-                  page: 1,
-                })
-              }
-              className="w-full lg:w-44"
-              aria-label="Lọc theo trạng thái"
-            />
-            {(search || category !== "all" || status !== "all") && (
-              <Button type="button" variant="ghost" onClick={resetFilters}>
-                <FilterXIcon />
-                Xoá lọc
-              </Button>
-            )}
-            {canManageProducts && (
-              <Button onClick={() => openProductSheet()} className="ml-auto">
-                <PlusIcon />
-                Thêm sản phẩm
-              </Button>
-            )}
-          </div>
+          </InputGroup>
+          <AppSelect
+            options={[
+              { value: "all", label: "Tất cả danh mục" },
+              ...categories.map((item) => ({ value: item, label: item })),
+            ]}
+            value={category}
+            onChange={(value) =>
+              void setQuery({ category: value || "all", page: 1 })
+            }
+            className="w-full lg:w-52"
+            aria-label="Lọc theo danh mục"
+          />
+          <AppSelect
+            options={[
+              { value: "all", label: "Tất cả trạng thái" },
+              { value: "active", label: "Đang bán" },
+              { value: "inactive", label: "Tạm ẩn" },
+            ]}
+            value={status}
+            onChange={(value) =>
+              void setQuery({
+                status: (value || "all") as (typeof PRODUCT_STATUSES)[number],
+                page: 1,
+              })
+            }
+            className="w-full lg:w-44"
+            aria-label="Lọc theo trạng thái"
+          />
+          {(search || category !== "all" || status !== "all") && (
+            <Button type="button" variant="ghost" onClick={resetFilters}>
+              <FilterXIcon />
+              Xoá lọc
+            </Button>
+          )}
+          {canCreateProduct && (
+            <Button onClick={() => openProductSheet()} className="ml-auto">
+              <PlusIcon />
+              Thêm sản phẩm
+            </Button>
+          )}
         </div>
         <CommonTable
           data={filteredProducts}
@@ -495,7 +501,7 @@ export const Component = () => {
           emptyMessage={
             <EmptyTableState
               title="Không tìm thấy sản phẩm"
-              description="Thử đổi từ khoá hoặc xoá bớt bộ lọc để xem lại dữ liệu."
+              description="Thử đổi từ khóa hoặc xoá bớt bộ lọc để xem lại dữ liệu."
             />
           }
           pagination={{
@@ -507,7 +513,6 @@ export const Component = () => {
       </div>
 
       <ProductFormSheet
-        key={`${editingProduct?.id ?? "new"}-${sheetOpen ? "open" : "closed"}`}
         open={sheetOpen}
         onOpenChange={(open) => {
           setSheetOpen(open)
@@ -519,6 +524,7 @@ export const Component = () => {
       />
       <ConfirmDeleteDialog
         target={deleteTarget}
+        isLoading={deleteProductMutation.isPending}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null)
         }}
@@ -526,6 +532,7 @@ export const Component = () => {
       />
       <ConfirmProductStatusDialog
         target={statusTarget}
+        isLoading={updateStatusMutation.isPending}
         onOpenChange={(open) => {
           if (!open) setStatusTarget(null)
         }}

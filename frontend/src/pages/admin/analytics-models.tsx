@@ -1,10 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react"
-import { BrainCircuitIcon, RocketIcon } from "lucide-react"
+import { useState, type FormEvent } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { RocketIcon } from "lucide-react"
 
 import { getApiErrorMessage } from "@/api/errors"
 import {
   deployModel,
-  getModels,
   trainModel,
   type ModelLifecycleRecord,
 } from "@/api/analytics"
@@ -19,11 +19,10 @@ import { TableActions } from "@/components/common/table-actions"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  formatEnumLabel,
-  MODEL_STATUS_LABELS,
-  MODEL_TYPE_LABELS,
-} from "@/lib/admin-management"
+import { analyticsQueryKeys, useModels } from "@/hooks/use-analytics"
+import { MODEL_STATUS_LABELS, MODEL_TYPE_LABELS } from "@/lib/admin-management"
+import { formatEnumLabel } from "@/lib/format"
+import { toastError, toastSuccess } from "@/utils/toast"
 
 const today = new Date().toISOString().slice(0, 10)
 
@@ -31,7 +30,9 @@ const PAGE_SIZE = 10
 
 export const Component = () => {
   const [page, setPage] = useState(1)
-  const [models, setModels] = useState<ModelLifecycleRecord[]>([])
+  const queryClient = useQueryClient()
+  const modelsQuery = useModels()
+  const models = modelsQuery.data ?? []
   const [version, setVersion] = useState(`purchase-repeat-${today}`)
   const [modelType, setModelType] = useState<
     "LOGISTIC_REGRESSION" | "RANDOM_FOREST"
@@ -39,64 +40,41 @@ export const Component = () => {
   const [featureWindowDays, setFeatureWindowDays] = useState(365)
   const [predictionHorizonDays, setPredictionHorizonDays] = useState(90)
   const [analysisDate, setAnalysisDate] = useState(today)
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const refreshModels = () => {
-    void getModels()
-      .then((response) => setModels(response))
-      .catch((requestError: unknown) =>
-        setError(getApiErrorMessage(requestError))
-      )
-  }
-
-  useEffect(() => {
-    let cancelled = false
-    void getModels()
-      .then((response) => {
-        if (!cancelled) setModels(response)
+  const trainMutation = useMutation({
+    mutationFn: (payload: Parameters<typeof trainModel>[0]) =>
+      trainModel(payload),
+    onSuccess: async () => {
+      toastSuccess("Đã hoàn tất huấn luyện và đánh giá")
+      await queryClient.invalidateQueries({
+        queryKey: analyticsQueryKeys.models,
       })
-      .catch((requestError: unknown) => {
-        if (!cancelled) setError(getApiErrorMessage(requestError))
+    },
+    onError: (error) => toastError(getApiErrorMessage(error)),
+  })
+  const deployMutation = useMutation({
+    mutationFn: (version: string) => deployModel(version),
+    onSuccess: async () => {
+      toastSuccess("Đã đưa mô hình vào sử dụng")
+      await queryClient.invalidateQueries({
+        queryKey: analyticsQueryKeys.models,
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+    },
+    onError: (error) => toastError(getApiErrorMessage(error)),
+  })
 
   const handleTrain = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    try {
-      await trainModel({
-        version,
-        model_type: modelType,
-        feature_window_days: featureWindowDays,
-        prediction_horizon_days: predictionHorizonDays,
-        analysis_date: analysisDate || undefined,
-      })
-      refreshModels()
-    } catch (requestError: unknown) {
-      setError(getApiErrorMessage(requestError))
-    } finally {
-      setSubmitting(false)
-    }
+    trainMutation.mutate({
+      version,
+      model_type: modelType,
+      feature_window_days: featureWindowDays,
+      prediction_horizon_days: predictionHorizonDays,
+      analysis_date: analysisDate || undefined,
+    })
   }
 
   const handleDeploy = async (modelVersion: string) => {
-    setError(null)
-    try {
-      await deployModel(modelVersion)
-      refreshModels()
-    } catch (requestError: unknown) {
-      setError(getApiErrorMessage(requestError))
-    }
+    deployMutation.mutate(modelVersion)
   }
 
   const columns: CommonTableColumn<ModelLifecycleRecord>[] = [
@@ -143,7 +121,7 @@ export const Component = () => {
               key: "deploy",
               label: "Đưa vào sử dụng",
               icon: <RocketIcon />,
-              disabled: model.status !== "APPROVED",
+              disabled: model.status !== "APPROVED" || deployMutation.isPending,
               onClick: () => void handleDeploy(model.version),
             },
           ]}
@@ -155,10 +133,7 @@ export const Component = () => {
   return (
     <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
       <header className="px-3 pt-3">
-        <div className="flex items-center gap-2">
-          <BrainCircuitIcon className="size-5 text-muted-foreground" />
-          <h1 className="text-2xl font-semibold">Quản lý mô hình</h1>
-        </div>
+        <h1 className="text-2xl font-semibold">Quản lý mô hình</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Huấn luyện, đánh giá và đưa các mô hình đã được duyệt vào sử dụng.
         </p>
@@ -169,8 +144,8 @@ export const Component = () => {
           <CardTitle>Huấn luyện mô hình</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="flex flex-col gap-4" onSubmit={handleTrain}>
-            <FieldGroup className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <form onSubmit={handleTrain}>
+            <FieldGroup className="grid gap-4 md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto]">
               <Field>
                 <FieldLabel htmlFor="model-version">Phiên bản</FieldLabel>
                 <Input
@@ -233,32 +208,34 @@ export const Component = () => {
                   onChange={(event) => setAnalysisDate(event.target.value)}
                 />
               </Field>
+              <Button
+                className="w-full self-end whitespace-nowrap md:w-auto"
+                disabled={trainMutation.isPending}
+                type="submit"
+              >
+                {trainMutation.isPending
+                  ? "Đang huấn luyện..."
+                  : "Huấn luyện và đánh giá"}
+              </Button>
             </FieldGroup>
-            <Button className="self-end" disabled={submitting} type="submit">
-              {submitting ? "Đang huấn luyện..." : "Huấn luyện và đánh giá"}
-            </Button>
           </form>
         </CardContent>
       </Card>
 
       <section aria-label="Danh sách mô hình">
-        {error ? (
-          <p className="py-8 text-center text-sm text-destructive">{error}</p>
-        ) : (
-          <CommonTable
-            data={models}
-            columns={columns}
-            loading={loading}
-            getRowId={(model) => model.version}
-            emptyMessage="Chưa có mô hình nào được đăng ký."
-            itemLabel="mô hình"
-            pagination={{
-              page,
-              pageSize: PAGE_SIZE,
-              onPageChange: setPage,
-            }}
-          />
-        )}
+        <CommonTable
+          data={models}
+          columns={columns}
+          loading={modelsQuery.isPending}
+          getRowId={(model) => model.version}
+          emptyMessage="Chưa có mô hình nào được đăng ký."
+          itemLabel="mô hình"
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            onPageChange: setPage,
+          }}
+        />
       </section>
     </div>
   )

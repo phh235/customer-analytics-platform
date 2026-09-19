@@ -1,8 +1,18 @@
-import type { FormEvent } from "react"
-import { useState } from "react"
+import { useEffect } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Controller, useForm } from "react-hook-form"
+import { z } from "zod"
 
+import { ImageFileField } from "@/components/admin/management/image-file-field"
 import { AppSelect } from "@/components/common/app-select"
 import { Button } from "@/components/ui/button"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import {
   Sheet,
   SheetContent,
@@ -11,14 +21,26 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import type {
-  Customer,
-  CustomerFormData,
-  CustomerStatus,
-} from "@/lib/admin-management"
-import { toastError } from "@/utils/toast"
+import { Spinner } from "@/components/ui/spinner"
+import type { Customer, CustomerFormData } from "@/lib/admin-management"
+
+const customerFormSchema = z.object({
+  name: z.string().trim().min(1, "Vui lòng nhập họ và tên"),
+  email: z.string().trim().email("Địa chỉ email không hợp lệ"),
+  phone: z.string().trim().min(1, "Vui lòng nhập số điện thoại"),
+  status: z.enum(["active", "inactive"]),
+  image: z.instanceof(File).nullable(),
+})
+
+type CustomerFormValues = z.infer<typeof customerFormSchema>
+
+const getDefaultValues = (customer: Customer | null): CustomerFormValues => ({
+  name: customer?.name ?? "",
+  email: customer?.email ?? "",
+  phone: customer?.phone ?? "",
+  status: customer?.status ?? "active",
+  image: null,
+})
 
 export function CustomerFormSheet({
   open,
@@ -29,51 +51,28 @@ export function CustomerFormSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
   customer: Customer | null
-  onSave: (data: CustomerFormData) => void | Promise<void>
+  onSave: (data: CustomerFormData) => void | Promise<unknown>
 }) {
-  const [form, setForm] = useState(() =>
-    customer
-      ? {
-          name: customer.name,
-          email: customer.email,
-          phone: customer.phone,
-          status: customer.status,
-          image: null as File | null,
-        }
-      : {
-          name: "",
-          email: "",
-          phone: "",
-          status: "active" as CustomerStatus,
-          image: null as File | null,
-        }
-  )
-  const [saving, setSaving] = useState(false)
+  const form = useForm<CustomerFormValues>({
+    defaultValues: getDefaultValues(customer),
+    resolver: zodResolver(customerFormSchema),
+  })
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  useEffect(() => {
+    if (open) form.reset(getDefaultValues(customer))
+  }, [customer, form, open])
 
-    if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
-      toastError("Vui lòng nhập đầy đủ thông tin khách hàng")
-      return
-    }
-
-    setSaving(true)
-    try {
-      await onSave({
-        name: form.name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        status: form.status,
-        image: form.image,
-      })
-      onOpenChange(false)
-    } catch {
-      // The parent displays the API error; keep the sheet open for correction.
-    } finally {
-      setSaving(false)
-    }
+  const handleSubmit = async (values: CustomerFormValues) => {
+    await onSave({
+      ...values,
+      name: values.name.trim(),
+      email: values.email.trim(),
+      phone: values.phone.trim(),
+    })
+    onOpenChange(false)
   }
+
+  const isSubmitting = form.formState.isSubmitting
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -85,115 +84,113 @@ export function CustomerFormSheet({
           <SheetDescription>
             {customer
               ? "Cập nhật thông tin liên hệ và trạng thái tài khoản."
-              : "Nhập thông tin cơ bản để tạo hồ sơ khách hàng mẫu."}
+              : "Nhập thông tin cơ bản để tạo hồ sơ khách hàng."}
           </SheetDescription>
         </SheetHeader>
         <form
           id="customer-form-sheet"
-          onSubmit={handleSubmit}
+          onSubmit={form.handleSubmit(handleSubmit)}
           className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-4"
         >
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="customer-name">Họ và tên</FieldLabel>
-              <Input
-                id="customer-name"
-                value={form.name}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-                placeholder="Ví dụ: Nguyễn Minh Anh"
-                required
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="customer-email">Email</FieldLabel>
-              <Input
-                id="customer-email"
-                type="email"
-                value={form.email}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    email: event.target.value,
-                  }))
-                }
-                placeholder="khachhang@example.com"
-                required
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="customer-image">Ảnh khách hàng</FieldLabel>
-              {customer?.imageUrl ? (
-                <img
-                  src={customer.imageUrl}
-                  alt={customer.name}
-                  className="h-32 w-32 rounded-full border object-cover"
+            <Controller
+              control={form.control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="customer-name">Họ và tên</FieldLabel>
+                  <Input
+                    id="customer-name"
+                    autoComplete="name"
+                    placeholder="Ví dụ: Nguyễn Minh Anh"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="email"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="customer-email">Email</FieldLabel>
+                  <Input
+                    id="customer-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="khachhang@example.com"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <ImageFileField
+                  id="customer-image"
+                  label="Ảnh khách hàng"
+                  previewUrl={customer?.imageUrl ?? undefined}
+                  previewAlt={customer?.name ?? "Khách hàng"}
+                  previewClassName="w-32 rounded-full"
+                  selectedFile={field.value}
+                  onFileChange={field.onChange}
                 />
-              ) : null}
-              <Input
-                id="customer-image"
-                type="file"
-                accept="image/*"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null
-                  if (file && !file.type.startsWith("image/")) {
-                    toastError("Vui lòng chọn một tệp ảnh")
-                    event.currentTarget.value = ""
-                    return
-                  }
-                  if (file && file.size > 10 * 1024 * 1024) {
-                    toastError("Ảnh không được vượt quá 10 MB")
-                    event.currentTarget.value = ""
-                    return
-                  }
-                  setForm((current) => ({ ...current, image: file }))
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                JPG, PNG, WEBP; tối đa 10 MB.
-                {form.image ? ` Đã chọn: ${form.image.name}` : ""}
-              </p>
-            </Field>
+              )}
+            />
             <FieldGroup className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="customer-phone">Số điện thoại</FieldLabel>
-                <Input
-                  id="customer-phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      phone: event.target.value,
-                    }))
-                  }
-                  placeholder="0901 234 567"
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="customer-status">Trạng thái</FieldLabel>
-                <AppSelect
-                  options={[
-                    { value: "active", label: "Đang hoạt động" },
-                    { value: "inactive", label: "Không hoạt động" },
-                  ]}
-                  value={form.status}
-                  onChange={(value) =>
-                    setForm((current) => ({
-                      ...current,
-                      status: value as CustomerStatus,
-                    }))
-                  }
-                  id="customer-status"
-                  className="w-full"
-                  aria-label="Chọn trạng thái khách hàng"
-                />
-              </Field>
+              <Controller
+                control={form.control}
+                name="phone"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="customer-phone">
+                      Số điện thoại
+                    </FieldLabel>
+                    <Input
+                      id="customer-phone"
+                      type="tel"
+                      autoComplete="tel"
+                      placeholder="0901 234 567"
+                      aria-invalid={fieldState.invalid}
+                      disabled={isSubmitting}
+                      {...field}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
+              <Controller
+                control={form.control}
+                name="status"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="customer-status">
+                      Trạng thái
+                    </FieldLabel>
+                    <AppSelect
+                      id="customer-status"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                      className="w-full"
+                      aria-label="Chọn trạng thái khách hàng"
+                      options={[
+                        { value: "active", label: "Đang hoạt động" },
+                        { value: "inactive", label: "Không hoạt động" },
+                      ]}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
             </FieldGroup>
           </FieldGroup>
         </form>
@@ -202,16 +199,17 @@ export function CustomerFormSheet({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={saving}
+            disabled={isSubmitting}
           >
             Huỷ
           </Button>
-          <Button type="submit" form="customer-form-sheet" disabled={saving}>
-            {saving
-              ? "Đang lưu..."
-              : customer
-                ? "Lưu thay đổi"
-                : "Thêm khách hàng"}
+          <Button
+            type="submit"
+            form="customer-form-sheet"
+            disabled={isSubmitting}
+          >
+            {isSubmitting && <Spinner data-icon="inline-start" />}
+            {customer ? "Lưu thay đổi" : "Thêm khách hàng"}
           </Button>
         </SheetFooter>
       </SheetContent>

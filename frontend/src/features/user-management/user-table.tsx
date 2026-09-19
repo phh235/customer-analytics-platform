@@ -16,6 +16,7 @@ import {
   type UserStatus,
 } from "@/types/user"
 import type { PaginatedUsersResponse } from "@/types/user-management"
+import { formatDateTime } from "@/lib/date"
 
 const roleLabel = (role: UserRole) => USER_ROLE_LABELS[role]
 
@@ -27,15 +28,6 @@ function UserStatusBadge({ status }: { status: UserStatus }) {
   }[status]
 
   return <Badge variant={content.variant}>{content.label}</Badge>
-}
-
-const formatUserDate = (value: string | null) => {
-  if (!value) return "Chưa đăng nhập"
-
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
 }
 
 interface UserTableProps {
@@ -61,6 +53,16 @@ export function UserTable({
   onEdit,
   onDelete,
 }: UserTableProps) {
+  const visibleUsers = useMemo(
+    () => users.filter((user) => user.role_code !== "ADMIN"),
+    [users]
+  )
+  const hiddenAdminCount = users.length - visibleUsers.length
+  const visibleTotal = Math.max(
+    0,
+    (pagination?.total ?? visibleUsers.length) - hiddenAdminCount
+  )
+  const visiblePages = Math.max(1, Math.ceil(visibleTotal / pageSize))
   const columns: CommonTableColumn<User>[] = useMemo(
     () => [
       {
@@ -69,7 +71,7 @@ export function UserTable({
         className: "min-w-56 whitespace-nowrap",
         cell: (user) => (
           <div className="flex min-w-48 items-center gap-3">
-            <UserAvatar email={user.email} />
+            <UserAvatar email={user.email} name={user.full_name} />
             <div className="min-w-0">
               <p className="truncate font-medium">{user.full_name}</p>
               <p className="truncate text-xs text-muted-foreground">
@@ -98,13 +100,13 @@ export function UserTable({
         id: "createdAt",
         header: "Ngày tạo",
         className: "min-w-44 whitespace-nowrap",
-        cell: (user) => formatUserDate(user.created_at),
+        cell: (user) => formatDateTime(user.created_at),
       },
       {
         id: "lastLoginAt",
         header: "Đăng nhập gần nhất",
         className: "min-w-48 whitespace-nowrap",
-        cell: (user) => formatUserDate(user.last_login_at),
+        cell: (user) => formatDateTime(user.last_login_at, "Chưa đăng nhập"),
       },
       {
         id: "actions",
@@ -112,9 +114,7 @@ export function UserTable({
         className: "w-24 text-right",
         cell: (user) => {
           const isCurrentUser = user.id === currentUserId
-          const isAdmin = user.role_code === "ADMIN"
-          const isActionDisabled =
-            isCurrentUser || isAdmin || user.status === "DISABLED"
+          const isActionDisabled = isCurrentUser || user.status === "DISABLED"
 
           return (
             <TableActions
@@ -145,7 +145,7 @@ export function UserTable({
 
   return (
     <CommonTable
-      data={users}
+      data={visibleUsers}
       columns={columns}
       loading={loading}
       itemLabel="tài khoản"
@@ -159,10 +159,10 @@ export function UserTable({
       pagination={{
         page,
         pageSize,
-        total: pagination?.total ?? 0,
-        totalPages: pagination?.pages ?? 1,
+        total: visibleTotal,
+        totalPages: visiblePages,
         hasPrevious: page > 1,
-        hasNext: page < (pagination?.pages ?? 1),
+        hasNext: page < visiblePages,
         onPageChange,
       }}
     />

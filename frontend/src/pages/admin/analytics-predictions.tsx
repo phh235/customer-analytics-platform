@@ -1,56 +1,40 @@
-import { useEffect, useState } from "react"
-import { BrainCircuitIcon } from "lucide-react"
+import { useState } from "react"
 
-import { getApiErrorMessage } from "@/api/errors"
-import {
-  getPurchasePredictions,
-  type PurchasePredictionRecord,
-} from "@/api/analytics"
+import type { PurchasePredictionRecord } from "@/api/analytics"
+import { ProbabilityValue } from "@/components/admin/management/probability-value"
 import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
-import { formatDate } from "@/lib/admin-management"
+import { UserAvatar } from "@/components/common/user-avatar"
+import { formatDate } from "@/lib/date"
+import { usePurchasePredictions } from "@/hooks/use-analytics"
 
 const PAGE_SIZE = 10
 
 export const Component = () => {
   const [page, setPage] = useState(1)
-  const [predictions, setPredictions] = useState<PurchasePredictionRecord[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    void getPurchasePredictions()
-      .then((response) => {
-        if (cancelled) return
-        setPredictions(response)
-        setError(null)
-      })
-      .catch((requestError: unknown) => {
-        if (!cancelled) setError(getApiErrorMessage(requestError))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const predictionsQuery = usePurchasePredictions()
+  const predictions = predictionsQuery.data ?? []
 
   const columns: CommonTableColumn<PurchasePredictionRecord>[] = [
     {
       id: "name",
       header: "Khách hàng",
-      cell: (prediction) => <span>{prediction.name}</span>,
+      className: "min-w-52",
+      cell: (prediction) => (
+        <div className="flex items-center gap-3">
+          <UserAvatar name={prediction.name} />
+          <span>{prediction.name}</span>
+        </div>
+      ),
     },
     {
       id: "purchase_probability",
       header: "Xác suất mua lại",
-      cell: (prediction) =>
-        `${(prediction.purchase_probability * 100).toFixed(1)}%`,
+      cell: (prediction) => (
+        <ProbabilityValue value={prediction.purchase_probability} />
+      ),
     },
     {
       id: "prediction_horizon_days",
@@ -72,32 +56,21 @@ export const Component = () => {
   return (
     <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
       <header className="px-3 pt-3">
-        <div className="flex items-center gap-2">
-          <BrainCircuitIcon className="size-5 text-muted-foreground" />
-          <h1 className="text-2xl font-semibold">Dự đoán mua lại</h1>
-        </div>
+        <h1 className="text-2xl font-semibold">Dự đoán mua lại</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Dự đoán xác suất khách hàng mua lại trong 90 ngày tiếp theo.
         </p>
       </header>
 
       <section aria-label="Danh sách khách hàng">
-        {error ? (
-          <p className="py-8 text-center text-sm text-destructive">{error}</p>
-        ) : (
-          <CommonTable
-            data={predictions}
-            columns={columns}
-            loading={loading}
-            getRowId={(prediction) => prediction.customer_id}
-            itemLabel="khách hàng"
-            pagination={{
-              page,
-              pageSize: PAGE_SIZE,
-              onPageChange: setPage,
-            }}
-          />
-        )}
+        <CommonTable
+          data={predictions}
+          columns={columns}
+          loading={predictionsQuery.isPending}
+          getRowId={(prediction) => prediction.customer_id}
+          itemLabel="khách hàng"
+          pagination={{ page, pageSize: PAGE_SIZE, onPageChange: setPage }}
+        />
       </section>
     </div>
   )

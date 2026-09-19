@@ -104,11 +104,6 @@ export function useUserManagement() {
   }, [startGlobalLoading, stopGlobalLoading, usersQuery.isFetching])
 
   useEffect(() => {
-    const totalPages = usersQuery.data?.pages ?? 0
-    if (totalPages > 0 && page > totalPages) setPage(totalPages)
-  }, [page, usersQuery.data?.pages])
-
-  useEffect(() => {
     if (!usersQuery.error) return
 
     toastError(
@@ -162,6 +157,7 @@ export function useUserManagement() {
     onSuccess: async () => {
       toastSuccess("Đã vô hiệu hóa tài khoản")
       setDeleteTarget(null)
+      if (users.length === 1 && page > 1) setPage((current) => current - 1)
       await queryClient.invalidateQueries({ queryKey: userQueryKeys.all })
     },
     onError: (error) => {

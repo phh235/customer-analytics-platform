@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { StatusBadge } from "@/components/admin/management/status-badge"
+import {
+  OrderStatusBadge,
+  StatusBadge,
+} from "@/components/admin/management/status-badge"
 
 describe("StatusBadge", () => {
   it.each([
@@ -13,5 +16,18 @@ describe("StatusBadge", () => {
     render(<StatusBadge status={status} entity={entity} />)
 
     expect(screen.getByText(label)).toBeInTheDocument()
+  })
+})
+
+describe("OrderStatusBadge", () => {
+  it.each([
+    ["delivered", "Đã giao", "success"],
+    ["processing", "Đang xử lý", "warning"],
+    ["paid", "Đã thanh toán", "info"],
+    ["canceled", "Đã huỷ", "destructive"],
+    ["CANCELLED", "Đã huỷ", "destructive"],
+  ])("hiển thị %s với màu semantic", (status, label, variant) => {
+    render(<OrderStatusBadge status={status} />)
+    expect(screen.getByText(label)).toHaveAttribute("data-variant", variant)
   })
 })

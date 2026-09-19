@@ -33,11 +33,13 @@ export interface PaginatedOrdersResponse {
   records: OrderRecord[]
 }
 
-export async function getOrders(params: {
-  page?: number
-  size?: number
-  status?: string
-} = {}) {
+export async function getOrders(
+  params: {
+    page?: number
+    size?: number
+    status?: string
+  } = {}
+) {
   const { data } = await apiClient.get<PaginatedOrdersResponse>("/orders", {
     params,
   })

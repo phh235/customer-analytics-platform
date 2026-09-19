@@ -35,11 +35,13 @@ export interface ProductPayload {
   status: ProductStatus
 }
 
-export async function getProducts(params: {
-  page?: number
-  size?: number
-  category?: string
-} = {}) {
+export async function getProducts(
+  params: {
+    page?: number
+    size?: number
+    category?: string
+  } = {}
+) {
   const { data } = await apiClient.get<PaginatedProductsResponse>("/products", {
     params,
   })
@@ -74,10 +76,7 @@ export async function deleteProduct(productId: string) {
   return data
 }
 
-export async function uploadProductImage(
-  productId: string,
-  image: File
-) {
+export async function uploadProductImage(productId: string, image: File) {
   const formData = new FormData()
   formData.append("image", image)
   const { data } = await apiClient.post<ProductRecord>(
