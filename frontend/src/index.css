@@ -75,6 +75,10 @@
 }
 
 :root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -146,6 +150,30 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-color: color-mix(
+        in oklab,
+        var(--muted-foreground) 55%,
+        transparent
+      )
+      var(--background);
+    scrollbar-width: thin;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-corner {
+    background: var(--background);
+  }
+  *::-webkit-scrollbar-thumb {
+    min-height: 40px;
+    border: 2px solid var(--background);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
   }
   body {
     @apply bg-background text-foreground;
@@ -156,6 +184,10 @@
   }
   html {
     @apply font-sans;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
@@ -165,6 +197,10 @@
     -webkit-text-fill-color: var(--foreground);
     caret-color: var(--foreground);
     transition: background-color 9999s ease-out 0s;
+  }
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
   }
 }
 

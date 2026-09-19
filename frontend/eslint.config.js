@@ -64,6 +64,9 @@ export default defineConfig([
   {
     files: ["src/components/ui/**/*.{ts,tsx}"],
     rules: {
+      "no-useless-assignment": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/refs": "off",
       "react-hooks/set-state-in-effect": "off",
       "react-refresh/only-export-components": "off",
     },

@@ -15,6 +15,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command"
+import { SquircleSurface } from "@/components/ui/squircle-card"
 
 export function CommandPalette() {
   const navigate = useNavigate()
@@ -46,46 +47,53 @@ export function CommandPalette() {
         <Kbd className="ml-2">{isMac ? "⌘ K" : "Ctrl K"}</Kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <Command>
-          <CommandInput placeholder="Tìm kiếm trang..." />
-          <CommandList>
-            <CommandEmpty className="text-muted-foreground">
-              Không tìm thấy kết quả.
-            </CommandEmpty>
-            <CommandGroup heading="Điều hướng">
-              {navMain
-                .filter((item) => !item.items)
-                .map((item) => (
-                  <CommandItem
-                    key={item.url}
-                    value={item.title}
-                    onSelect={() => handleSelect(item.url)}
-                  >
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-            {navMain
-              .filter((item) => item.items)
-              .map((item) => (
-                <Fragment key={item.url}>
-                  <CommandSeparator />
-                  <CommandGroup heading={item.title}>
-                    {item.items?.map((subItem) => (
+        <Command className="h-auto! rounded-none! bg-transparent p-0">
+          <SquircleSurface className="rounded-[22px] border border-border/80 bg-muted/95 p-1 shadow-xl [--card-clip-radius:12px] dark:bg-[#191919]">
+            <CommandInput
+              placeholder="Tìm kiếm trang..."
+              wrapperClassName="p-1.5"
+            />
+            <SquircleSurface className="overflow-hidden rounded-[18px] border border-border/60 bg-popover [--card-clip-radius:10px]">
+              <CommandList>
+                <CommandEmpty className="text-muted-foreground">
+                  Không tìm thấy kết quả.
+                </CommandEmpty>
+                <CommandGroup heading="Điều hướng">
+                  {navMain
+                    .filter((item) => !item.items)
+                    .map((item) => (
                       <CommandItem
-                        key={subItem.url}
-                        value={`${item.title} ${subItem.title}`}
-                        onSelect={() => handleSelect(subItem.url)}
+                        key={item.url}
+                        value={item.title}
+                        onSelect={() => handleSelect(item.url)}
                       >
                         {item.icon}
-                        <span>{subItem.title}</span>
+                        <span>{item.title}</span>
                       </CommandItem>
                     ))}
-                  </CommandGroup>
-                </Fragment>
-              ))}
-          </CommandList>
+                </CommandGroup>
+                {navMain
+                  .filter((item) => item.items)
+                  .map((item) => (
+                    <Fragment key={item.url}>
+                      <CommandSeparator />
+                      <CommandGroup heading={item.title}>
+                        {item.items?.map((subItem) => (
+                          <CommandItem
+                            key={subItem.url}
+                            value={`${item.title} ${subItem.title}`}
+                            onSelect={() => handleSelect(subItem.url)}
+                          >
+                            {item.icon}
+                            <span>{subItem.title}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Fragment>
+                  ))}
+              </CommandList>
+            </SquircleSurface>
+          </SquircleSurface>
         </Command>
       </CommandDialog>
     </div>
