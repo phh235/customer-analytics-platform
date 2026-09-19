@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from "react-router"
 
 import { DashboardSessionSkeleton } from "@/components/common/dashboard-session-skeleton"
 import { Spinner } from "@/components/ui/spinner"
-import { getHomePathForRole } from "@/lib/auth-routing"
+import { getHomePathForRole, getPostLoginPath } from "@/lib/auth-routing"
 import { useAuthStore } from "@/stores/use-auth-store"
 import type { UserRole } from "@/types/user"
 
@@ -24,18 +24,24 @@ interface AuthenticatedRouteProps {
   dashboardFallback?: boolean
 }
 
-export function AuthenticatedRoute({
-  dashboardFallback = false,
-}: AuthenticatedRouteProps) {
+function useSessionInitialization() {
   const status = useAuthStore((state) => state.status)
-  const user = useAuthStore((state) => state.user)
-  const accessToken = useAuthStore((state) => state.accessToken)
   const initializeSession = useAuthStore((state) => state.initializeSession)
-  const location = useLocation()
 
   useEffect(() => {
     if (status === "unknown") void initializeSession()
   }, [initializeSession, status])
+
+  return status
+}
+
+export function AuthenticatedRoute({
+  dashboardFallback = false,
+}: AuthenticatedRouteProps) {
+  const status = useSessionInitialization()
+  const user = useAuthStore((state) => state.user)
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const location = useLocation()
 
   if (status === "unknown" || status === "loading") {
     return dashboardFallback ? <DashboardSessionSkeleton /> : <SessionPending />
@@ -49,15 +55,10 @@ export function AuthenticatedRoute({
 }
 
 export function DefaultRoute() {
-  const status = useAuthStore((state) => state.status)
+  const status = useSessionInitialization()
   const user = useAuthStore((state) => state.user)
   const accessToken = useAuthStore((state) => state.accessToken)
-  const initializeSession = useAuthStore((state) => state.initializeSession)
   const location = useLocation()
-
-  useEffect(() => {
-    if (status === "unknown") void initializeSession()
-  }, [initializeSession, status])
 
   if (status === "unknown" || status === "loading") {
     return <SessionPending />
@@ -77,20 +78,18 @@ export function DefaultRoute() {
 }
 
 export function GuestRoute() {
-  const status = useAuthStore((state) => state.status)
+  const location = useLocation()
+  const status = useSessionInitialization()
   const user = useAuthStore((state) => state.user)
-  const initializeSession = useAuthStore((state) => state.initializeSession)
-
-  useEffect(() => {
-    if (status === "unknown") void initializeSession()
-  }, [initializeSession, status])
 
   if (status === "unknown" || status === "loading") {
     return <Outlet />
   }
 
   if (status === "authenticated" && user) {
-    return <Navigate to={getHomePathForRole(user.role_code)} replace />
+    return (
+      <Navigate to={getPostLoginPath(user.role_code, location.state)} replace />
+    )
   }
 
   return <Outlet />

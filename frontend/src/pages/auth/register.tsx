@@ -38,14 +38,14 @@ export const Component = () => {
 
   return (
     <>
-      <div className="mt-4 space-y-1">
+      <div className="mt-4 flex flex-col gap-1">
         <p className="text-center text-xl font-semibold">Tạo tài khoản</p>
         <p className="text-center text-sm text-muted-foreground">
           Đăng ký để bắt đầu khám phá sản phẩm
         </p>
       </div>
       <form
-        className="mt-6 w-full space-y-3"
+        className="mt-6 flex w-full flex-col gap-3"
         noValidate
         onSubmit={form.handleSubmit(onSubmit)}
       >

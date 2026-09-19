@@ -6,7 +6,11 @@ import {
   setAccessToken,
 } from "@/api/access-token"
 
-const API_URL = import.meta.env.VITE_API_URL ?? "/api/v1"
+// In development, keep auth requests same-origin so the browser can send the
+// HttpOnly SameSite refresh cookie. Vite proxies /api to VITE_API_URL.
+const API_URL = import.meta.env.DEV
+  ? "/api/v1"
+  : (import.meta.env.VITE_API_URL ?? "/api/v1")
 
 const apiClient = axios.create({
   baseURL: API_URL,

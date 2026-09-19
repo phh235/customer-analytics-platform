@@ -4,6 +4,9 @@ export const ADMIN_ROLES = ["ADMIN"] as const satisfies readonly UserRole[]
 export const STAFF_ROLES = [
   "ADMIN",
   "ANALYST",
+  "MANAGER",
+  "SALES",
+  "CSKH",
 ] as const satisfies readonly UserRole[]
 export const CLIENT_ROLES = [
   "CLIENT",
@@ -16,11 +19,10 @@ interface RedirectLocation {
   hash?: string
 }
 
-function isPathWithin(pathname: string, root: string) {
-  return pathname === root || pathname.startsWith(`${root}/`)
-}
+const isPathWithin = (pathname: string, root: string): boolean =>
+  pathname === root || pathname.startsWith(`${root}/`)
 
-function isRedirectLocation(value: unknown): value is RedirectLocation {
+const isRedirectLocation = (value: unknown): value is RedirectLocation => {
   if (!value || typeof value !== "object") return false
 
   const pathname = Reflect.get(value, "pathname")
@@ -31,31 +33,40 @@ function isRedirectLocation(value: unknown): value is RedirectLocation {
   )
 }
 
-export function getHomePathForRole(role: UserRole) {
+export const getHomePathForRole = (role: UserRole): string => {
   switch (role) {
     case "ADMIN":
     case "ANALYST":
+    case "MANAGER":
+    case "SALES":
+    case "CSKH":
       return "/dashboard"
-    case "CLIENT":
     case "USER":
+    case "CLIENT":
       return "/"
     default:
       return "/login"
   }
 }
 
-export function canRoleAccessPath(role: UserRole, pathname: string) {
+export const canRoleAccessPath = (
+  role: UserRole,
+  pathname: string
+): boolean => {
   if (isPathWithin(pathname, "/dashboard/users")) return role === "ADMIN"
   if (isPathWithin(pathname, "/dashboard")) {
-    return role === "ADMIN" || role === "ANALYST"
+    return STAFF_ROLES.some((allowedRole) => allowedRole === role)
   }
   if (pathname === "/" || isPathWithin(pathname, "/products")) {
-    return role === "CLIENT" || role === "USER"
+    return CLIENT_ROLES.some((allowedRole) => allowedRole === role)
   }
   return false
 }
 
-export function getPostLoginPath(role: UserRole, locationState: unknown) {
+export const getPostLoginPath = (
+  role: UserRole,
+  locationState: unknown
+): string => {
   if (!locationState || typeof locationState !== "object") {
     return getHomePathForRole(role)
   }
