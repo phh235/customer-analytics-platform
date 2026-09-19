@@ -1,4 +1,10 @@
-import { useState } from "react"
+import {
+  debounce,
+  defaultRateLimit,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs"
 
 import type { CustomerRecord } from "@/api/customers"
 import type { OrderRecord } from "@/api/orders"
@@ -7,8 +13,10 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
+import { TableSearch } from "@/components/common/table-search"
 import { OrderStatusBadge } from "@/components/admin/management/status-badge"
 import { useCustomers } from "@/hooks/use-customers"
+import { useDebounce } from "@/hooks/use-debounce"
 import { useOrders } from "@/hooks/use-orders"
 import { useProducts } from "@/hooks/use-products"
 import { ORDER_CHANNEL_LABELS } from "@/lib/admin-management"
@@ -27,8 +35,19 @@ const toLookup = <T extends { id: string }>(records: T[]) =>
   >
 
 export const Component = () => {
-  const [page, setPage] = useState(1)
-  const ordersQuery = useOrders({ page, size: PAGE_SIZE })
+  const [{ page, search }, setQuery] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      search: parseAsString.withDefault(""),
+    },
+    { urlKeys: { search: "q" } }
+  )
+  const debouncedSearch = useDebounce(search, 300)
+  const ordersQuery = useOrders({
+    page,
+    size: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  })
   const customersQuery = useCustomers({ page: 1, size: 100 })
   const productsQuery = useProducts({ page: 1, size: 100 })
   const orders = ordersQuery.data?.records ?? []
@@ -111,19 +130,9 @@ export const Component = () => {
       header: "Giá trị",
       className: "text-right",
       cell: (order) => (
-        <div className="min-w-36 space-y-1 text-right">
-          <div className="font-medium">
-            {formatCurrency(Number(order.net_amount))}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Tổng: {formatCurrency(Number(order.total_amount))}
-          </div>
-          {Number(order.refund_amount) > 0 ? (
-            <div className="text-xs text-destructive">
-              Hoàn: {formatCurrency(Number(order.refund_amount))}
-            </div>
-          ) : null}
-        </div>
+        <span className="min-w-36 text-right font-medium whitespace-nowrap">
+          {formatCurrency(Number(order.net_amount))}
+        </span>
       ),
     },
   ]
@@ -137,6 +146,18 @@ export const Component = () => {
         </p>
       </header>
 
+      <TableSearch
+        value={search}
+        onChange={(value) => {
+          void setQuery(
+            { search: value, page: 1 },
+            { limitUrlUpdates: value ? debounce(300) : defaultRateLimit }
+          )
+        }}
+        placeholder="Tìm mã đơn, khách hàng hoặc sản phẩm..."
+        ariaLabel="Tìm kiếm giao dịch"
+      />
+
       <section aria-label="Danh sách đơn hàng">
         <CommonTable
           data={orders}
@@ -149,7 +170,7 @@ export const Component = () => {
             pageSize: PAGE_SIZE,
             total,
             totalPages: pages,
-            onPageChange: setPage,
+            onPageChange: (nextPage) => void setQuery({ page: nextPage }),
           }}
         />
       </section>

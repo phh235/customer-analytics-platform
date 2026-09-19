@@ -61,8 +61,7 @@ describe("Dashboard demo contract", () => {
     expect(
       data.priority_customers.every(
         (customer) =>
-          customer.employee_name === "Nguyễn Ngọc Mai" &&
-          customer.potential_score >= 80
+          customer.employee_id === "nv-01" && customer.potential_score >= 80
       )
     ).toBe(true)
     expect(data.priority_customers.length).toBeLessThanOrEqual(10)

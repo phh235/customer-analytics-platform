@@ -4,6 +4,9 @@ import {
   FilterXIcon,
   RefreshCwIcon,
 } from "lucide-react"
+import { useMutation } from "@tanstack/react-query"
+import { exportDashboardCsv } from "@/api/dashboard"
+import { getApiErrorMessage } from "@/api/errors"
 import { AppSelect } from "@/components/common/app-select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -18,16 +21,10 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboard } from "@/hooks/use-dashboard"
-import {
-  DASHBOARD_CATEGORIES,
-  DASHBOARD_EMPLOYEES,
-  DASHBOARD_SEGMENTS,
-  DEMO_ANALYSIS_DATE,
-  formatDashboardDate,
-} from "@/lib/dashboard"
+import { formatDashboardDate } from "@/lib/dashboard"
 import { useAuthStore } from "@/stores/use-auth-store"
 import { hasPermission } from "@/lib/authorization"
-import { toastSuccess } from "@/utils/toast"
+import { toastError, toastSuccess } from "@/utils/toast"
 import {
   CategoryChart,
   OpportunityMatrixChart,
@@ -40,9 +37,10 @@ import { MetricCards } from "@/features/dashboard/metric-cards"
 import { PriorityCustomers } from "@/features/dashboard/priority-customers"
 
 export function DashboardPage() {
-  const { filters, setFilters, query } = useDashboard()
+  const { filters, setFilters, query, optionsQuery } = useDashboard()
   const user = useAuthStore((state) => state.user)
   const data = query.data
+  const options = optionsQuery.data
   const canExport = hasPermission(user, "customers:export")
   const hasFilters =
     [
@@ -52,37 +50,22 @@ export function DashboardPage() {
       filters.employee,
     ].some((value) => value !== "all") || filters.period !== "90d"
   const resetFilters = () => void setFilters(null)
-
-  function exportReport() {
-    if (!data || !canExport) return
-    const lines = [
-      "Ngày,Doanh thu (VND),Đơn hàng,Ngày kỳ trước,Doanh thu kỳ trước (VND),Đơn hàng kỳ trước",
-      ...data.trend.map((point) =>
-        [
-          point.date,
-          point.revenue,
-          point.orders,
-          point.previous_date,
-          point.previous_revenue,
-          point.previous_orders,
-        ].join(",")
-      ),
-    ]
-    const url = URL.createObjectURL(
-      new Blob(["\uFEFF" + lines.join("\r\n")], {
-        type: "text/csv;charset=utf-8",
-      })
-    )
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `tong-quan-${data.period.from}-${data.period.to}.csv`
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    // Let the browser start reading the blob before releasing its URL.
-    window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
-    toastSuccess("Đã xuất báo cáo")
-  }
+  const exportMutation = useMutation({
+    mutationFn: () => exportDashboardCsv(filters),
+    onSuccess: (blob) => {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `tong-quan-${data?.period.from ?? filters.from}-${data?.period.to ?? filters.to}.csv`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+      toastSuccess("Đã xuất báo cáo")
+    },
+    onError: (error) =>
+      toastError(getApiErrorMessage(error, "Không thể xuất báo cáo.")),
+  })
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-4 p-3">
@@ -115,7 +98,10 @@ export function DashboardPage() {
             ]}
           />
           {canExport && (
-            <Button disabled={!data || query.isFetching} onClick={exportReport}>
+            <Button
+              disabled={!data || query.isFetching || exportMutation.isPending}
+              onClick={() => exportMutation.mutate()}
+            >
               <DownloadIcon data-icon="inline-start" />
               Xuất CSV
             </Button>
@@ -138,11 +124,12 @@ export function DashboardPage() {
             onChange={(segment) => void setFilters({ segment })}
             options={[
               { value: "all", label: "Tất cả phân khúc" },
-              ...Object.entries(DASHBOARD_SEGMENTS).map(([value, label]) => ({
-                value: value as typeof filters.segment,
-                label,
-              })),
+              ...(options?.segments.map((option) => ({
+                value: option.id,
+                label: option.name,
+              })) ?? []),
             ]}
+            disabled={optionsQuery.isPending || optionsQuery.isError}
           />
         </Field>
         <Field className="gap-1.5">
@@ -160,11 +147,12 @@ export function DashboardPage() {
             onChange={(potential) => void setFilters({ potential })}
             options={[
               { value: "all", label: "Tất cả mức tiềm năng" },
-              { value: "HIGH", label: "Tiềm năng cao (≥ 80)" },
-              { value: "POTENTIAL", label: "Tiềm năng (60–79)" },
-              { value: "NORMAL", label: "Thông thường (< 60)" },
-              { value: "INSUFFICIENT_DATA", label: "Chưa đủ dữ liệu" },
+              ...(options?.potential_levels.map((option) => ({
+                value: option.id,
+                label: option.name,
+              })) ?? []),
             ]}
+            disabled={optionsQuery.isPending || optionsQuery.isError}
           />
         </Field>
         <Field className="gap-1.5">
@@ -184,8 +172,12 @@ export function DashboardPage() {
             }
             options={[
               { value: "all", label: "Tất cả nhóm sản phẩm" },
-              ...DASHBOARD_CATEGORIES,
+              ...(options?.categories.map((option) => ({
+                value: option.id,
+                label: option.name,
+              })) ?? []),
             ]}
+            disabled={optionsQuery.isPending || optionsQuery.isError}
           />
         </Field>
         <Field className="gap-1.5">
@@ -205,8 +197,12 @@ export function DashboardPage() {
             }
             options={[
               { value: "all", label: "Tất cả nhân viên" },
-              ...DASHBOARD_EMPLOYEES,
+              ...(options?.employees.map((option) => ({
+                value: option.id,
+                label: option.name,
+              })) ?? []),
             ]}
+            disabled={optionsQuery.isPending || optionsQuery.isError}
           />
         </Field>
       </FieldGroup>
@@ -233,7 +229,7 @@ export function DashboardPage() {
               className="scheme-light dark:scheme-dark"
               value={filters.to}
               min={filters.from}
-              max={DEMO_ANALYSIS_DATE}
+              max={options?.analysis_date ?? filters.to}
               onChange={(event) => void setFilters({ to: event.target.value })}
             />
           </Field>
@@ -296,7 +292,11 @@ export function DashboardPage() {
                 <PredictionChart data={data} />
               </div>
               <OpportunityMatrixChart data={data} />
-              <PriorityCustomers key={JSON.stringify(filters)} data={data} />
+              <PriorityCustomers
+                key={JSON.stringify(filters)}
+                data={data}
+                employees={options?.employees ?? []}
+              />
             </>
           )}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">

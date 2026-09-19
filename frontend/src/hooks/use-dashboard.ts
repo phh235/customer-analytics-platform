@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query"
 import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs"
-import { getDashboardOverview } from "@/api/dashboard"
+import { getDashboardOptions, getDashboardOverview } from "@/api/dashboard"
+import { useQueryErrorToast } from "@/hooks/use-query-error-toast"
 import { DEFAULT_DASHBOARD_FILTERS } from "@/lib/dashboard"
+import type { DashboardFilters } from "@/types/dashboard"
 
 const parsers = {
   period: parseAsStringLiteral([
@@ -13,47 +15,30 @@ const parsers = {
   ] as const).withDefault("90d"),
   from: parseAsString.withDefault(DEFAULT_DASHBOARD_FILTERS.from),
   to: parseAsString.withDefault(DEFAULT_DASHBOARD_FILTERS.to),
-  segment: parseAsStringLiteral([
-    "all",
-    "HIGH_VALUE",
-    "LOYAL",
-    "AT_RISK",
-    "POTENTIAL",
-    "NEW_CUSTOMER",
-    "NORMAL",
-    "INSUFFICIENT_DATA",
-  ] as const).withDefault("all"),
-  potential: parseAsStringLiteral([
-    "all",
-    "HIGH",
-    "POTENTIAL",
-    "NORMAL",
-    "INSUFFICIENT_DATA",
-  ] as const).withDefault("all"),
-  category: parseAsStringLiteral([
-    "all",
-    "phone",
-    "laptop",
-    "accessories",
-    "home",
-    "audio",
-  ] as const).withDefault("all"),
-  employee: parseAsStringLiteral([
-    "all",
-    "nv-01",
-    "nv-02",
-    "nv-03",
-    "nv-04",
-  ] as const).withDefault("all"),
+  segment: parseAsString.withDefault("all"),
+  potential: parseAsString.withDefault("all"),
+  category: parseAsString.withDefault("all"),
+  employee: parseAsString.withDefault("all"),
 }
 
 export function useDashboard() {
-  const [filters, setFilters] = useQueryStates(parsers)
+  const [rawFilters, setFilters] = useQueryStates(parsers)
+  const filters = rawFilters as DashboardFilters
+  const optionsQuery = useQuery({
+    queryKey: ["dashboard", "options"],
+    queryFn: ({ signal }) => getDashboardOptions(signal),
+    staleTime: 5 * 60_000,
+    retry: false,
+  })
   const query = useQuery({
-    queryKey: ["dashboard", "demo", filters],
+    queryKey: ["dashboard", "overview", filters],
     queryFn: ({ signal }) => getDashboardOverview(filters, signal),
     staleTime: 60_000,
     retry: false,
   })
-  return { filters, setFilters, query }
+  useQueryErrorToast(
+    optionsQuery.error,
+    "Không thể tải các lựa chọn bộ lọc tổng quan."
+  )
+  return { filters, setFilters, query, optionsQuery }
 }

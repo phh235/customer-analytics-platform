@@ -270,7 +270,7 @@ export function buildDemoDashboard(
       model_version: probabilities.length ? "purchase-repeat-v1" : null,
       prediction_date: probabilities.length ? to : null,
       horizon_days: 90,
-      feature_window: { from, to },
+      feature_window: days,
       evaluated_customers: probabilities.length,
       insufficient_count: scopedCustomers.length - probabilities.length,
       distribution: histogram(probabilities, true),
@@ -298,47 +298,15 @@ export function buildDemoDashboard(
     priority_customers: highCustomers
       .sort((a, b) => b.score! - a.score!)
       .slice(0, 10)
-      .map((customer) => {
-        const customerOrders = current.filter(
-          (order) => order.customer_id === customer.id
-        )
-        const currentStats = currentByCustomer.get(customer.id)
-        const historicalOrders = orders
-          .filter(
-            (order) =>
-              order.customer_id === customer.id &&
-              order.valid &&
-              order.date <= to
-          )
-          .sort((a, b) => b.date.localeCompare(a.date))
-        const categoryRevenue = DASHBOARD_CATEGORIES.map((category) => ({
-          name: category.label,
-          total: revenue(
-            customerOrders.filter((order) => order.category === category.value)
-          ),
-        })).sort((a, b) => b.total - a.total)
-        return {
-          id: customer.id,
-          code: customer.code,
-          name: customer.name,
-          email: customer.email,
-          segment: customer.segment,
-          potential_score: customer.score!,
-          purchase_probability: customer.probability,
-          revenue: currentStats?.revenue ?? 0,
-          order_count: currentStats?.order_count ?? 0,
-          recency_days: historicalOrders.length
-            ? Math.round(
-                (Date.parse(to) - Date.parse(historicalOrders[0].date)) /
-                  86400000
-              )
-            : 0,
-          preferred_category: categoryRevenue[0]?.total
-            ? categoryRevenue[0].name
-            : null,
-          employee_name: customer.employee.label,
-        }
-      }),
+      .map((customer) => ({
+        id: customer.id,
+        name: customer.name,
+        segment: customer.segment,
+        potential_score: customer.score!,
+        purchase_probability: customer.probability,
+        revenue: currentByCustomer.get(customer.id)?.revenue ?? 0,
+        employee_id: customer.employee.value,
+      })),
     data_quality: {
       valid_orders: current.length,
       excluded_orders: scopedOrders.filter(

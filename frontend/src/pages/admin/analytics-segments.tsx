@@ -1,4 +1,10 @@
-import { useState } from "react"
+import {
+  debounce,
+  defaultRateLimit,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs"
 
 import type { SegmentRecord } from "@/api/analytics"
 import { SegmentBadge } from "@/components/admin/management/analytics-status-badge"
@@ -6,6 +12,8 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
+import { TableSearch } from "@/components/common/table-search"
+import { useDebounce } from "@/hooks/use-debounce"
 import { UserAvatar } from "@/components/common/user-avatar"
 import { useSegments } from "@/hooks/use-analytics"
 import { formatDate } from "@/lib/date"
@@ -13,9 +21,22 @@ import { formatDate } from "@/lib/date"
 const PAGE_SIZE = 10
 
 export const Component = () => {
-  const [page, setPage] = useState(1)
-  const segmentsQuery = useSegments()
-  const segments = segmentsQuery.data ?? []
+  const [{ page, search }, setQuery] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      search: parseAsString.withDefault(""),
+    },
+    { urlKeys: { search: "q" } }
+  )
+  const debouncedSearch = useDebounce(search, 300)
+  const segmentsQuery = useSegments({
+    page,
+    size: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  })
+  const segments = segmentsQuery.data?.records ?? []
+  const total = segmentsQuery.data?.total ?? 0
+  const pages = segmentsQuery.data?.pages ?? 1
 
   const columns: CommonTableColumn<SegmentRecord>[] = [
     {
@@ -62,6 +83,18 @@ export const Component = () => {
         </p>
       </header>
 
+      <TableSearch
+        value={search}
+        onChange={(value) => {
+          void setQuery(
+            { search: value, page: 1 },
+            { limitUrlUpdates: value ? debounce(300) : defaultRateLimit }
+          )
+        }}
+        placeholder="Tìm khách hàng, phân khúc, lý do..."
+        ariaLabel="Tìm kiếm kết quả phân khúc"
+      />
+
       <section aria-label="Danh sách khách hàng">
         <CommonTable
           data={segments}
@@ -69,7 +102,13 @@ export const Component = () => {
           loading={segmentsQuery.isPending}
           getRowId={(segment) => segment.customer_id}
           itemLabel="khách hàng"
-          pagination={{ page, pageSize: PAGE_SIZE, onPageChange: setPage }}
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+            totalPages: pages,
+            onPageChange: (nextPage) => void setQuery({ page: nextPage }),
+          }}
         />
       </section>
     </div>

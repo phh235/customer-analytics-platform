@@ -899,10 +899,7 @@
     "model_version": "purchase-repeat-v1",
     "prediction_date": "2026-09-19",
     "horizon_days": 90,
-    "feature_window": {
-      "from": "2026-06-22",
-      "to": "2026-09-19"
-    },
+    "feature_window": 90,
     "evaluated_customers": 194,
     "insufficient_count": 46,
     "distribution": [
@@ -1584,143 +1581,93 @@
   "priority_customers": [
     {
       "id": "demo-customer-43",
-      "code": "KH-1043",
       "name": "Bùi Đức Anh",
-      "email": "khachhang43@example.com",
       "segment": "HIGH_VALUE",
       "potential_score": 99,
       "purchase_probability": 0.11,
       "revenue": 11630000,
-      "order_count": 3,
-      "recency_days": 60,
-      "preferred_category": "Gia dụng",
-      "employee_name": "Lê Thu Trang"
+      "employee_id": "nv-03"
     },
     {
       "id": "demo-customer-108",
-      "code": "KH-1108",
       "name": "Đinh Hà My",
-      "email": "khachhang108@example.com",
       "segment": "NORMAL",
       "potential_score": 99,
       "purchase_probability": 0.5,
       "revenue": 14880000,
-      "order_count": 3,
-      "recency_days": 23,
-      "preferred_category": "Laptop",
-      "employee_name": "Phạm Quốc Huy"
+      "employee_id": "nv-04"
     },
     {
       "id": "demo-customer-173",
-      "code": "KH-1173",
       "name": "Phạm Gia Bảo",
-      "email": "khachhang173@example.com",
       "segment": "NEW_CUSTOMER",
       "potential_score": 99,
       "purchase_probability": 0.89,
       "revenue": 12400000,
-      "order_count": 3,
-      "recency_days": 32,
-      "preferred_category": "Thiết bị âm thanh",
-      "employee_name": "Nguyễn Ngọc Mai"
+      "employee_id": "nv-01"
     },
     {
       "id": "demo-customer-238",
-      "code": "KH-1238",
       "name": "Phan Bảo Ngọc",
-      "email": "khachhang238@example.com",
       "segment": "POTENTIAL",
       "potential_score": 99,
       "purchase_probability": 0.37,
       "revenue": 16970000,
-      "order_count": 3,
-      "recency_days": 21,
-      "preferred_category": "Phụ kiện",
-      "employee_name": "Trần Minh Đức"
+      "employee_id": "nv-02"
     },
     {
       "id": "demo-customer-20",
-      "code": "KH-1020",
       "name": "Hoàng Thảo Vy",
-      "email": "khachhang20@example.com",
       "segment": "LOYAL",
       "potential_score": 98,
       "purchase_probability": 0.7,
       "revenue": 2310000,
-      "order_count": 1,
-      "recency_days": 71,
-      "preferred_category": "Điện thoại",
-      "employee_name": "Phạm Quốc Huy"
+      "employee_id": "nv-04"
     },
     {
       "id": "demo-customer-85",
-      "code": "KH-1085",
       "name": "Nguyễn Minh Anh",
-      "email": "khachhang85@example.com",
       "segment": "HIGH_VALUE",
       "potential_score": 98,
       "purchase_probability": 0.18,
       "revenue": 20950000,
-      "order_count": 3,
-      "recency_days": 9,
-      "preferred_category": "Phụ kiện",
-      "employee_name": "Nguyễn Ngọc Mai"
+      "employee_id": "nv-01"
     },
     {
       "id": "demo-customer-150",
-      "code": "KH-1150",
       "name": "Vũ Ngọc Lan",
-      "email": "khachhang150@example.com",
       "segment": "NORMAL",
       "potential_score": 98,
       "purchase_probability": 0.57,
       "revenue": 21140000,
-      "order_count": 2,
-      "recency_days": 23,
-      "preferred_category": "Phụ kiện",
-      "employee_name": "Trần Minh Đức"
+      "employee_id": "nv-02"
     },
     {
       "id": "demo-customer-215",
-      "code": "KH-1215",
       "name": "Ngô Hoài Nam",
-      "email": "khachhang215@example.com",
       "segment": "NEW_CUSTOMER",
       "potential_score": 98,
       "purchase_probability": 0.05,
       "revenue": 7640000,
-      "order_count": 3,
-      "recency_days": 51,
-      "preferred_category": "Thiết bị âm thanh",
-      "employee_name": "Lê Thu Trang"
+      "employee_id": "nv-03"
     },
     {
       "id": "demo-customer-62",
-      "code": "KH-1062",
       "name": "Trần Quốc Huy",
-      "email": "khachhang62@example.com",
       "segment": "LOYAL",
       "potential_score": 97,
       "purchase_probability": 0.77,
       "revenue": 25520000,
-      "order_count": 3,
-      "recency_days": 9,
-      "preferred_category": "Laptop",
-      "employee_name": "Trần Minh Đức"
+      "employee_id": "nv-02"
     },
     {
       "id": "demo-customer-192",
-      "code": "KH-1192",
       "name": "Đinh Hà My",
-      "email": "khachhang192@example.com",
       "segment": "NORMAL",
       "potential_score": 97,
       "purchase_probability": 0.64,
       "revenue": 11250000,
-      "order_count": 2,
-      "recency_days": 25,
-      "preferred_category": "Gia dụng",
-      "employee_name": "Phạm Quốc Huy"
+      "employee_id": "nv-04"
     }
   ],
   "data_quality": {

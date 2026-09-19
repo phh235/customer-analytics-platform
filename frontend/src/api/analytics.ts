@@ -1,5 +1,36 @@
 import apiClient from "@/api/client"
 
+export interface PaginatedAnalyticsResponse<T> {
+  current: number
+  size: number
+  total: number
+  pages: number
+  records: T[]
+}
+
+export interface AnalyticsListParams {
+  page?: number
+  size?: number
+  search?: string
+}
+
+const normalizePaginatedResponse = <T>(
+  data: T[] | PaginatedAnalyticsResponse<T>,
+  page = 1,
+  size = 10
+): PaginatedAnalyticsResponse<T> => {
+  if (!Array.isArray(data)) return data
+
+  const total = data.length
+  return {
+    current: page,
+    size,
+    total,
+    pages: Math.max(1, Math.ceil(total / size)),
+    records: data.slice((page - 1) * size, page * size),
+  }
+}
+
 export interface SegmentRecord {
   customer_id: string
   name: string
@@ -34,19 +65,41 @@ export interface DashboardResponse {
   potential_distribution: Record<string, number>
 }
 
-export async function getSegments(days = 365) {
-  const { data } = await apiClient.get<SegmentRecord[]>("/analytics/segments", {
-    params: { days },
+export async function getSegments(
+  params: AnalyticsListParams & { days?: number; analysis_date?: string } = {}
+) {
+  const page = params.page ?? 1
+  const size = params.size ?? 10
+  const { data } = await apiClient.get<
+    SegmentRecord[] | PaginatedAnalyticsResponse<SegmentRecord>
+  >("/analytics/segments", {
+    params: { days: 365, ...params, page, size },
   })
-  return data
+  return normalizePaginatedResponse(data, page, size)
 }
 
-export async function getPurchasePredictions(days = 365, horizonDays = 90) {
-  const { data } = await apiClient.get<PurchasePredictionRecord[]>(
-    "/analytics/predictions/purchase-repeat",
-    { params: { days, horizon_days: horizonDays } }
-  )
-  return data
+export async function getPurchasePredictions(
+  params: AnalyticsListParams & {
+    days?: number
+    horizon_days?: number
+    analysis_date?: string
+  } = {}
+) {
+  const page = params.page ?? 1
+  const size = params.size ?? 10
+  const { data } = await apiClient.get<
+    | PurchasePredictionRecord[]
+    | PaginatedAnalyticsResponse<PurchasePredictionRecord>
+  >("/analytics/predictions/purchase-repeat", {
+    params: {
+      days: 365,
+      horizon_days: 90,
+      ...params,
+      page,
+      size,
+    },
+  })
+  return normalizePaginatedResponse(data, page, size)
 }
 
 export async function getAnalyticsDashboard(days = 365) {
@@ -88,18 +141,37 @@ export interface ModelLifecycleRecord {
   evaluated_at: string | null
 }
 
-export async function getPriorityList(days = 365, horizonDays = 90) {
-  const { data } = await apiClient.get<PriorityCustomerRecord[]>(
-    "/analytics/priority-list",
-    { params: { days, horizon_days: horizonDays } }
-  )
-  return data
+export async function getPriorityList(
+  params: AnalyticsListParams & {
+    days?: number
+    horizon_days?: number
+    analysis_date?: string
+  } = {}
+) {
+  const page = params.page ?? 1
+  const size = params.size ?? 10
+  const { data } = await apiClient.get<
+    | PriorityCustomerRecord[]
+    | PaginatedAnalyticsResponse<PriorityCustomerRecord>
+  >("/analytics/priority-list", {
+    params: {
+      days: 365,
+      horizon_days: 90,
+      ...params,
+      page,
+      size,
+    },
+  })
+  return normalizePaginatedResponse(data, page, size)
 }
 
-export async function getModels() {
-  const { data } =
-    await apiClient.get<ModelLifecycleRecord[]>("/analytics/models")
-  return data
+export async function getModels(params: AnalyticsListParams = {}) {
+  const page = params.page ?? 1
+  const size = params.size ?? 10
+  const { data } = await apiClient.get<
+    ModelLifecycleRecord[] | PaginatedAnalyticsResponse<ModelLifecycleRecord>
+  >("/analytics/models", { params: { ...params, page, size } })
+  return normalizePaginatedResponse(data, page, size)
 }
 
 export async function trainModel(payload: {

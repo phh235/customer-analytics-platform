@@ -1,12 +1,46 @@
-import { buildDemoDashboard } from "@/mocks/dashboard"
-import type { DashboardFilters, DashboardOverview } from "@/types/dashboard"
+import apiClient from "@/api/client"
+import type {
+  DashboardFilters,
+  DashboardOptions,
+  DashboardOverview,
+} from "@/types/dashboard"
 
-// Explicit demo adapter. Replace only this function with the agreed BE endpoint.
-// Do not silently fall back to mock data when a real API request fails.
+const getDashboardParams = (filters: DashboardFilters) => ({
+  period: filters.period,
+  from: filters.period === "custom" ? filters.from : undefined,
+  to: filters.period === "custom" ? filters.to : undefined,
+  segment: filters.segment,
+  potential: filters.potential,
+  category: filters.category,
+  employee: filters.employee,
+})
+
 export async function getDashboardOverview(
   filters: DashboardFilters,
   signal?: AbortSignal
-): Promise<DashboardOverview> {
-  signal?.throwIfAborted()
-  return buildDemoDashboard(filters)
+) {
+  const { data } = await apiClient.get<DashboardOverview>(
+    "/analytics/dashboard/overview",
+    { params: getDashboardParams(filters), signal }
+  )
+  return data
+}
+
+export async function getDashboardOptions(signal?: AbortSignal) {
+  const { data } = await apiClient.get<DashboardOptions>(
+    "/analytics/dashboard/options",
+    { signal }
+  )
+  return data
+}
+
+export async function exportDashboardCsv(filters: DashboardFilters) {
+  const { data } = await apiClient.get<Blob>(
+    "/analytics/dashboard/export.csv",
+    {
+      params: getDashboardParams(filters),
+      responseType: "blob",
+    }
+  )
+  return data
 }

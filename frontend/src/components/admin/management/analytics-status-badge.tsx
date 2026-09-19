@@ -15,7 +15,7 @@ const SEGMENT_STYLES: Record<string, string> = {
     "border-transparent bg-indigo-100 text-indigo-700 dark:bg-indigo-400/20 dark:text-indigo-300",
   NORMAL:
     "border-transparent bg-zinc-100 text-zinc-700 dark:bg-zinc-400/20 dark:text-zinc-300",
-  INSUFFICIENT_DATA: "border-border bg-transparent text-muted-foreground",
+  INSUFFICIENT_DATA: "border-transparent bg-muted text-muted-foreground",
 }
 
 const POTENTIAL_VARIANTS = {
