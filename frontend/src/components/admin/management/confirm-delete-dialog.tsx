@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import { Trash2Icon } from "lucide-react"
 
 import { AppDialog } from "@/components/common/app-dialog"
@@ -17,15 +16,9 @@ export function ConfirmDeleteDialog({
   onConfirm: () => void | Promise<void>
   isLoading?: boolean
 }) {
-  const [displayTarget, setDisplayTarget] = useState<DeleteTarget | null>(
-    target
-  )
+  if (!target) return null
 
-  useEffect(() => {
-    if (target) setDisplayTarget(target)
-  }, [target])
-
-  const dialogTarget = target ?? displayTarget
+  const dialogTarget = target
   const entityLabel =
     dialogTarget?.type === "product"
       ? "sản phẩm"
@@ -48,7 +41,7 @@ export function ConfirmDeleteDialog({
         <>
           {dialogTarget?.type === "user"
             ? `Bạn có chắc muốn vô hiệu hóa tài khoản ${dialogTarget.name}? Người dùng sẽ không thể đăng nhập, nhưng dữ liệu vẫn được giữ lại.`
-            : `Bạn có chắc muốn xoá ${dialogTarget?.name}? Hành động này chỉ xoá dữ liệu mẫu khỏi bảng hiện tại.`}
+            : `Bạn có chắc muốn xoá ${dialogTarget?.name}?`}
         </>
       }
       className="sm:max-w-md"

@@ -39,11 +39,13 @@ export interface CustomerPayload {
   status?: CustomerStatus
 }
 
-export async function getCustomers(params: {
-  page?: number
-  size?: number
-  search?: string
-} = {}) {
+export async function getCustomers(
+  params: {
+    page?: number
+    size?: number
+    search?: string
+  } = {}
+) {
   const { data } = await apiClient.get<PaginatedCustomersResponse>(
     "/customers",
     { params }

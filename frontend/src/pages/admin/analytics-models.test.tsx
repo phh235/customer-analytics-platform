@@ -1,9 +1,10 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { getModels, trainModel, deployModel } from "@/api/analytics"
 import { Component } from "@/pages/admin/analytics-models"
+import { renderWithQueryClient } from "@/test/render"
 
 vi.mock("@/api/analytics", () => ({
   getModels: vi.fn(),
@@ -21,7 +22,7 @@ describe("Quản lý mô hình", () => {
 
   it("chọn loại mô hình bằng AppSelect và gửi đúng dữ liệu huấn luyện", async () => {
     const user = userEvent.setup()
-    render(<Component />)
+    renderWithQueryClient(<Component />)
     await screen.findByText("Chưa có mô hình nào được đăng ký.")
     await user.click(screen.getByRole("combobox", { name: "Loại mô hình" }))
     await user.click(screen.getByRole("option", { name: "Rừng ngẫu nhiên" }))

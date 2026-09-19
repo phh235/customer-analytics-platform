@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   FilterXIcon,
   EditIcon,
@@ -18,7 +19,6 @@ import {
 import {
   createCustomer,
   deleteCustomer,
-  getCustomers,
   updateCustomer,
   uploadCustomerImage,
   type CustomerRecord,
@@ -28,6 +28,7 @@ import {
   type CommonTableColumn,
 } from "@/components/common/common-table"
 import { AppSelect } from "@/components/common/app-select"
+import { TableActions } from "@/components/common/table-actions"
 import { UserAvatar } from "@/components/common/user-avatar"
 import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delete-dialog"
 import { CustomerFormSheet } from "@/components/admin/management/customer-form-sheet"
@@ -43,12 +44,11 @@ import {
 } from "@/components/ui/input-group"
 import { getApiErrorMessage } from "@/api/errors"
 import { useDebounce } from "@/hooks/use-debounce"
-import {
-  formatDate,
-  normalize,
-  type Customer,
-  type CustomerFormData,
-} from "@/lib/admin-management"
+import { customerQueryKeys, useCustomers } from "@/hooks/use-customers"
+import { hasPermission } from "@/lib/authorization"
+import type { Customer, CustomerFormData } from "@/lib/admin-management"
+import { formatDate } from "@/lib/date"
+import { normalizeText } from "@/lib/format"
 import { useAuthStore } from "@/stores/use-auth-store"
 import { toastError, toastSuccess } from "@/utils/toast"
 const mapCustomer = (customer: CustomerRecord): Customer => ({
@@ -69,7 +69,7 @@ const SORT_DIRECTIONS = ["asc", "desc"] as const
 const CUSTOMER_STATUSES = ["all", "active", "inactive"] as const
 
 type CustomerSortKey = (typeof CUSTOMER_SORT_KEYS)[number]
-const CUSTOMER_PAGE_SIZE = 4
+const CUSTOMER_PAGE_SIZE = 10
 
 const customerQueryParsers = {
   search: parseAsString.withDefault(""),
@@ -81,46 +81,36 @@ const customerQueryParsers = {
 const customerQueryOptions = { urlKeys: { search: "q" } }
 
 export const Component = () => {
-  const [customers, setCustomers] = useState<Customer[]>([])
+  const queryClient = useQueryClient()
   const [{ search, status, sort, direction, page }, setQuery] = useQueryStates(
     customerQueryParsers,
     customerQueryOptions
   )
   const debouncedSearch = useDebounce(search, 300)
-  const [loading, setLoading] = useState(true)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const currentUser = useAuthStore((state) => state.user)
-  const canManageCustomers = currentUser?.role_code === "ADMIN"
-
-  useEffect(() => {
-    let cancelled = false
-    void getCustomers({ page: 1, size: 100 })
-      .then((response) => {
-        if (!cancelled) setCustomers(response.records.map(mapCustomer))
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) toastError(getApiErrorMessage(error))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const canCreateCustomer = hasPermission(currentUser, "customers:create")
+  const canUpdateCustomer = hasPermission(currentUser, "customers:update")
+  const canDeleteCustomer = hasPermission(currentUser, "customers:delete")
+  const canManageCustomers = canUpdateCustomer || canDeleteCustomer
+  const customersQuery = useCustomers({ page: 1, size: 100 })
+  const customers = useMemo(
+    () => (customersQuery.data?.records ?? []).map(mapCustomer),
+    [customersQuery.data?.records]
+  )
+  const loading = customersQuery.isPending
 
   const filteredCustomers = useMemo(() => {
-    const query = normalize(debouncedSearch.trim())
+    const query = normalizeText(debouncedSearch.trim())
 
     return customers
       .filter((customer) => {
         const matchesSearch =
           !query ||
           [customer.name, customer.email, customer.phone].some((value) =>
-            normalize(value).includes(query)
+            normalizeText(value).includes(query)
           )
         const matchesStatus = status === "all" || customer.status === status
 
@@ -144,8 +134,14 @@ export const Component = () => {
     setSheetOpen(true)
   }, [])
 
-  const handleSave = async (data: CustomerFormData) => {
-    try {
+  const saveCustomerMutation = useMutation({
+    mutationFn: async ({
+      customer,
+      data,
+    }: {
+      customer: Customer | null
+      data: CustomerFormData
+    }) => {
       const payload = {
         name: data.name,
         email: data.email || null,
@@ -155,42 +151,40 @@ export const Component = () => {
             ? ("ACTIVE" as const)
             : ("INACTIVE" as const),
       }
-      const savedCustomer = editingCustomer
-        ? await updateCustomer(editingCustomer.id, payload)
+      const savedCustomer = customer
+        ? await updateCustomer(customer.id, payload)
         : await createCustomer(payload)
-      const customerWithImage = data.image
+      return data.image
         ? await uploadCustomerImage(savedCustomer.id, data.image)
         : savedCustomer
-      const mappedCustomer = mapCustomer(customerWithImage)
-
-      setCustomers((current) =>
-        editingCustomer
-          ? current.map((customer) =>
-              customer.id === editingCustomer.id ? mappedCustomer : customer
-            )
-          : [mappedCustomer, ...current]
-      )
+    },
+    onSuccess: async (_, variables) => {
       toastSuccess(
-        editingCustomer ? "Đã cập nhật khách hàng" : "Đã thêm khách hàng mới"
+        variables.customer ? "Đã cập nhật khách hàng" : "Đã thêm khách hàng mới"
       )
-    } catch (error: unknown) {
+      await queryClient.invalidateQueries({ queryKey: customerQueryKeys.all })
+    },
+    onError: (error) => {
       toastError(getApiErrorMessage(error))
-      throw error
-    }
-  }
+    },
+  })
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return
-
-    try {
-      await deleteCustomer(deleteTarget.id)
-      setCustomers((current) =>
-        current.filter((customer) => customer.id !== deleteTarget.id)
-      )
+  const deleteCustomerMutation = useMutation({
+    mutationFn: (customerId: string) => deleteCustomer(customerId),
+    onSuccess: async () => {
       toastSuccess("Đã xoá khách hàng")
       setDeleteTarget(null)
-    } catch (error: unknown) {
-      toastError(getApiErrorMessage(error))
+      await queryClient.invalidateQueries({ queryKey: customerQueryKeys.all })
+    },
+    onError: (error) => toastError(getApiErrorMessage(error)),
+  })
+
+  const handleSave = (data: CustomerFormData) =>
+    saveCustomerMutation.mutateAsync({ customer: editingCustomer, data })
+
+  const handleDelete = () => {
+    if (deleteTarget && !deleteCustomerMutation.isPending) {
+      deleteCustomerMutation.mutate(deleteTarget.id)
     }
   }
 
@@ -252,7 +246,7 @@ export const Component = () => {
                 loading="lazy"
               />
             ) : (
-              <UserAvatar email={customer.email} />
+              <UserAvatar email={customer.email} name={customer.name} />
             )}
             <span className="truncate">{customer.name}</span>
           </div>
@@ -304,87 +298,96 @@ export const Component = () => {
       {
         id: "actions",
         header: "Thao tác",
-        className: "w-28 text-right",
+        className: "w-24 text-right",
         cell: (customer) =>
           canManageCustomers ? (
-            <div className="flex justify-end gap-1">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-sm"
-                aria-label={`Chỉnh sửa ${customer.name}`}
-                onClick={() => openCustomerSheet(customer)}
-              >
-                <EditIcon />
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon-sm"
-                aria-label={`Xoá ${customer.name}`}
-                onClick={() =>
-                  setDeleteTarget({
-                    type: "customer",
-                    id: customer.id,
-                    name: customer.name,
-                  })
-                }
-              >
-                <Trash2Icon />
-              </Button>
-            </div>
+            <TableActions
+              actions={[
+                {
+                  key: "edit",
+                  label: "Chỉnh sửa",
+                  icon: <EditIcon />,
+                  disabled: !canUpdateCustomer,
+                  onClick: () => openCustomerSheet(customer),
+                },
+                {
+                  key: "delete",
+                  label: "Xoá",
+                  icon: <Trash2Icon />,
+                  variant: "destructive",
+                  disabled: !canDeleteCustomer,
+                  onClick: () =>
+                    setDeleteTarget({
+                      type: "customer",
+                      id: customer.id,
+                      name: customer.name,
+                    }),
+                },
+              ]}
+            />
           ) : null,
       },
     ],
-    [canManageCustomers, direction, openCustomerSheet, sort, toggleSort]
+    [
+      canDeleteCustomer,
+      canManageCustomers,
+      canUpdateCustomer,
+      direction,
+      openCustomerSheet,
+      sort,
+      toggleSort,
+    ]
   )
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-6">
-      <div className="overflow-hidden">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2 p-3 lg:flex-row">
-            <InputGroup className="lg:max-w-sm">
-              <InputGroupAddon>
-                <SearchIcon />
-              </InputGroupAddon>
-              <InputGroupInput
-                value={search}
-                onChange={(event) => updateSearch(event.target.value)}
-                placeholder="Tìm tên, email, số điện thoại..."
-                aria-label="Tìm kiếm khách hàng"
-              />
-            </InputGroup>
-            <AppSelect
-              options={[
-                { value: "all", label: "Tất cả trạng thái" },
-                { value: "active", label: "Đang hoạt động" },
-                { value: "inactive", label: "Không hoạt động" },
-              ]}
-              value={status}
-              onChange={(value) =>
-                void setQuery({
-                  status: (value ||
-                    "all") as (typeof CUSTOMER_STATUSES)[number],
-                  page: 1,
-                })
-              }
-              className="w-full lg:w-48"
-              aria-label="Lọc theo trạng thái"
+    <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
+      <header className="px-3 pt-3">
+        <h1 className="text-2xl font-semibold">Khách hàng</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Quản lý hồ sơ, thông tin liên hệ và trạng thái khách hàng.
+        </p>
+      </header>
+      <div className="flex min-w-0 flex-col gap-4">
+        <div className="flex flex-col gap-2 px-3 lg:flex-row">
+          <InputGroup className="lg:max-w-sm">
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={search}
+              onChange={(event) => updateSearch(event.target.value)}
+              placeholder="Tìm tên, email, số điện thoại..."
+              aria-label="Tìm kiếm khách hàng"
             />
-            {(search || status !== "all") && (
-              <Button type="button" variant="ghost" onClick={resetFilters}>
-                <FilterXIcon />
-                Xoá lọc
-              </Button>
-            )}
-            {canManageCustomers && (
-              <Button onClick={() => openCustomerSheet()} className="ml-auto">
-                <PlusIcon />
-                Thêm khách hàng
-              </Button>
-            )}
-          </div>
+          </InputGroup>
+          <AppSelect
+            options={[
+              { value: "all", label: "Tất cả trạng thái" },
+              { value: "active", label: "Đang hoạt động" },
+              { value: "inactive", label: "Không hoạt động" },
+            ]}
+            value={status}
+            onChange={(value) =>
+              void setQuery({
+                status: (value || "all") as (typeof CUSTOMER_STATUSES)[number],
+                page: 1,
+              })
+            }
+            className="w-full lg:w-48"
+            aria-label="Lọc theo trạng thái"
+          />
+          {(search || status !== "all") && (
+            <Button type="button" variant="ghost" onClick={resetFilters}>
+              <FilterXIcon />
+              Xoá lọc
+            </Button>
+          )}
+          {canCreateCustomer && (
+            <Button onClick={() => openCustomerSheet()} className="ml-auto">
+              <PlusIcon />
+              Thêm khách hàng
+            </Button>
+          )}
         </div>
         <CommonTable
           data={filteredCustomers}
@@ -395,7 +398,7 @@ export const Component = () => {
           emptyMessage={
             <EmptyTableState
               title="Không tìm thấy khách hàng"
-              description="Thử đổi từ khoá hoặc xoá bớt bộ lọc để xem lại dữ liệu."
+              description="Thử đổi từ khóa hoặc xoá bớt bộ lọc để xem lại dữ liệu."
             />
           }
           pagination={{
@@ -407,7 +410,6 @@ export const Component = () => {
       </div>
 
       <CustomerFormSheet
-        key={`${editingCustomer?.id ?? "new"}-${sheetOpen ? "open" : "closed"}`}
         open={sheetOpen}
         onOpenChange={(open) => {
           setSheetOpen(open)
@@ -418,6 +420,7 @@ export const Component = () => {
       />
       <ConfirmDeleteDialog
         target={deleteTarget}
+        isLoading={deleteCustomerMutation.isPending}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null)
         }}

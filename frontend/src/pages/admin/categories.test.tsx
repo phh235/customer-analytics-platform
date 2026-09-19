@@ -1,9 +1,10 @@
-import { render, screen, within } from "@testing-library/react"
+import { screen, within } from "@testing-library/react"
 import { NuqsTestingAdapter } from "nuqs/adapters/testing"
 import { describe, expect, it, vi } from "vitest"
 
 import { getProducts, type ProductRecord } from "@/api/products"
 import { Component } from "@/pages/admin/categories"
+import { renderWithQueryClient } from "@/test/render"
 
 vi.mock("@/api/products", () => ({ getProducts: vi.fn() }))
 
@@ -29,7 +30,7 @@ describe("Danh mục", () => {
       pages: 1,
       records: [product, { ...product, id: "2", product_code: "SP-02" }],
     })
-    render(
+    renderWithQueryClient(
       <NuqsTestingAdapter>
         <Component />
       </NuqsTestingAdapter>

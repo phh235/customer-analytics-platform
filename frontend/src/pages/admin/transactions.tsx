@@ -1,23 +1,19 @@
-import { useEffect, useState } from "react"
-import { ArrowLeftRightIcon } from "lucide-react"
+import { useState } from "react"
 
-import { getApiErrorMessage } from "@/api/errors"
-import { getCustomers, type CustomerRecord } from "@/api/customers"
-import { getOrders, type OrderRecord } from "@/api/orders"
-import { getProducts, type ProductRecord } from "@/api/products"
+import type { CustomerRecord } from "@/api/customers"
+import type { OrderRecord } from "@/api/orders"
+import type { ProductRecord } from "@/api/products"
 import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
-import { Badge } from "@/components/ui/badge"
-import {
-  formatCurrency,
-  formatDate,
-  formatEnumLabel,
-  ORDER_CHANNEL_LABELS,
-  ORDER_STATUS_LABELS,
-} from "@/lib/admin-management"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { OrderStatusBadge } from "@/components/admin/management/status-badge"
+import { useCustomers } from "@/hooks/use-customers"
+import { useOrders } from "@/hooks/use-orders"
+import { useProducts } from "@/hooks/use-products"
+import { ORDER_CHANNEL_LABELS } from "@/lib/admin-management"
+import { formatDate } from "@/lib/date"
+import { formatCurrency, formatEnumLabel } from "@/lib/format"
 
 const PAGE_SIZE = 10
 
@@ -31,43 +27,17 @@ const toLookup = <T extends { id: string }>(records: T[]) =>
   >
 
 export const Component = () => {
-  const [orders, setOrders] = useState<OrderRecord[]>([])
-  const [customers, setCustomers] = useState<CustomerLookup>({})
-  const [products, setProducts] = useState<ProductLookup>({})
   const [page, setPage] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [pages, setPages] = useState(1)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    void Promise.all([
-      getOrders({ page, size: PAGE_SIZE }),
-      getCustomers({ page: 1, size: 100 }),
-      getProducts({ page: 1, size: 100 }),
-    ])
-      .then(([orderResponse, customerResponse, productResponse]) => {
-        if (cancelled) return
-        setOrders(orderResponse.records)
-        setTotal(orderResponse.total)
-        setPages(orderResponse.pages)
-        setCustomers(toLookup(customerResponse.records))
-        setProducts(toLookup(productResponse.records))
-        setError(null)
-      })
-      .catch((requestError: unknown) => {
-        if (!cancelled) setError(getApiErrorMessage(requestError))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [page])
+  const ordersQuery = useOrders({ page, size: PAGE_SIZE })
+  const customersQuery = useCustomers({ page: 1, size: 100 })
+  const productsQuery = useProducts({ page: 1, size: 100 })
+  const orders = ordersQuery.data?.records ?? []
+  const total = ordersQuery.data?.total ?? 0
+  const pages = ordersQuery.data?.pages ?? 1
+  const customers: CustomerLookup = toLookup(customersQuery.data?.records ?? [])
+  const products: ProductLookup = toLookup(productsQuery.data?.records ?? [])
+  const loading =
+    ordersQuery.isPending || customersQuery.isPending || productsQuery.isPending
 
   const columns: CommonTableColumn<OrderRecord>[] = [
     {
@@ -129,9 +99,7 @@ export const Component = () => {
       header: "Trạng thái / kênh",
       cell: (order) => (
         <div className="min-w-32 space-y-1">
-          <Badge variant="outline">
-            {formatEnumLabel(order.status, ORDER_STATUS_LABELS)}
-          </Badge>
+          <OrderStatusBadge status={order.status} />
           <div className="text-xs text-muted-foreground">
             {formatEnumLabel(order.channel, ORDER_CHANNEL_LABELS)}
           </div>
@@ -163,43 +131,28 @@ export const Component = () => {
   return (
     <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
       <header className="px-3 pt-3">
-        <div className="flex items-center gap-2">
-          <ArrowLeftRightIcon className="size-5 text-muted-foreground" />
-          <h1 className="text-2xl font-semibold">Giao dịch</h1>
-        </div>
+        <h1 className="text-2xl font-semibold">Giao dịch</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Theo dõi đơn hàng, khách hàng, sản phẩm và giá trị thực thu.
         </p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách đơn hàng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <p className="py-8 text-center text-sm text-destructive">{error}</p>
-          ) : (
-            <CommonTable
-              data={orders}
-              columns={columns}
-              loading={loading}
-              getRowId={(order) => order.id}
-              summary={`Đang hiển thị ${orders.length} trên ${total} đơn hàng`}
-              pagination={{
-                page,
-                pageSize: PAGE_SIZE,
-                total,
-                totalPages: pages,
-                onPageChange: (nextPage) => {
-                  setLoading(true)
-                  setPage(nextPage)
-                },
-              }}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <section aria-label="Danh sách đơn hàng">
+        <CommonTable
+          data={orders}
+          columns={columns}
+          loading={loading}
+          getRowId={(order) => order.id}
+          summary={`Đang hiển thị ${orders.length} trên ${total} đơn hàng`}
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+            totalPages: pages,
+            onPageChange: setPage,
+          }}
+        />
+      </section>
     </div>
   )
 }

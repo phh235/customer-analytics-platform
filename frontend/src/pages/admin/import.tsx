@@ -1,9 +1,8 @@
-import { useEffect, useState, type FormEvent } from "react"
-import { FileUpIcon } from "lucide-react"
+import { useState, type FormEvent } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { getApiErrorMessage } from "@/api/errors"
 import {
-  getImportJobs,
   processImportJob,
   uploadImportFile,
   type ImportJobRecord,
@@ -17,46 +16,37 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { importJobQueryKeys, useImportJobs } from "@/hooks/use-import-jobs"
 import {
-  formatDate,
-  formatEnumLabel,
   IMPORT_STATUS_LABELS,
   IMPORT_TYPE_LABELS,
 } from "@/lib/admin-management"
+import { formatDate } from "@/lib/date"
+import { formatEnumLabel } from "@/lib/format"
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 export const Component = () => {
   const [error, setError] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const [jobs, setJobs] = useState<ImportJobRecord[]>([])
-  const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
-  const [pages, setPages] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [uploading, setUploading] = useState(false)
-  const [refreshToken, setRefreshToken] = useState(0)
-
-  useEffect(() => {
-    let cancelled = false
-    void getImportJobs(page, PAGE_SIZE)
-      .then((response) => {
-        if (cancelled) return
-        setJobs(response.records)
-        setPages(response.pages)
-        setTotal(response.total)
-      })
-      .catch((requestError: unknown) => {
-        if (!cancelled) setError(getApiErrorMessage(requestError))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [page, refreshToken])
+  const queryClient = useQueryClient()
+  const jobsQuery = useImportJobs(page, PAGE_SIZE)
+  const jobs = jobsQuery.data?.records ?? []
+  const pages = jobsQuery.data?.pages ?? 1
+  const total = jobsQuery.data?.total ?? 0
+  const uploadMutation = useMutation({
+    mutationFn: async (selectedFile: File) => {
+      const job = await uploadImportFile(selectedFile)
+      return processImportJob(job.id)
+    },
+    onSuccess: async () => {
+      setFile(null)
+      setPage(1)
+      await queryClient.invalidateQueries({ queryKey: importJobQueryKeys.all })
+    },
+    onError: (requestError) => setError(getApiErrorMessage(requestError)),
+  })
 
   const handleUpload = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -64,19 +54,8 @@ export const Component = () => {
       setError("Hãy chọn workbook Excel (.xlsx).")
       return
     }
-    setUploading(true)
     setError(null)
-    try {
-      const job = await uploadImportFile(file)
-      await processImportJob(job.id)
-      setFile(null)
-      setPage(1)
-      setRefreshToken((value) => value + 1)
-    } catch (requestError: unknown) {
-      setError(getApiErrorMessage(requestError))
-    } finally {
-      setUploading(false)
-    }
+    uploadMutation.mutate(file)
   }
 
   const columns: CommonTableColumn<ImportJobRecord>[] = [
@@ -122,10 +101,7 @@ export const Component = () => {
   return (
     <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
       <header className="px-3 pt-3">
-        <div className="flex items-center gap-2">
-          <FileUpIcon className="size-5 text-muted-foreground" />
-          <h1 className="text-2xl font-semibold">Nhập dữ liệu</h1>
-        </div>
+        <h1 className="text-2xl font-semibold">Nhập dữ liệu</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Tải lên tệp Excel theo mẫu dữ liệu gồm 14 trang tính.
         </p>
@@ -151,8 +127,12 @@ export const Component = () => {
                 />
               </Field>
             </FieldGroup>
-            <Button className="self-end" disabled={uploading} type="submit">
-              {uploading ? "Đang xử lý..." : "Tải và xử lý"}
+            <Button
+              className="self-end"
+              disabled={uploadMutation.isPending}
+              type="submit"
+            >
+              {uploadMutation.isPending ? "Đang xử lý..." : "Tải và xử lý"}
             </Button>
           </form>
           {error ? (
@@ -165,7 +145,7 @@ export const Component = () => {
         <CommonTable
           data={jobs}
           columns={columns}
-          loading={loading}
+          loading={jobsQuery.isPending}
           getRowId={(job) => job.id}
           emptyMessage="Chưa có phiên import nào."
           itemLabel="phiên nhập dữ liệu"

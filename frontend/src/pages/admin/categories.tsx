@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { SearchIcon } from "lucide-react"
 import {
   debounce,
@@ -9,8 +9,7 @@ import {
   useQueryStates,
 } from "nuqs"
 
-import { getApiErrorMessage } from "@/api/errors"
-import { getProducts, type ProductRecord } from "@/api/products"
+import type { ProductRecord } from "@/api/products"
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
 import { SortButton } from "@/components/admin/management/sort-button"
 import {
@@ -24,12 +23,14 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { useDebounce } from "@/hooks/use-debounce"
-import { formatDate, normalize, type Category } from "@/lib/admin-management"
-import { toastError } from "@/utils/toast"
+import { useProducts } from "@/hooks/use-products"
+import type { Category } from "@/lib/admin-management"
+import { formatDate } from "@/lib/date"
+import { normalizeText } from "@/lib/format"
 
 const CATEGORY_SORT_KEYS = ["name", "productCount", "updatedAt"] as const
 const SORT_DIRECTIONS = ["asc", "desc"] as const
-const CATEGORY_PAGE_SIZE = 6
+const CATEGORY_PAGE_SIZE = 10
 
 type CategorySortKey = (typeof CATEGORY_SORT_KEYS)[number]
 
@@ -67,41 +68,27 @@ const mapCategories = (products: ProductRecord[]): Category[] => {
 }
 
 export const Component = () => {
-  const [categories, setCategories] = useState<Category[]>([])
   const [{ search, sort, direction, page }, setQuery] = useQueryStates(
     categoryQueryParsers,
     categoryQueryOptions
   )
   const debouncedSearch = useDebounce(search, 300)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    void getProducts({ page: 1, size: 100 })
-      .then((response) => {
-        if (!cancelled) setCategories(mapCategories(response.records))
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) toastError(getApiErrorMessage(error))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const productsQuery = useProducts({ page: 1, size: 100 })
+  const categories = useMemo(
+    () => mapCategories(productsQuery.data?.records ?? []),
+    [productsQuery.data?.records]
+  )
+  const loading = productsQuery.isPending
 
   const filteredCategories = useMemo(() => {
-    const query = normalize(debouncedSearch.trim())
+    const query = normalizeText(debouncedSearch.trim())
 
     return categories
       .filter(
         (category) =>
           !query ||
           [category.name, category.code].some((value) =>
-            normalize(value).includes(query)
+            normalizeText(value).includes(query)
           )
       )
       .sort((first, second) => {
@@ -199,31 +186,35 @@ export const Component = () => {
   ]
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-6">
-      <div className="overflow-hidden">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2 p-3 lg:flex-row">
-            <InputGroup className="lg:max-w-sm">
-              <InputGroupAddon>
-                <SearchIcon />
-              </InputGroupAddon>
-              <InputGroupInput
-                value={search}
-                onChange={(event) => updateSearch(event.target.value)}
-                placeholder="Tìm tên hoặc mã danh mục..."
-                aria-label="Tìm kiếm danh mục"
-              />
-            </InputGroup>
-            {(search || categories.length !== filteredCategories.length) && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => updateSearch("")}
-              >
-                Xoá lọc
-              </Button>
-            )}
-          </div>
+    <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
+      <header className="px-3 pt-3">
+        <h1 className="text-2xl font-semibold">Danh mục</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Xem các nhóm sản phẩm và số lượng sản phẩm trong từng danh mục.
+        </p>
+      </header>
+      <div className="flex min-w-0 flex-col gap-4">
+        <div className="flex flex-col gap-2 px-3 lg:flex-row">
+          <InputGroup className="lg:max-w-sm">
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={search}
+              onChange={(event) => updateSearch(event.target.value)}
+              placeholder="Tìm tên hoặc mã danh mục..."
+              aria-label="Tìm kiếm danh mục"
+            />
+          </InputGroup>
+          {(search || categories.length !== filteredCategories.length) && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => updateSearch("")}
+            >
+              Xoá lọc
+            </Button>
+          )}
         </div>
         <CommonTable
           data={filteredCategories}

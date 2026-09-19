@@ -1,9 +1,17 @@
-import type { FormEvent } from "react"
-import { useState } from "react"
+import { useEffect } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Controller, useForm } from "react-hook-form"
+import { z } from "zod"
 
+import { ImageFileField } from "@/components/admin/management/image-file-field"
 import { AppSelect } from "@/components/common/app-select"
 import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Sheet,
@@ -13,21 +21,45 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import type {
-  Product,
-  ProductFormData,
-  ProductStatus,
-} from "@/lib/admin-management"
-import { toastError } from "@/utils/toast"
+import { Spinner } from "@/components/ui/spinner"
+import type { Product, ProductFormData } from "@/lib/admin-management"
 
 const NON_DIGIT_PATTERN = /\D/g
 const DIGIT_GROUP_PATTERN = /\B(?=(\d{3})+(?!\d))/g
 
 const formatPriceInput = (value: string | number) => {
   const digits = String(value).replace(NON_DIGIT_PATTERN, "")
-
   return digits ? digits.replace(DIGIT_GROUP_PATTERN, ",") : ""
 }
+
+const productFormSchema = z.object({
+  name: z.string().trim().min(1, "Vui lòng nhập tên sản phẩm"),
+  sku: z.string().trim().min(1, "Vui lòng nhập mã SKU"),
+  category: z.string().min(1, "Vui lòng chọn danh mục"),
+  price: z
+    .string()
+    .min(1, "Vui lòng nhập giá bán")
+    .refine(
+      (value) => Number.isFinite(Number(value.replace(/,/g, ""))),
+      "Giá bán không hợp lệ"
+    ),
+  status: z.enum(["active", "inactive"]),
+  image: z.instanceof(File).nullable(),
+})
+
+type ProductFormValues = z.infer<typeof productFormSchema>
+
+const getDefaultValues = (
+  product: Product | null,
+  categories: string[]
+): ProductFormValues => ({
+  name: product?.name ?? "",
+  sku: product?.sku ?? "",
+  category: product?.category ?? categories[0] ?? "",
+  price: product ? formatPriceInput(product.price) : "",
+  status: product?.status ?? "active",
+  image: null,
+})
 
 export function ProductFormSheet({
   open,
@@ -40,64 +72,30 @@ export function ProductFormSheet({
   onOpenChange: (open: boolean) => void
   product: Product | null
   categories: string[]
-  onSave: (data: ProductFormData) => void | Promise<void>
+  onSave: (data: ProductFormData) => void | Promise<unknown>
 }) {
-  const [form, setForm] = useState(() =>
-    product
-      ? {
-          name: product.name,
-          sku: product.sku,
-          category: product.category,
-          price: formatPriceInput(product.price),
-          status: product.status,
-          image: null as File | null,
-        }
-      : {
-          name: "",
-          sku: "",
-          category: categories[0] ?? "",
-          price: "",
-          status: "active" as ProductStatus,
-          image: null as File | null,
-        }
-  )
-  const [saving, setSaving] = useState(false)
+  const form = useForm<ProductFormValues>({
+    defaultValues: getDefaultValues(product, categories),
+    resolver: zodResolver(productFormSchema),
+  })
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  useEffect(() => {
+    if (open) form.reset(getDefaultValues(product, categories))
+  }, [categories, form, open, product])
 
-    const rawPrice = form.price.replace(/,/g, "")
-    const price = Number(rawPrice)
-
-    if (
-      !form.name.trim() ||
-      !form.sku.trim() ||
-      !form.category ||
-      !rawPrice ||
-      !Number.isFinite(price) ||
-      price < 0
-    ) {
-      toastError("Vui lòng nhập đầy đủ thông tin sản phẩm")
-      return
-    }
-
-    setSaving(true)
-    try {
-      await onSave({
-        name: form.name.trim(),
-        sku: form.sku.trim(),
-        category: form.category,
-        price,
-        status: form.status,
-        image: form.image,
-      })
-      onOpenChange(false)
-    } catch {
-      // The parent displays the API error; keep the sheet open for correction.
-    } finally {
-      setSaving(false)
-    }
+  const handleSubmit = async (values: ProductFormValues) => {
+    await onSave({
+      name: values.name.trim(),
+      sku: values.sku.trim(),
+      category: values.category,
+      price: Number(values.price.replace(/,/g, "")),
+      status: values.status,
+      image: values.image,
+    })
+    onOpenChange(false)
   }
+
+  const isSubmitting = form.formState.isSubmitting
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -114,132 +112,129 @@ export function ProductFormSheet({
         </SheetHeader>
         <form
           id="product-form-sheet"
-          onSubmit={handleSubmit}
+          onSubmit={form.handleSubmit(handleSubmit)}
           className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 py-4"
         >
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="product-name">Tên sản phẩm</FieldLabel>
-              <Input
-                id="product-name"
-                value={form.name}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-                placeholder="Ví dụ: Tai nghe chống ồn AirFlow"
-                required
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="product-sku">Mã SKU</FieldLabel>
-              <Input
-                id="product-sku"
-                value={form.sku}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    sku: event.target.value,
-                  }))
-                }
-                placeholder="Ví dụ: AF-1001"
-                required
-              />
-            </Field>
+            <Controller
+              control={form.control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="product-name">Tên sản phẩm</FieldLabel>
+                  <Input
+                    id="product-name"
+                    placeholder="Ví dụ: Tai nghe chống ồn AirFlow"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="sku"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="product-sku">Mã SKU</FieldLabel>
+                  <Input
+                    id="product-sku"
+                    placeholder="Ví dụ: AF-1001"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
             <FieldGroup className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="product-category">Danh mục</FieldLabel>
-                <AppSelect
-                  options={categories.map((category) => ({
-                    value: category,
-                    label: category,
-                  }))}
-                  value={form.category}
-                  onChange={(value) =>
-                    setForm((current) => ({
-                      ...current,
-                      category: value,
-                    }))
-                  }
-                  id="product-category"
-                  className="w-full"
-                  aria-label="Chọn danh mục sản phẩm"
-                  placeholder="Chọn danh mục"
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="product-status">Trạng thái</FieldLabel>
-                <AppSelect
-                  options={[
-                    { value: "active", label: "Đang bán" },
-                    { value: "inactive", label: "Tạm ẩn" },
-                  ]}
-                  value={form.status}
-                  onChange={(value) =>
-                    setForm((current) => ({
-                      ...current,
-                      status: value as ProductStatus,
-                    }))
-                  }
-                  id="product-status"
-                  className="w-full"
-                  aria-label="Chọn trạng thái sản phẩm"
-                />
-              </Field>
+              <Controller
+                control={form.control}
+                name="category"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="product-category">Danh mục</FieldLabel>
+                    <AppSelect
+                      id="product-category"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                      className="w-full"
+                      aria-label="Chọn danh mục sản phẩm"
+                      placeholder="Chọn danh mục"
+                      options={categories.map((category) => ({
+                        value: category,
+                        label: category,
+                      }))}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
+              <Controller
+                control={form.control}
+                name="status"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="product-status">Trạng thái</FieldLabel>
+                    <AppSelect
+                      id="product-status"
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                      className="w-full"
+                      aria-label="Chọn trạng thái sản phẩm"
+                      options={[
+                        { value: "active", label: "Đang bán" },
+                        { value: "inactive", label: "Tạm ẩn" },
+                      ]}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
             </FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="product-image">Ảnh sản phẩm</FieldLabel>
-              {product?.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="h-32 w-full rounded-lg border object-cover"
+            <Controller
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <ImageFileField
+                  id="product-image"
+                  label="Ảnh sản phẩm"
+                  previewUrl={product?.imageUrl ?? undefined}
+                  previewAlt={product?.name ?? "Sản phẩm"}
+                  previewClassName="w-full rounded-lg"
+                  selectedFile={field.value}
+                  onFileChange={field.onChange}
                 />
-              ) : null}
-              <Input
-                id="product-image"
-                type="file"
-                accept="image/*"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null
-                  if (file && !file.type.startsWith("image/")) {
-                    toastError("Vui lòng chọn một tệp ảnh")
-                    event.currentTarget.value = ""
-                    return
-                  }
-                  if (file && file.size > 10 * 1024 * 1024) {
-                    toastError("Ảnh không được vượt quá 10 MB")
-                    event.currentTarget.value = ""
-                    return
-                  }
-                  setForm((current) => ({ ...current, image: file }))
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                JPG, PNG, WEBP; tối đa 10 MB.
-                {form.image ? ` Đã chọn: ${form.image.name}` : ""}
-              </p>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="product-price">Giá bán (VNĐ)</FieldLabel>
-              <Input
-                id="product-price"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9,]*"
-                value={form.price}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    price: formatPriceInput(event.target.value),
-                  }))
-                }
-                placeholder="0"
-                required
-              />
-            </Field>
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="price"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="product-price">Giá bán (VNĐ)</FieldLabel>
+                  <Input
+                    id="product-price"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9,]*"
+                    placeholder="0"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isSubmitting}
+                    {...field}
+                    onChange={(event) =>
+                      field.onChange(formatPriceInput(event.target.value))
+                    }
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
           </FieldGroup>
         </form>
         <SheetFooter className="border-t bg-muted/50 sm:flex-row sm:justify-end">
@@ -247,16 +242,17 @@ export function ProductFormSheet({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={saving}
+            disabled={isSubmitting}
           >
             Huỷ
           </Button>
-          <Button type="submit" form="product-form-sheet" disabled={saving}>
-            {saving
-              ? "Đang lưu..."
-              : product
-                ? "Lưu thay đổi"
-                : "Thêm sản phẩm"}
+          <Button
+            type="submit"
+            form="product-form-sheet"
+            disabled={isSubmitting}
+          >
+            {isSubmitting && <Spinner data-icon="inline-start" />}
+            {product ? "Lưu thay đổi" : "Thêm sản phẩm"}
           </Button>
         </SheetFooter>
       </SheetContent>

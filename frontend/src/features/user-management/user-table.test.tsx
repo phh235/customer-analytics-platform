@@ -68,16 +68,18 @@ describe("UserTable", () => {
     )
     expect(onDelete).toHaveBeenCalledWith(editableUser)
 
-    for (const name of [currentUser.full_name, adminUser.full_name]) {
-      const row = within(screen.getByRole("row", { name: new RegExp(name) }))
-      await user.click(row.getByRole("button", { name: "Tùy chọn thao tác" }))
-      expect(
-        await screen.findByRole("menuitem", { name: "Chỉnh sửa" })
-      ).toHaveAttribute("data-disabled")
-      expect(
-        screen.getByRole("menuitem", { name: "Vô hiệu hóa" })
-      ).toHaveAttribute("data-disabled")
-      await user.keyboard("{Escape}")
-    }
+    const currentRow = within(
+      screen.getByRole("row", { name: new RegExp(currentUser.full_name) })
+    )
+    await user.click(
+      currentRow.getByRole("button", { name: "Tùy chọn thao tác" })
+    )
+    expect(
+      await screen.findByRole("menuitem", { name: "Chỉnh sửa" })
+    ).toHaveAttribute("data-disabled")
+    expect(
+      screen.getByRole("menuitem", { name: "Vô hiệu hóa" })
+    ).toHaveAttribute("data-disabled")
+    expect(screen.queryByText(adminUser.full_name)).not.toBeInTheDocument()
   })
 })

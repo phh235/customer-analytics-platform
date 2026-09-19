@@ -23,6 +23,7 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   COMPLETED: "Hoàn tất",
   DELIVERED: "Đã giao",
   PROCESSING: "Đang xử lý",
+  CANCELED: "Đã huỷ",
   CANCELLED: "Đã huỷ",
   FAILED: "Thất bại",
   REFUNDED: "Đã hoàn tiền",
@@ -72,22 +73,6 @@ export const MODEL_TYPE_LABELS: Record<string, string> = {
   RANDOM_FOREST: "Rừng ngẫu nhiên",
 }
 
-export const formatEnumLabel = (
-  value: string | null | undefined,
-  labels: Record<string, string>
-) => {
-  if (!value) return "—"
-
-  const normalized = value.trim().toUpperCase()
-  return (
-    labels[normalized] ??
-    value
-      .trim()
-      .replaceAll("_", " ")
-      .toLocaleLowerCase("vi-VN")
-  )
-}
-
 export interface Product {
   id: string
   productCode: string
@@ -129,7 +114,6 @@ export interface CustomerFormData {
   image: File | null
 }
 
-
 export interface Category {
   id: string
   code: string
@@ -142,21 +126,3 @@ export interface CategoryFormData {
   name: string
   code: string
 }
-
-
-export const normalize = (value: string) => value.toLocaleLowerCase("vi-VN")
-
-export const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value)
-
-export const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(value))
-

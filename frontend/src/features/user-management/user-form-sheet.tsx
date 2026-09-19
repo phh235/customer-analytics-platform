@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sheet"
 import { Spinner } from "@/components/ui/spinner"
 import {
+  MANAGEABLE_USER_ROLES,
   USER_ROLES,
   USER_ROLE_LABELS,
   USER_STATUSES,
@@ -63,7 +64,7 @@ export function UserFormSheet({
       email: "",
       full_name: "",
       password: "",
-      role_code: "CLIENT",
+      role_code: "USER",
       status: "ACTIVE",
     },
     resolver: zodResolver(formSchema),
@@ -76,7 +77,8 @@ export function UserFormSheet({
       email: user?.email ?? "",
       full_name: user?.full_name ?? "",
       password: "",
-      role_code: user?.role_code ?? "CLIENT",
+      role_code:
+        user?.role_code === "CLIENT" ? "USER" : (user?.role_code ?? "USER"),
       status: user?.status ?? "ACTIVE",
     })
   }, [form, open, user])
@@ -193,7 +195,7 @@ export function UserFormSheet({
                     disabled={form.formState.isSubmitting}
                     aria-label="Chọn vai trò tài khoản"
                     className="w-full"
-                    options={USER_ROLES.map((role) => ({
+                    options={MANAGEABLE_USER_ROLES.map((role) => ({
                       value: role,
                       label: USER_ROLE_LABELS[role],
                     }))}

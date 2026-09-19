@@ -36,6 +36,7 @@ describe("ProductFormSheet", () => {
       category: "Điện thoại",
       price: 1290000,
       status: "active",
+      image: null,
     })
   })
 })
