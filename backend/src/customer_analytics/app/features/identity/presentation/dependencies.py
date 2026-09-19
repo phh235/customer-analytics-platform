@@ -19,10 +19,7 @@ from customer_analytics.app.features.identity.presentation.security import (
     require_permission,
 )
 
-# Type alias for current user dependency
 CurrentUserDep = Annotated[UserEntity, Depends(get_current_user)]
-
-# Type alias for admin dependency
 AdminDep = Annotated[UserEntity, Depends(require_admin)]
 
 __all__ = [

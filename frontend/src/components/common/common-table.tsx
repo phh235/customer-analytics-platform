@@ -51,6 +51,15 @@ interface CommonTableProps<T> {
 function getPageCount(total: number, pageSize: number) {
   return Math.max(1, Math.ceil(total / pageSize))
 }
+function getVisiblePages(currentPage: number, pageCount: number) {
+  if (pageCount <= 3) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1)
+  }
+
+  const firstPage = Math.min(Math.max(currentPage - 1, 1), pageCount - 2)
+  return [firstPage, firstPage + 1, firstPage + 2]
+}
+
 
 export function CommonTable<T>({
   data,
@@ -76,6 +85,10 @@ export function CommonTable<T>({
     (pagination?.previousPage !== undefined
       ? pagination.previousPage !== null
       : currentPage > 1)
+  const visiblePages = pagination
+    ? getVisiblePages(currentPage, pageCount)
+    : []
+
   const canGoNext =
     pagination?.hasNext ??
     (pagination?.nextPage !== undefined
@@ -172,17 +185,17 @@ export function CommonTable<T>({
                     }}
                   />
                 </PaginationItem>
-                {Array.from({ length: pageCount }, (_, index) => (
-                  <PaginationItem key={index + 1}>
+                {visiblePages.map((pageNumber) => (
+                  <PaginationItem key={pageNumber}>
                     <UiPaginationLink
                       href="#"
-                      isActive={index + 1 === currentPage}
+                      isActive={pageNumber === currentPage}
                       onClick={(event) => {
                         event.preventDefault()
-                        pagination.onPageChange(index + 1)
+                        pagination.onPageChange(pageNumber)
                       }}
                     >
-                      {index + 1}
+                      {pageNumber}
                     </UiPaginationLink>
                   </PaginationItem>
                 ))}

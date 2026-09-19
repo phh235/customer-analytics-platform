@@ -6,7 +6,7 @@ import uuid
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import noload, selectinload
 
 from customer_analytics.app.features.identity.domain.entities.user_entity import (
     UserEntity,
@@ -28,12 +28,20 @@ class UserRepositoryImpl(UserRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def _to_entity(self, model: UserModel) -> UserEntity:
+    async def _to_entity(
+        self, model: UserModel, role_code: str | None = None
+    ) -> UserEntity:
         """Convert database model to domain entity."""
-        # Eagerly load role relationship if not already loaded
-        if "role" not in model.__dict__:
+        if role_code is None and "role" not in model.__dict__:
             await self._session.refresh(model, ["role"])
 
+        resolved_role_code = (
+            role_code
+            if role_code is not None
+            else model.role.code
+            if model.role
+            else "ANALYST"
+        )
         return UserEntity(
             id_=str(model.id),
             email=model.email,
@@ -42,7 +50,8 @@ class UserRepositoryImpl(UserRepository):
             status=model.status.value
             if hasattr(model.status, "value")
             else model.status,
-            role_code=model.role.code if model.role else "CLIENT",
+            role_code=resolved_role_code,
+            role_id=str(model.role_id) if model.role_id else None,
             is_active=model.status.value == "ACTIVE"
             if hasattr(model.status, "value")
             else model.status == "ACTIVE",
@@ -51,6 +60,9 @@ class UserRepositoryImpl(UserRepository):
             last_login_at=model.last_login_at,
             failed_login_count=model.failed_login_count,
             locked_until=model.locked_until,
+            google_id=model.google_id,
+            auth_provider=model.auth_provider,
+            team_id=str(model.team_id) if model.team_id else None,
         )
 
     def _to_model(self, entity: UserEntity) -> UserModel:
@@ -69,9 +81,12 @@ class UserRepositoryImpl(UserRepository):
             password_hash=entity.password_hash,
             full_name=entity.full_name,
             status=status,
+            role_id=uuid.UUID(entity.role_id) if entity.role_id else None,
             failed_login_count=entity.failed_login_count,
             locked_until=entity.locked_until,
-            last_login_at=entity.last_login_at,
+            google_id=entity.google_id,
+            auth_provider=entity.auth_provider,
+            team_id=uuid.UUID(entity.team_id) if entity.team_id else None,
         )
 
     async def create(self, entity: UserEntity) -> UserEntity:
@@ -92,10 +107,26 @@ class UserRepositoryImpl(UserRepository):
         model = result.scalar_one_or_none()
         return await self._to_entity(model) if model else None
 
+    async def find_by_id_for_auth(self, id_: str, role_code: str) -> UserEntity | None:
+        """Load only user columns for JWT-backed authorization checks."""
+        result = await self._session.execute(
+            select(UserModel).options(noload(UserModel.role)).where(UserModel.id == id_)
+        )
+        model = result.scalar_one_or_none()
+        return await self._to_entity(model, role_code=role_code) if model else None
+
     async def find_by_email(self, email: str) -> UserEntity | None:
         """Find a user by email."""
         result = await self._session.execute(
             select(UserModel).where(func.lower(UserModel.email) == email.lower())
+        )
+        model = result.scalar_one_or_none()
+        return await self._to_entity(model) if model else None
+
+    async def find_by_google_id(self, google_id: str) -> UserEntity | None:
+        """Find a user by Google ID."""
+        result = await self._session.execute(
+            select(UserModel).where(UserModel.google_id == google_id)
         )
         model = result.scalar_one_or_none()
         return await self._to_entity(model) if model else None
@@ -108,18 +139,19 @@ class UserRepositoryImpl(UserRepository):
         Optimised for login flow — avoids N+1 by joining all needed data.
         Returns (UserEntity, permissions) or None.
         """
-        # Single query: user + role + permissions
+        # Keep users with roles that intentionally have no permissions (for
+        # example, customer-facing USER accounts).
         stmt = (
             select(
                 UserModel,
                 PermissionModel.code.label("permission_code"),
             )
             .options(selectinload(UserModel.role))
-            .join(
+            .outerjoin(
                 RolePermissionModel,
                 UserModel.role_id == RolePermissionModel.role_id,
             )
-            .join(
+            .outerjoin(
                 PermissionModel,
                 RolePermissionModel.permission_id == PermissionModel.id,
             )
@@ -132,9 +164,11 @@ class UserRepositoryImpl(UserRepository):
         if not rows:
             return None
 
-        # First row has the user model (with role loaded via selectinload)
+        # First row has the user model (with role loaded via selectinload).
         model = rows[0][0]
-        permissions = [row.permission_code for row in rows]
+        permissions = [
+            row.permission_code for row in rows if row.permission_code is not None
+        ]
 
         entity = await self._to_entity(model)
         return entity, permissions
@@ -161,10 +195,7 @@ class UserRepositoryImpl(UserRepository):
 
         Uses selectinload to eagerly load role relationship in a single query.
         """
-        stmt = (
-            select(UserModel)
-            .options(selectinload(UserModel.role))
-        )
+        stmt = select(UserModel).options(selectinload(UserModel.role))
 
         # Search filter
         if search:
@@ -310,6 +341,8 @@ class UserRepositoryImpl(UserRepository):
         model.failed_login_count = entity.failed_login_count
         model.locked_until = entity.locked_until
         model.last_login_at = entity.last_login_at
+        model.google_id = entity.google_id
+        model.auth_provider = entity.auth_provider
 
         # Update status
         from customer_analytics.app.features.identity.domain.enums import UserStatus

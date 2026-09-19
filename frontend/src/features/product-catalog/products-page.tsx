@@ -1,7 +1,9 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { FilterXIcon, SearchIcon } from "lucide-react"
 import { debounce, defaultRateLimit, parseAsString, useQueryStates } from "nuqs"
 
+import { getApiErrorMessage } from "@/api/errors"
+import { getProducts, type ProductRecord } from "@/api/products"
 import { ClientPageLayout } from "@/components/client-page-layout"
 import { ProductCard } from "@/components/product-card"
 import { ProductCardSkeleton } from "@/features/product-catalog/product-card-skeleton"
@@ -22,8 +24,8 @@ import {
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDebounce } from "@/hooks/use-debounce"
-import { normalizeProductText, products } from "@/lib/products"
 import { useAuthStore } from "@/stores/use-auth-store"
+import { toastError } from "@/utils/toast"
 
 const clientProductQueryParsers = {
   search: parseAsString.withDefault(""),
@@ -50,30 +52,50 @@ export const Component = () => {
     clientProductQueryOptions
   )
   const debouncedSearch = useDebounce(search, 300)
+  const [products, setProducts] = useState<ProductRecord[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    void getProducts({ page: 1, size: 100 })
+      .then((response) => {
+        if (!cancelled) setProducts(response.records)
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) toastError(getApiErrorMessage(error))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const categories = useMemo(
     () =>
       Array.from(new Set(products.map((product) => product.category))).sort(
         (first, second) => first.localeCompare(second, "vi")
       ),
-    []
+    [products]
   )
 
   const filteredProducts = useMemo(() => {
-    const query = normalizeProductText(debouncedSearch.trim())
+    const query = debouncedSearch.trim().toLocaleLowerCase("vi")
 
     return products.filter((product) => {
       const matchesSearch =
         !query ||
-        [product.name, product.category, product.shortDescription].some(
-          (value) => normalizeProductText(value).includes(query)
+        [product.name, product.category].some((value) =>
+          value.toLocaleLowerCase("vi").includes(query)
         )
       const matchesCategory =
         category === "all" || product.category === category
 
       return matchesSearch && matchesCategory
     })
-  }, [category, debouncedSearch])
+  }, [category, debouncedSearch, products])
 
   const resetFilters = () => {
     void setQuery({ search: "", category: "all" })
@@ -95,7 +117,7 @@ export const Component = () => {
       ) : null}
       <Panel className="screen-border-bottom-none screen-border-top-none">
         <PanelContent className="p-4">
-          {isSessionPending ? (
+          {isSessionPending || loading ? (
             <div className="flex flex-col gap-2">
               <Skeleton className="h-6 w-28" />
               <Skeleton className="h-4 w-80 max-w-full" />
@@ -113,7 +135,7 @@ export const Component = () => {
 
       <Panel className="screen-border-bottom-none">
         <PanelContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          {isSessionPending ? (
+          {isSessionPending || loading ? (
             <>
               <Skeleton className="h-9 w-full sm:flex-1" />
               <Skeleton className="h-9 w-full sm:w-56" />
@@ -155,7 +177,7 @@ export const Component = () => {
       </Panel>
 
       <Panel>
-        {isSessionPending ? (
+        {isSessionPending || loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {PRODUCT_SKELETON_IDS.map((id) => (
               <ProductCardSkeleton key={id} />

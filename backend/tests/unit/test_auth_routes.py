@@ -24,10 +24,23 @@ class FakeRefreshRepository:
         return self.permissions
 
 
+class FakeRefreshTokenRepository:
+    async def find_by_token_hash(self, _token_hash: str) -> None:
+        return None
+
+    async def revoke_by_token_hash(self, _token_hash: str) -> None:
+        return None
+
+    async def save(self, **_kwargs: object) -> None:
+        return None
+
+
 class FakeRefreshUnitOfWork:
     def __init__(self, repository: FakeRefreshRepository) -> None:
         self.repository = repository
 
+    async def commit(self) -> None:
+        return None
 
 @pytest.mark.asyncio
 async def test_refresh_access_token_includes_current_permissions(monkeypatch) -> None:
@@ -57,7 +70,7 @@ async def test_refresh_access_token_includes_current_permissions(monkeypatch) ->
     monkeypatch.setattr(
         auth_routes,
         "create_refresh_token",
-        lambda user_id: "refresh-token",
+        lambda **_kwargs: "refresh-token",
     )
 
     request = Request(
@@ -74,7 +87,12 @@ async def test_refresh_access_token_includes_current_permissions(monkeypatch) ->
     )
     response = Response()
 
-    result = await auth_routes.refresh_token(request, response, unit_of_work)
+    result = await auth_routes.refresh_token(
+        request,
+        response,
+        unit_of_work,
+        FakeRefreshTokenRepository(),
+    )
 
     assert result.access_token == "access-token"
     assert captured["permissions"] == permissions

@@ -67,6 +67,7 @@ class CreateUserUseCaseImpl(CreateUserUseCase):
             full_name=data.full_name,
             role_code=role_code,
             role_id=str(role_id),
+            team_id=data.team_id,
         )
 
         try:
