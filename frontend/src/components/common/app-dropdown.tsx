@@ -7,6 +7,8 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
@@ -15,6 +17,7 @@ export interface AppDropdownItem {
   key: string
   label: React.ReactNode
   icon?: React.ReactNode
+  endIcon?: React.ReactNode
   disabled?: boolean
   variant?: "default" | "destructive"
   onClick?: () => void
@@ -22,6 +25,7 @@ export interface AppDropdownItem {
 
 export interface AppDropdownProps {
   items: AppDropdownItem[]
+  header?: React.ReactNode
   trigger?: React.ReactElement
   triggerVariant?: "ghost" | "outline" | "default"
   triggerSize?: "icon-sm" | "icon" | "sm" | "default"
@@ -34,6 +38,7 @@ export interface AppDropdownProps {
 
 export const AppDropdown = ({
   items,
+  header,
   trigger,
   triggerVariant = "ghost",
   triggerSize = "icon-sm",
@@ -65,6 +70,16 @@ export const AppDropdown = ({
         sideOffset={sideOffset}
         className={cn("w-fit min-w-32", contentClassName)}
       >
+        {header ? (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="font-normal">
+                {header}
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
         <DropdownMenuGroup>
           {items.map((item) => (
             <DropdownMenuItem
@@ -74,7 +89,8 @@ export const AppDropdown = ({
               onClick={item.onClick}
             >
               {item.icon}
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.endIcon}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>

@@ -16,7 +16,10 @@ export function useMediaQuery(query: string, defaultValue = false) {
     [query]
   )
 
-  const getServerSnapshot = React.useCallback(() => defaultValue, [defaultValue])
+  const getServerSnapshot = React.useCallback(
+    () => defaultValue,
+    [defaultValue]
+  )
 
   return React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }

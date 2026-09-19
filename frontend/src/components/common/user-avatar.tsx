@@ -1,7 +1,9 @@
 import Avvvatars from "avvvatars-react"
 
 interface UserAvatarProps {
-  email: string
+  email?: string
+  name?: string
+  value?: string
 }
 
 const getEmailInitials = (email: string) => {
@@ -15,9 +17,19 @@ const getEmailInitials = (email: string) => {
     .slice(0, 2)
 }
 
-export function UserAvatar({ email }: UserAvatarProps) {
-  const avatarValue = email.trim().toLowerCase()
-  const initials = getEmailInitials(avatarValue)
+const getNameInitials = (name: string) => {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  return [parts[0], parts.at(-1)]
+    .filter(Boolean)
+    .map((part) => part![0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+export function UserAvatar({ email, name, value }: UserAvatarProps) {
+  const avatarValue = (value ?? name ?? email ?? "user").trim().toLowerCase()
+  const initials = name ? getNameInitials(name) : getEmailInitials(avatarValue)
 
   return (
     <span className="inline-flex shrink-0 rounded-full contrast-100 transition-[filter] dark:contrast-125">

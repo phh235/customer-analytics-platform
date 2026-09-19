@@ -61,6 +61,17 @@
       background-position: 100% -100%;
     }
   }
+
+  --animate-spinner-opacity: spinner-opacity
+    var(--tw-animation-duration, var(--tw-duration, 1s)) linear infinite;
+  @keyframes spinner-opacity {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0.15;
+    }
+  }
 }
 
 :root {
@@ -70,7 +81,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: #91ae6e;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -82,11 +93,11 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: #689d4b;
+  --chart-2: #576a8f;
+  --chart-3: #91ae6e;
+  --chart-4: #d96868;
+  --chart-5: #a6b1e1;
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -105,7 +116,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
+  --primary: #91ae6e;
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -117,11 +128,11 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: #689d4b;
+  --chart-2: #576a8f;
+  --chart-3: #91ae6e;
+  --chart-4: #d96868;
+  --chart-5: #a6b1e1;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -213,7 +224,7 @@
   @apply relative;
   &:before {
     content: "";
-    @apply absolute top-0 left-[-100vw] z-10 pointer-events-none h-px w-[200vw] bg-border;
+    @apply pointer-events-none absolute top-0 left-[-100vw] z-10 h-px w-[200vw] bg-border;
   }
 }
 
@@ -221,7 +232,7 @@
   @apply relative;
   &:after {
     content: "";
-    @apply absolute bottom-0 left-[-100vw] z-10 pointer-events-none h-px w-[200vw] bg-border;
+    @apply pointer-events-none absolute bottom-0 left-[-100vw] z-10 h-px w-[200vw] bg-border;
   }
 }
 

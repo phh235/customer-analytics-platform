@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 
 const ACTIVE_CLASSES =
-  "data-active:bg-input/70! data-active:text-sidebar-accent-foreground data-active:hover:bg-input/70! data-active:hover:text-sidebar-accent-foreground"
+  "data-active:bg-primary! data-active:text-primary-foreground data-active:hover:bg-primary! data-active:hover:text-primary-foreground data-active:[&>svg]:text-primary-foreground!"
 
 export const NavMain = ({
   items,
@@ -112,7 +112,7 @@ export const NavMain = ({
                             className={cn(
                               "flex h-8 items-center rounded-md px-2.5 text-sm text-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                               isSubActive &&
-                                "bg-input/70 text-sidebar-accent-foreground hover:bg-input/70 hover:text-sidebar-accent-foreground"
+                                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                             )}
                           >
                             {subItem.title}

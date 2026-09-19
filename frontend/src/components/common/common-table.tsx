@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink as UiPaginationLink,
   PaginationNext,
@@ -52,13 +53,40 @@ interface CommonTableProps<T> {
 function getPageCount(total: number, pageSize: number) {
   return Math.max(1, Math.ceil(total / pageSize))
 }
-function getVisiblePages(currentPage: number, pageCount: number) {
-  if (pageCount <= 3) {
+type PaginationPart = number | "start-ellipsis" | "end-ellipsis"
+
+function getVisiblePages(
+  currentPage: number,
+  pageCount: number
+): PaginationPart[] {
+  if (pageCount <= 5) {
     return Array.from({ length: pageCount }, (_, index) => index + 1)
   }
 
-  const firstPage = Math.min(Math.max(currentPage - 1, 1), pageCount - 2)
-  return [firstPage, firstPage + 1, firstPage + 2]
+  if (currentPage <= 3) {
+    return [1, 2, 3, 4, "end-ellipsis", pageCount]
+  }
+
+  if (currentPage >= pageCount - 2) {
+    return [
+      1,
+      "start-ellipsis",
+      pageCount - 3,
+      pageCount - 2,
+      pageCount - 1,
+      pageCount,
+    ]
+  }
+
+  return [
+    1,
+    "start-ellipsis",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "end-ellipsis",
+    pageCount,
+  ]
 }
 
 export function CommonTable<T>({
@@ -107,17 +135,16 @@ export function CommonTable<T>({
       ? (currentPage - 1) * (pagination?.pageSize ?? data.length) + 1
       : 0
   const lastItem = Math.min(firstItem + pageData.length - 1, total)
-  const tableSummary =
-    summary ??
-    (itemLabel
-      ? loading
-        ? `Đang tải ${itemLabel}...`
-        : `Hiển thị ${firstItem === 0 ? "0" : `${firstItem}–${lastItem}`} / ${total} ${itemLabel}`
-      : undefined)
+  const tableSummary = loading
+    ? undefined
+    : (summary ??
+      (itemLabel
+        ? `Hiển thị ${firstItem === 0 ? "0" : `${firstItem}–${lastItem}`} / ${total} ${itemLabel}`
+        : undefined))
 
   return (
     <div aria-busy={loading} className="flex min-w-0 flex-col gap-2 px-3 pb-3">
-      <div className="overflow-hidden rounded-xl border border-border bg-background">
+      <div className="overflow-hidden rounded-lg border border-border bg-background">
         <Table
           aria-label={itemLabel ? `Danh sách ${itemLabel}` : undefined}
           className="min-w-full table-auto border-y-0 [&_td]:px-4 [&_th]:px-4"
@@ -170,7 +197,7 @@ export function CommonTable<T>({
         </Table>
       </div>
 
-      {tableSummary || (pagination && pageCount > 1) ? (
+      {!loading && (tableSummary || (pagination && pageCount > 1)) ? (
         <div className="flex min-h-8 flex-col gap-2 px-3 sm:flex-row sm:items-center sm:justify-between">
           {tableSummary ? (
             <div role="status" className="text-sm text-muted-foreground">
@@ -208,23 +235,29 @@ export function CommonTable<T>({
                     }}
                   />
                 </PaginationItem>
-                {visiblePages.map((pageNumber) => (
-                  <PaginationItem key={pageNumber}>
-                    <UiPaginationLink
-                      href="#"
-                      isActive={pageNumber === currentPage}
-                      aria-label={`Trang ${pageNumber}`}
-                      aria-disabled={loading}
-                      tabIndex={loading ? -1 : undefined}
-                      onClick={(event) => {
-                        event.preventDefault()
-                        if (!loading) pagination.onPageChange(pageNumber)
-                      }}
-                    >
-                      {pageNumber}
-                    </UiPaginationLink>
-                  </PaginationItem>
-                ))}
+                {visiblePages.map((part) =>
+                  typeof part === "number" ? (
+                    <PaginationItem key={part}>
+                      <UiPaginationLink
+                        href="#"
+                        isActive={part === currentPage}
+                        aria-label={`Trang ${part}`}
+                        aria-disabled={loading}
+                        tabIndex={loading ? -1 : undefined}
+                        onClick={(event) => {
+                          event.preventDefault()
+                          if (!loading) pagination.onPageChange(part)
+                        }}
+                      >
+                        {part}
+                      </UiPaginationLink>
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={part}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )
+                )}
                 <PaginationItem>
                   <PaginationNext
                     href="#"
