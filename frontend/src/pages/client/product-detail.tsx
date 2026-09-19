@@ -3,12 +3,13 @@ import { ArrowLeftIcon } from "lucide-react"
 import { Link, Navigate, useParams } from "react-router"
 
 import { ClientPageLayout } from "@/components/client-page-layout"
+import { ProductImagePlaceholder } from "@/components/common/product-image-placeholder"
 import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuthStore } from "@/stores/use-auth-store"
-import { useProduct } from "@/hooks/use-products"
+import { useProduct, useProducts } from "@/hooks/use-products"
 import { formatCurrency } from "@/lib/format"
 
 export const Component = () => {
@@ -17,13 +18,28 @@ export const Component = () => {
     (state) => state.status === "unknown" || state.status === "loading"
   )
   const productQuery = useProduct(productId)
+  const productsQuery = useProducts(
+    { page: 1, size: 12 },
+    "Không thể tải sản phẩm liên quan."
+  )
   const product = productQuery.data ?? null
   const loading = productQuery.isPending
 
-  const relatedProducts = useMemo(
-    () => product?.related_products ?? [],
-    [product?.related_products]
-  )
+  const relatedProducts = useMemo(() => {
+    if (!product) return []
+
+    const seenIds = new Set([product.id])
+    return [
+      ...(product.related_products ?? []),
+      ...(productsQuery.data?.records ?? []),
+    ]
+      .filter((candidate) => {
+        if (seenIds.has(candidate.id)) return false
+        seenIds.add(candidate.id)
+        return true
+      })
+      .slice(0, 4)
+  }, [product, productsQuery.data?.records])
 
   if (!isSessionPending && !loading && !product) {
     return <Navigate replace to="/products" />
@@ -66,9 +82,11 @@ export const Component = () => {
                   src={product.image_url}
                 />
               ) : (
-                <span className="text-8xl font-black tracking-tight text-foreground/15 uppercase">
-                  {product.category.slice(0, 2)}
-                </span>
+                <ProductImagePlaceholder
+                  productName={product.name}
+                  className="absolute inset-0"
+                  iconClassName="size-16 text-muted-foreground/60"
+                />
               )}
             </div>
             <div className="flex flex-col justify-center gap-4 p-6 md:p-8">
@@ -98,13 +116,13 @@ export const Component = () => {
         <PanelContent>
           <h2 className="text-xl font-bold">Sản phẩm liên quan</h2>
           <p className="text-sm text-muted-foreground">
-            Các sản phẩm khác trong cùng danh mục.
+            Các sản phẩm khác có thể bạn quan tâm.
           </p>
         </PanelContent>
       </Panel>
 
       <Panel className="screen-border-top-none">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 lg:grid-cols-4">
           {relatedProducts.map((relatedProduct) => (
             <ProductCard key={relatedProduct.id} product={relatedProduct} />
           ))}

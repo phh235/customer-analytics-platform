@@ -37,4 +37,30 @@ describe("ProductCard", () => {
     expect(screen.getByText("1.290.000", { exact: false })).toBeInTheDocument()
     expect(screen.getByText("Giày dép")).toBeInTheDocument()
   })
+
+  it("hiển thị placeholder khi sản phẩm chưa có ảnh", () => {
+    render(
+      <MemoryRouter>
+        <ProductCard
+          product={{
+            id: "no-image",
+            name: "Sản phẩm chưa có ảnh",
+            category: "Phụ kiện",
+            price: 100000,
+            product_code: "SP-002",
+            sku: null,
+            status: "ACTIVE",
+            created_at: "2026-09-19T08:00:00Z",
+            updated_at: "2026-09-19T08:00:00Z",
+            description: null,
+            image_url: null,
+          }}
+        />
+      </MemoryRouter>
+    )
+
+    expect(
+      screen.getByRole("img", { name: "Chưa có ảnh Sản phẩm chưa có ảnh" })
+    ).toBeInTheDocument()
+  })
 })

@@ -76,7 +76,7 @@ const styleHighlights = [
   {
     title: "Được quan tâm nhiều",
     description:
-      "Những thiết kế đang thu hút nhiều sự chú ý trong cộng đồng Azuki.",
+      "Những thiết kế đang thu hút nhiều sự chú ý trong cộng đồng 3CS Store.",
     icon: Eye,
   },
 ]

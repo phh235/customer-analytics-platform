@@ -1,1 +1,1 @@
-export const BRAND_NAME = "Azuki"
+export const BRAND_NAME = "3CS Store"

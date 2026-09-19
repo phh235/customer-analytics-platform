@@ -105,7 +105,7 @@ export const Component = () => {
       </Panel>
 
       <Panel className="screen-border-top-none">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 lg:grid-cols-4">
           {isSessionPending || loading
             ? PRODUCT_SKELETON_IDS.map((id) => <ProductCardSkeleton key={id} />)
             : products

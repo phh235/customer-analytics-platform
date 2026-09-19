@@ -162,13 +162,13 @@ export const Component = () => {
 
       <Panel>
         {isSessionPending || loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 lg:grid-cols-4">
             {PRODUCT_SKELETON_IDS.map((id) => (
               <ProductCardSkeleton key={id} />
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 lg:grid-cols-4">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
