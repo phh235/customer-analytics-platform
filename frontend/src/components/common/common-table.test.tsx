@@ -71,4 +71,26 @@ describe("CommonTable", () => {
 
     expect(onPageChange).toHaveBeenCalledWith(2)
   })
+
+  it("giới hạn tối đa ba nút số trang", () => {
+    render(
+      <CommonTable
+        data={[{ id: "1", name: "Nguyễn An" }]}
+        columns={columns}
+        pagination={{
+          page: 5,
+          pageSize: 10,
+          total: 100,
+          totalPages: 10,
+          onPageChange: vi.fn(),
+        }}
+      />
+    )
+
+    expect(screen.getByText("4")).toBeInTheDocument()
+    expect(screen.getByText("5")).toBeInTheDocument()
+    expect(screen.getByText("6")).toBeInTheDocument()
+    expect(screen.queryByText("3")).not.toBeInTheDocument()
+    expect(screen.queryByText("7")).not.toBeInTheDocument()
+  })
 })

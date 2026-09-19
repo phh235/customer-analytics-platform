@@ -1,29 +1,60 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ArrowLeftIcon } from "lucide-react"
 import { Link, Navigate, useParams } from "react-router"
-import { PhotoProvider, PhotoView } from "react-photo-view"
-import "react-photo-view/dist/react-photo-view.css"
 
+import { getApiErrorMessage } from "@/api/errors"
+import { getProduct, type ProductRecord } from "@/api/products"
 import { ClientPageLayout } from "@/components/client-page-layout"
 import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
-import { getProductById, productPriceFormatter, products } from "@/lib/products"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useAuthStore } from "@/stores/use-auth-store"
+import { toastError } from "@/utils/toast"
+
+const productPriceFormatter = new Intl.NumberFormat("vi-VN", {
+  style: "currency",
+  currency: "VND",
+  maximumFractionDigits: 0,
+})
 
 export const Component = () => {
   const { productId } = useParams()
-  const product = productId ? getProductById(productId) : undefined
+  const isSessionPending = useAuthStore(
+    (state) => state.status === "unknown" || state.status === "loading"
+  )
+  const [product, setProduct] = useState<ProductRecord | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!product) {
+  useEffect(() => {
+    if (!productId) return
+
+    let cancelled = false
+    void getProduct(productId)
+      .then((productResponse) => {
+        if (cancelled) return
+        setProduct(productResponse)
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) toastError(getApiErrorMessage(error))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [productId])
+
+  const relatedProducts = useMemo(
+    () => product?.related_products ?? [],
+    [product?.related_products]
+  )
+
+  if (!isSessionPending && !loading && !product) {
     return <Navigate replace to="/products" />
   }
-
-  const relatedProducts = useMemo(() => {
-    return [...products]
-      .filter((p) => p.id !== product.id)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 4)
-  }, [product.id])
 
   return (
     <ClientPageLayout>
@@ -42,30 +73,49 @@ export const Component = () => {
       </Panel>
 
       <Panel>
-        <div className="grid md:grid-cols-2">
-          <PhotoProvider>
-            <div className="h-85 w-full overflow-hidden border-b border-border bg-muted md:h-100 md:border-r md:border-b-0">
-              <PhotoView src={product.image}>
+        {isSessionPending || loading ? (
+          <div className="grid md:grid-cols-2">
+            <Skeleton className="h-85 w-full md:h-100" />
+            <div className="flex flex-col gap-4 p-6 md:p-8">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-7 w-40" />
+            </div>
+          </div>
+        ) : product ? (
+          <div className="grid md:grid-cols-2">
+            <div className="relative flex h-85 items-end overflow-hidden border-b border-border bg-muted p-8 md:h-100 md:border-r md:border-b-0">
+              {product.image_url ? (
                 <img
                   alt={product.name}
-                  className="h-full w-full cursor-zoom-in object-cover transition-transform hover:scale-105"
+                  className="absolute inset-0 h-full w-full object-cover"
                   draggable={false}
-                  src={product.image}
+                  src={product.image_url}
                 />
-              </PhotoView>
+              ) : (
+                <span className="text-8xl font-black uppercase tracking-tight text-foreground/15">
+                  {product.category.slice(0, 2)}
+                </span>
+              )}
             </div>
-          </PhotoProvider>
-          <div className="flex flex-col justify-center gap-4 p-6 md:p-8">
-            <p className="text-sm text-muted-foreground">Chi tiết sản phẩm</p>
-            <h1 className="text-2xl font-bold">{product.name}</h1>
-            <p className="text-xl font-semibold">
-              {productPriceFormatter.format(product.price)}
-            </p>
-            <p className="text-sm leading-7 text-muted-foreground md:text-base">
-              {product.description}
-            </p>
+            <div className="flex flex-col justify-center gap-4 p-6 md:p-8">
+              <p className="text-sm text-muted-foreground">
+                {product.category}
+              </p>
+              <h1 className="text-2xl font-bold">{product.name}</h1>
+              <p className="text-xl font-semibold">
+                {productPriceFormatter.format(Number(product.price))}
+              </p>
+              <p className="text-sm leading-7 text-muted-foreground md:text-base">
+                {product.description ||
+                  `Sản phẩm đang được cung cấp trong danh mục ${product.category}.`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Trạng thái: {product.status === "ACTIVE" ? "Đang bán" : "Tạm ẩn"}
+              </p>
+            </div>
           </div>
-        </div>
+        ) : null}
       </Panel>
 
       <Separator />
@@ -74,15 +124,15 @@ export const Component = () => {
         <PanelContent>
           <h2 className="text-xl font-bold">Sản phẩm liên quan</h2>
           <p className="text-sm text-muted-foreground">
-            Có thể bạn cũng thích những sản phẩm này.
+            Các sản phẩm khác trong cùng danh mục.
           </p>
         </PanelContent>
       </Panel>
 
       <Panel className="screen-border-top-none">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {relatedProducts.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {relatedProducts.map((relatedProduct) => (
+            <ProductCard key={relatedProduct.id} product={relatedProduct} />
           ))}
         </div>
       </Panel>

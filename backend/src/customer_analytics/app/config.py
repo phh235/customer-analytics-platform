@@ -17,9 +17,22 @@ class Settings(BaseSettings):
     APP_ENV: str
     APP_DEBUG: bool
     APP_VERSION: str
+    LOG_LEVEL: str
 
     # ── API ──────────────────────────────────────────────
     API_V1_PREFIX: str
+    FRONTEND_URL: str
+    IMPORT_STORAGE_DIR: str
+    MODEL_STORAGE_DIR: str = "storage/models"
+
+    # ── Business analytics ────────────────────────────────
+    ANALYSIS_TIMEZONE: str = "Asia/Ho_Chi_Minh"
+    VALID_ORDER_STATUSES: list[str] = [
+        "PAID",
+        "COMPLETED",
+        "DELIVERED",
+        "PARTIAL_REFUNDED",
+    ]
 
     # ── CORS ─────────────────────────────────────────────
     BACKEND_CORS_ORIGINS: list[str]
@@ -70,8 +83,58 @@ class Settings(BaseSettings):
     def jwt_access_token_ttl_seconds(self) -> int:
         return self.JWT_ACCESS_TOKEN_TTL_MINUTES * 60
 
-    # ── Logging ──────────────────────────────────────────
-    LOG_LEVEL: str
+    # ── Google OAuth2 ────────────────────────────────────
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_REDIRECT_URI: str
+
+    # ── Cloudinary ─────────────────────────────────────────
+    CLOUDINARY_CLOUD_NAME: str | None = None
+    CLOUDINARY_API_KEY: str | None = None
+    CLOUDINARY_API_SECRET: str | None = None
+    CLOUDINARY_PRODUCT_FOLDER: str = "customer-analytics/products"
+
+    @property
+    def cloudinary_is_configured(self) -> bool:
+        """Return whether all Cloudinary credentials are available."""
+        return all(
+            (
+                self.CLOUDINARY_CLOUD_NAME,
+                self.CLOUDINARY_API_KEY,
+                self.CLOUDINARY_API_SECRET,
+            )
+        )
+
+    # ── Dataset-aligned Potential Score and segmentation ─────
+    SCORE_WEIGHT_RECENCY: float = 0.35
+    SCORE_WEIGHT_FREQUENCY: float = 0.30
+    SCORE_WEIGHT_MONETARY: float = 0.20
+    SCORE_WEIGHT_INTERACTION: float = 0.15
+    SCORE_WEIGHT_TREND: float = 0.0
+    SCORING_CONFIGURATION_VERSION: str = "CONFIG_DATASET_V1"
+    SEGMENT_HIGH_VALUE_SCORE: int = 80
+    SEGMENT_LOYAL_SCORE: int = 80
+    SEGMENT_AT_RISK_RECENCY_DAYS: int = 60
+    SEGMENT_NEW_CUSTOMER_DAYS: int = 30
+
+    # ── ML acceptance gates ───────────────────────────────
+    ML_MIN_LIFT_TOP10: float = 2.0
+    ML_MIN_PRECISION_TOP10_MULTIPLIER: float = 2.0
+    ML_BASELINE_PR_AUC: float = 0.0
+    ML_PRIORITY_PROBABILITY_THRESHOLD: float = 0.5
+
+    @property
+    def score_weights(self) -> dict[str, float]:
+        """Return configured potential-score weights."""
+        raw = {
+            "recency": self.SCORE_WEIGHT_RECENCY,
+            "frequency": self.SCORE_WEIGHT_FREQUENCY,
+            "monetary": self.SCORE_WEIGHT_MONETARY,
+            "interaction": self.SCORE_WEIGHT_INTERACTION,
+            "trend": self.SCORE_WEIGHT_TREND,
+        }
+        total = sum(raw.values())
+        return {key: value / total for key, value in raw.items()}
 
     # ── Validation ───────────────────────────────────────
 
@@ -92,6 +155,20 @@ class Settings(BaseSettings):
             msg = f"LOG_LEVEL must be one of {allowed}, got '{v}'"
             raise ValueError(msg)
         return v.upper()
+
+    @field_validator(
+        "SCORE_WEIGHT_RECENCY",
+        "SCORE_WEIGHT_FREQUENCY",
+        "SCORE_WEIGHT_MONETARY",
+        "SCORE_WEIGHT_INTERACTION",
+        "SCORE_WEIGHT_TREND",
+    )
+    @classmethod
+    def validate_score_weight(cls, v: float) -> float:
+        if not 0 <= v <= 1:
+            msg = f"Score weight must be between 0 and 1, got '{v}'"
+            raise ValueError(msg)
+        return v
 
     # ── Config ───────────────────────────────────────────
     model_config = SettingsConfigDict(

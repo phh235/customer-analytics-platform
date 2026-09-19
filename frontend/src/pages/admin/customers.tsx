@@ -15,6 +15,14 @@ import {
   useQueryStates,
 } from "nuqs"
 
+import { getApiErrorMessage } from "@/api/errors"
+import {
+  createCustomer,
+  deleteCustomer,
+  getCustomers,
+  updateCustomer,
+  type CustomerRecord,
+} from "@/api/customers"
 import {
   CommonTable,
   type CommonTableColumn,
@@ -36,14 +44,24 @@ import {
 } from "@/components/ui/input-group"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
-  createId,
   formatDate,
   normalize,
-  SAMPLE_CUSTOMERS,
   type Customer,
   type CustomerFormData,
 } from "@/lib/admin-management"
-import { toastSuccess } from "@/utils/toast"
+import { useAuthStore } from "@/stores/use-auth-store"
+import { toastError, toastSuccess } from "@/utils/toast"
+const mapCustomer = (customer: CustomerRecord): Customer => ({
+  id: customer.id,
+  customerCode: customer.customer_code,
+  name: customer.name,
+  email: customer.email ?? "",
+  phone: customer.phone ?? "",
+  orders: customer.total_orders,
+  totalSpent: Number(customer.total_spent),
+  status: customer.status === "INACTIVE" ? "inactive" : "active",
+  joinedAt: customer.customer_since ?? customer.created_at,
+})
 
 const CUSTOMER_SORT_KEYS = ["name", "orders", "totalSpent", "joinedAt"] as const
 const SORT_DIRECTIONS = ["asc", "desc"] as const
@@ -62,7 +80,7 @@ const customerQueryParsers = {
 const customerQueryOptions = { urlKeys: { search: "q" } }
 
 export const Component = () => {
-  const [customers, setCustomers] = useState(SAMPLE_CUSTOMERS)
+  const [customers, setCustomers] = useState<Customer[]>([])
   const [{ search, status, sort, direction, page }, setQuery] = useQueryStates(
     customerQueryParsers,
     customerQueryOptions
@@ -72,10 +90,25 @@ export const Component = () => {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const currentUser = useAuthStore((state) => state.user)
+  const canManageCustomers = currentUser?.role_code === "ADMIN"
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 650)
-    return () => window.clearTimeout(timer)
+    let cancelled = false
+    void getCustomers({ page: 1, size: 100 })
+      .then((response) => {
+        if (!cancelled) setCustomers(response.records.map(mapCustomer))
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) toastError(getApiErrorMessage(error))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const filteredCustomers = useMemo(() => {
@@ -110,42 +143,52 @@ export const Component = () => {
     setSheetOpen(true)
   }
 
-  const handleSave = (data: CustomerFormData) => {
-    if (editingCustomer) {
-      setCustomers((current) =>
-        current.map((customer) =>
-          customer.id === editingCustomer.id
-            ? { ...customer, ...data }
-            : customer
-        )
-      )
-      toastSuccess("Đã cập nhật khách hàng")
-    } else {
-      setCustomers((current) => [
-        {
-          id: createId("KH"),
-          ...data,
-          orders: 0,
-          totalSpent: 0,
-          joinedAt: new Date().toISOString(),
-        },
-        ...current,
-      ])
-      toastSuccess("Đã thêm khách hàng mới")
-    }
+  const handleSave = async (data: CustomerFormData) => {
+    try {
+      const payload = {
+        name: data.name,
+        email: data.email || null,
+        phone: data.phone || null,
+        status:
+          data.status === "active"
+            ? ("ACTIVE" as const)
+            : ("INACTIVE" as const),
+      }
+      const savedCustomer = editingCustomer
+        ? await updateCustomer(editingCustomer.id, payload)
+        : await createCustomer(payload)
+      const mappedCustomer = mapCustomer(savedCustomer)
 
-    setSheetOpen(false)
-    setEditingCustomer(null)
+      setCustomers((current) =>
+        editingCustomer
+          ? current.map((customer) =>
+              customer.id === editingCustomer.id ? mappedCustomer : customer
+            )
+          : [mappedCustomer, ...current]
+      )
+      toastSuccess(
+        editingCustomer ? "Đã cập nhật khách hàng" : "Đã thêm khách hàng mới"
+      )
+      setSheetOpen(false)
+      setEditingCustomer(null)
+    } catch (error: unknown) {
+      toastError(getApiErrorMessage(error))
+    }
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return
 
-    setCustomers((current) =>
-      current.filter((customer) => customer.id !== deleteTarget.id)
-    )
-    toastSuccess("Đã xoá khách hàng")
-    setDeleteTarget(null)
+    try {
+      await deleteCustomer(deleteTarget.id)
+      setCustomers((current) =>
+        current.filter((customer) => customer.id !== deleteTarget.id)
+      )
+      toastSuccess("Đã xoá khách hàng")
+      setDeleteTarget(null)
+    } catch (error: unknown) {
+      toastError(getApiErrorMessage(error))
+    }
   }
 
   const toggleSort = (key: CustomerSortKey) => {
@@ -172,11 +215,13 @@ export const Component = () => {
   const columns: CommonTableColumn<Customer>[] = useMemo(
     () => [
       {
-        id: "id",
+        id: "customerCode",
         header: "Mã khách hàng",
         className: "min-w-28 whitespace-nowrap",
         cell: (customer) => (
-          <span className="text-sm whitespace-nowrap">{customer.id}</span>
+          <span className="text-sm whitespace-nowrap">
+            {customer.customerCode}
+          </span>
         ),
       },
       {
@@ -274,7 +319,7 @@ export const Component = () => {
         ),
       },
     ],
-    [direction, openCustomerSheet, sort, toggleSort]
+    [canManageCustomers, direction, openCustomerSheet, sort, toggleSort]
   )
 
   return (
@@ -316,10 +361,12 @@ export const Component = () => {
                 Xoá lọc
               </Button>
             )}
-            <Button onClick={() => openCustomerSheet()} className="ml-auto">
-              <PlusIcon />
-              Thêm khách hàng
-            </Button>
+            {canManageCustomers && (
+              <Button onClick={() => openCustomerSheet()} className="ml-auto">
+                <PlusIcon />
+                Thêm khách hàng
+              </Button>
+            )}
           </div>
         </div>
         <CommonTable

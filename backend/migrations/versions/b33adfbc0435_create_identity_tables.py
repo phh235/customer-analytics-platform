@@ -98,8 +98,8 @@ def upgrade() -> None:
     )
     op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
 
-    # drop old products table
-    op.drop_table("products")
+    # Remove the legacy products table when upgrading an existing database.
+    op.execute(sa.text("DROP TABLE IF EXISTS products"))
 
 
 def downgrade() -> None:

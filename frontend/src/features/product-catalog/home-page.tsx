@@ -1,7 +1,9 @@
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useEffect, useState } from "react"
 
 import { Link } from "react-router"
 
+import { getApiErrorMessage } from "@/api/errors"
+import { getProducts, type ProductRecord } from "@/api/products"
 import { ClientPageLayout } from "@/components/client-page-layout"
 import { ProductCard } from "@/components/product-card"
 import { ProductCardSkeleton } from "@/features/product-catalog/product-card-skeleton"
@@ -9,30 +11,49 @@ import { Button } from "@/components/ui/button"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BRAND_NAME } from "@/lib/brand"
-import { products } from "@/lib/products"
 import { useAuthStore } from "@/stores/use-auth-store"
+import { toastError } from "@/utils/toast"
 import { ArrowRight } from "lucide-react"
 import { LineShadowText } from "@/components/line-shadow-text"
 // import Integrations from "@/integrations"
 
-const AsciiObject = lazy(() => import("@/components/ascii-object"))
 const PRODUCT_SKELETON_IDS = ["one", "two", "three", "four"] as const
-
+const AsciiObject = lazy(() => import("@/components/ascii-object"))
 export const Component = () => {
   const isSessionPending = useAuthStore(
     (state) => state.status === "unknown" || state.status === "loading"
   )
+  const [products, setProducts] = useState<ProductRecord[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    void getProducts({ page: 1, size: 4 })
+      .then((response) => {
+        if (!cancelled) setProducts(response.records)
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) toastError(getApiErrorMessage(error))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <ClientPageLayout>
-      {isSessionPending ? (
+      {isSessionPending || loading ? (
         <span className="sr-only" role="status">
           Đang xác thực phiên đăng nhập
         </span>
       ) : null}
       <Panel className="screen-border-top-none">
         <PanelContent className="flex flex-col items-center justify-center p-0 text-left md:flex-row">
-          {isSessionPending ? (
+          {isSessionPending || loading ? (
             <>
               <div className="flex w-full max-w-xl flex-col gap-3 px-6 py-8 md:flex-1 md:px-8 md:py-10">
                 <Skeleton className="h-8 w-4/5" />
@@ -83,7 +104,7 @@ export const Component = () => {
 
       <Panel>
         <PanelContent>
-          {isSessionPending ? (
+          {isSessionPending || loading ? (
             <div className="flex flex-col gap-2">
               <Skeleton className="h-6 w-40" />
               <Skeleton className="h-4 w-72 max-w-full" />
@@ -101,7 +122,7 @@ export const Component = () => {
 
       <Panel className="screen-border-top-none">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {isSessionPending
+          {isSessionPending || loading
             ? PRODUCT_SKELETON_IDS.map((id) => <ProductCardSkeleton key={id} />)
             : products
                 .slice(0, 4)
@@ -113,7 +134,7 @@ export const Component = () => {
 
       <Panel className="screen-border-top-none">
         <PanelContent className="flex justify-center py-4">
-          {isSessionPending ? (
+          {isSessionPending || loading ? (
             <Skeleton className="h-9 w-44" />
           ) : (
             <Button
