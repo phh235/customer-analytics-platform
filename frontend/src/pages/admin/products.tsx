@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   Edit,
   FilterXIcon,
@@ -15,14 +15,15 @@ import {
   useQueryStates,
 } from "nuqs"
 
-import { getApiErrorMessage } from "@/api/errors"
 import {
   createProduct,
   deleteProduct,
   getProducts,
   updateProduct,
+  uploadProductImage,
   type ProductRecord,
 } from "@/api/products"
+import { getApiErrorMessage } from "@/api/errors"
 import { useAuthStore } from "@/stores/use-auth-store"
 import {
   CommonTable,
@@ -59,6 +60,7 @@ const mapProduct = (product: ProductRecord): Product => ({
   name: product.name,
   sku: product.sku ?? "",
   category: product.category,
+  imageUrl: product.image_url,
   price: Number(product.price),
   status: product.status === "ACTIVE" ? "active" : "inactive",
   updatedAt: product.updated_at,
@@ -153,10 +155,10 @@ export const Component = () => {
       })
   }, [category, debouncedSearch, direction, products, sort, status])
 
-  const openProductSheet = (product: Product | null = null) => {
+  const openProductSheet = useCallback((product: Product | null = null) => {
     setEditingProduct(product)
     setSheetOpen(true)
-  }
+  }, [])
 
   const handleSave = async (data: ProductFormData) => {
     try {
@@ -171,7 +173,10 @@ export const Component = () => {
       const savedProduct = editingProduct
         ? await updateProduct(editingProduct.id, payload)
         : await createProduct(payload)
-      const mappedProduct = mapProduct(savedProduct)
+      const productWithImage = data.image
+        ? await uploadProductImage(savedProduct.id, data.image)
+        : savedProduct
+      const mappedProduct = mapProduct(productWithImage)
 
       setProducts((current) =>
         editingProduct
@@ -183,10 +188,9 @@ export const Component = () => {
       toastSuccess(
         editingProduct ? "Đã cập nhật sản phẩm" : "Đã thêm sản phẩm mới"
       )
-      setSheetOpen(false)
-      setEditingProduct(null)
     } catch (error: unknown) {
       toastError(getApiErrorMessage(error))
+      throw error
     }
   }
 
@@ -230,13 +234,16 @@ export const Component = () => {
     }
   }
 
-  const toggleSort = (key: ProductSortKey) => {
-    void setQuery({
-      sort: key,
-      direction: sort === key && direction === "asc" ? "desc" : "asc",
-      page: 1,
-    })
-  }
+  const toggleSort = useCallback(
+    (key: ProductSortKey) => {
+      void setQuery({
+        sort: key,
+        direction: sort === key && direction === "asc" ? "desc" : "asc",
+        page: 1,
+      })
+    },
+    [direction, setQuery, sort]
+  )
 
   const updateSearch = (value: string) => {
     void setQuery(
@@ -258,6 +265,27 @@ export const Component = () => {
 
   const columns: CommonTableColumn<Product>[] = useMemo(
     () => [
+      {
+        id: "image",
+        header: "Ảnh",
+        className: "w-16",
+        cell: (product) =>
+          product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="size-10 rounded-md object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div
+              aria-label={`Chưa có ảnh ${product.name}`}
+              className="flex size-10 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground"
+            >
+              {product.name.slice(0, 1).toUpperCase()}
+            </div>
+          ),
+      },
       {
         id: "productCode",
         header: "Mã sản phẩm",
@@ -483,6 +511,7 @@ export const Component = () => {
       </div>
 
       <ProductFormSheet
+        key={`${editingProduct?.id ?? "new"}-${sheetOpen ? "open" : "closed"}`}
         open={sheetOpen}
         onOpenChange={(open) => {
           setSheetOpen(open)

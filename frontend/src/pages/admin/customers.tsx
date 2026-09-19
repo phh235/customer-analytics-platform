@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   FilterXIcon,
   EditIcon,
@@ -15,12 +15,12 @@ import {
   useQueryStates,
 } from "nuqs"
 
-import { getApiErrorMessage } from "@/api/errors"
 import {
   createCustomer,
   deleteCustomer,
   getCustomers,
   updateCustomer,
+  uploadCustomerImage,
   type CustomerRecord,
 } from "@/api/customers"
 import {
@@ -41,6 +41,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import { getApiErrorMessage } from "@/api/errors"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
   formatDate,
@@ -54,6 +55,7 @@ const mapCustomer = (customer: CustomerRecord): Customer => ({
   id: customer.id,
   customerCode: customer.customer_code,
   name: customer.name,
+  imageUrl: customer.image_url,
   email: customer.email ?? "",
   phone: customer.phone ?? "",
   orders: customer.total_orders,
@@ -137,10 +139,10 @@ export const Component = () => {
       })
   }, [customers, debouncedSearch, direction, sort, status])
 
-  const openCustomerSheet = (customer: Customer | null = null) => {
+  const openCustomerSheet = useCallback((customer: Customer | null = null) => {
     setEditingCustomer(customer)
     setSheetOpen(true)
-  }
+  }, [])
 
   const handleSave = async (data: CustomerFormData) => {
     try {
@@ -148,12 +150,16 @@ export const Component = () => {
         name: data.name,
         email: data.email || null,
         phone: data.phone || null,
-        status: data.status === "active" ? "ACTIVE" as const : "INACTIVE" as const,
+        status:
+          data.status === "active" ? ("ACTIVE" as const) : ("INACTIVE" as const),
       }
       const savedCustomer = editingCustomer
         ? await updateCustomer(editingCustomer.id, payload)
         : await createCustomer(payload)
-      const mappedCustomer = mapCustomer(savedCustomer)
+      const customerWithImage = data.image
+        ? await uploadCustomerImage(savedCustomer.id, data.image)
+        : savedCustomer
+      const mappedCustomer = mapCustomer(customerWithImage)
 
       setCustomers((current) =>
         editingCustomer
@@ -165,10 +171,9 @@ export const Component = () => {
       toastSuccess(
         editingCustomer ? "Đã cập nhật khách hàng" : "Đã thêm khách hàng mới"
       )
-      setSheetOpen(false)
-      setEditingCustomer(null)
     } catch (error: unknown) {
       toastError(getApiErrorMessage(error))
+      throw error
     }
   }
 
@@ -187,13 +192,16 @@ export const Component = () => {
     }
   }
 
-  const toggleSort = (key: CustomerSortKey) => {
-    void setQuery({
-      sort: key,
-      direction: sort === key && direction === "asc" ? "desc" : "asc",
-      page: 1,
-    })
-  }
+  const toggleSort = useCallback(
+    (key: CustomerSortKey) => {
+      void setQuery({
+        sort: key,
+        direction: sort === key && direction === "asc" ? "desc" : "asc",
+        page: 1,
+      })
+    },
+    [direction, setQuery, sort]
+  )
 
   const updateSearch = (value: string) => {
     void setQuery(
@@ -234,7 +242,16 @@ export const Component = () => {
         className: "min-w-52 whitespace-nowrap",
         cell: (customer) => (
           <div className="flex min-w-48 items-center gap-3 whitespace-nowrap">
-            <UserAvatar email={customer.email} />
+            {customer.imageUrl ? (
+              <img
+                src={customer.imageUrl}
+                alt={customer.name}
+                className="size-8 shrink-0 rounded-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <UserAvatar email={customer.email} />
+            )}
             <span className="truncate">{customer.name}</span>
           </div>
         ),
@@ -392,6 +409,7 @@ export const Component = () => {
       </div>
 
       <CustomerFormSheet
+        key={`${editingCustomer?.id ?? "new"}-${sheetOpen ? "open" : "closed"}`}
         open={sheetOpen}
         onOpenChange={(open) => {
           setSheetOpen(open)

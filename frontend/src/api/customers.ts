@@ -6,6 +6,7 @@ export interface CustomerRecord {
   id: string
   customer_code: string
   name: string
+  image_url: string | null
   email: string | null
   phone: string | null
   address: string | null
@@ -69,6 +70,21 @@ export async function updateCustomer(
 export async function deleteCustomer(customerId: string) {
   const { data } = await apiClient.delete<CustomerRecord>(
     `/customers/${customerId}`
+  )
+  return data
+}
+
+export async function uploadCustomerImage(customerId: string, image: File) {
+  const formData = new FormData()
+  formData.append("image", image)
+  const { data } = await apiClient.post<CustomerRecord>(
+    `/customers/${customerId}/image`,
+    formData,
+    {
+      headers: {
+        "Content-Type": undefined,
+      },
+    }
   )
   return data
 }

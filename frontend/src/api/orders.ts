@@ -15,6 +15,8 @@ export interface OrderRecord {
   order_number: string
   order_date: string
   total_amount: number | string
+  refund_amount: number | string
+  net_amount: number | string
   status: string
   channel: string | null
   notes: string | null
