@@ -1,4 +1,10 @@
-import { useState } from "react"
+import {
+  debounce,
+  defaultRateLimit,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs"
 
 import type { PriorityCustomerRecord } from "@/api/analytics"
 import { PotentialLevelBadge } from "@/components/admin/management/analytics-status-badge"
@@ -7,15 +13,30 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
+import { TableSearch } from "@/components/common/table-search"
 import { UserAvatar } from "@/components/common/user-avatar"
+import { useDebounce } from "@/hooks/use-debounce"
 import { usePriorityCustomers } from "@/hooks/use-analytics"
 
 const PAGE_SIZE = 10
 
 export const Component = () => {
-  const [page, setPage] = useState(1)
-  const priorityQuery = usePriorityCustomers()
-  const customers = priorityQuery.data ?? []
+  const [{ page, search }, setQuery] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      search: parseAsString.withDefault(""),
+    },
+    { urlKeys: { search: "q" } }
+  )
+  const debouncedSearch = useDebounce(search, 300)
+  const priorityQuery = usePriorityCustomers({
+    page,
+    size: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  })
+  const customers = priorityQuery.data?.records ?? []
+  const total = priorityQuery.data?.total ?? 0
+  const pages = priorityQuery.data?.pages ?? 1
 
   const columns: CommonTableColumn<PriorityCustomerRecord>[] = [
     {
@@ -85,6 +106,18 @@ export const Component = () => {
         </p>
       </header>
 
+      <TableSearch
+        value={search}
+        onChange={(value) => {
+          void setQuery(
+            { search: value, page: 1 },
+            { limitUrlUpdates: value ? debounce(300) : defaultRateLimit }
+          )
+        }}
+        placeholder="Tìm khách hàng, mức điểm, danh mục..."
+        ariaLabel="Tìm kiếm danh sách ưu tiên"
+      />
+
       <section aria-label="Danh sách khách hàng">
         <CommonTable
           data={customers}
@@ -93,7 +126,13 @@ export const Component = () => {
           getRowId={(customer) => customer.customer_id}
           emptyMessage="Chưa có khách hàng trong danh sách ưu tiên."
           itemLabel="khách hàng"
-          pagination={{ page, pageSize: PAGE_SIZE, onPageChange: setPage }}
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+            totalPages: pages,
+            onPageChange: (nextPage) => void setQuery({ page: nextPage }),
+          }}
         />
       </section>
     </div>

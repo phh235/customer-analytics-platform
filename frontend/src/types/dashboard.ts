@@ -35,17 +35,12 @@ export interface DashboardBucket {
 
 export interface DashboardPriorityCustomer {
   id: string
-  code: string
   name: string
-  email: string
   segment: DashboardSegment
   potential_score: number
   purchase_probability: number | null
   revenue: number
-  order_count: number
-  recency_days: number
-  preferred_category: string | null
-  employee_name: string
+  employee_id: string | null
 }
 
 export interface DashboardOpportunityCustomer {
@@ -62,7 +57,7 @@ export interface DashboardOverview {
     source: "mock" | "live"
     generated_at: string
     analysis_date: string
-    run_id: string
+    run_id: string | null
     config_version: string
     currency: "VND"
     timezone: string
@@ -115,8 +110,8 @@ export interface DashboardOverview {
     status: "available" | "not_deployed" | "insufficient_data"
     model_version: string | null
     prediction_date: string | null
-    horizon_days: number
-    feature_window: { from: string; to: string }
+    horizon_days: number | null
+    feature_window: number | null
     evaluated_customers: number
     insufficient_count: number
     distribution: DashboardBucket[]
@@ -130,4 +125,22 @@ export interface DashboardOverview {
     unscored_customers: number
     interaction_source: "simulated" | "real"
   }
+}
+
+export interface DashboardOption {
+  id: string
+  name: string
+}
+
+export interface DashboardOptions {
+  segments: DashboardOption[]
+  potential_levels: DashboardOption[]
+  categories: DashboardOption[]
+  employees: DashboardOption[]
+  thresholds: Record<string, number>
+  weights: Record<string, number>
+  analysis_date: string
+  max_custom_range_days: number
+  currency: string
+  timezone: string
 }

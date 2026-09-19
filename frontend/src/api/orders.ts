@@ -37,11 +37,15 @@ export async function getOrders(
   params: {
     page?: number
     size?: number
+    search?: string
     status?: string
   } = {}
 ) {
   const { data } = await apiClient.get<PaginatedOrdersResponse>("/orders", {
-    params,
+    params: {
+      ...params,
+      search: params.search?.trim() || undefined,
+    },
   })
   return data
 }

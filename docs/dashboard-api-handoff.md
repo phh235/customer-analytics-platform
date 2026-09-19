@@ -164,11 +164,8 @@ interface DashboardPredictionSummary {
   status: "available" | "not_deployed" | "insufficient_data"
   model_version: string | null
   prediction_date: string | null
-  horizon_days: number
-  feature_window: {
-    from: string
-    to: string
-  }
+  horizon_days: number | null
+  feature_window: number | null
   evaluated_customers: number
   insufficient_count: number
   distribution: DashboardBucket[]
@@ -185,17 +182,12 @@ interface DashboardOpportunityCustomer {
 
 interface DashboardPriorityCustomer {
   id: string
-  code: string
   name: string
-  email: string
   segment: string
   potential_score: number
   purchase_probability: number | null
   revenue: number
-  order_count: number
-  recency_days: number
-  preferred_category: string | null
-  employee_name: string
+  employee_id: string | null
 }
 ```
 

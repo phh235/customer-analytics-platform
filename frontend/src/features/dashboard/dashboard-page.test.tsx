@@ -4,9 +4,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { NuqsTestingAdapter } from "nuqs/adapters/testing"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { DashboardPage } from "@/features/dashboard/dashboard-page"
+import {
+  exportDashboardCsv,
+  getDashboardOptions,
+  getDashboardOverview,
+} from "@/api/dashboard"
 import { useAuthStore } from "@/stores/use-auth-store"
 import {
   DEFAULT_DASHBOARD_FILTERS,
+  DASHBOARD_EMPLOYEES,
   formatDashboardMoney,
 } from "@/lib/dashboard"
 import { buildDemoDashboard } from "@/mocks/dashboard"
@@ -18,6 +24,11 @@ vi.mock("@/features/dashboard/dashboard-charts", () => ({
   CategoryChart: () => <div>Biểu đồ sản phẩm</div>,
   PredictionChart: () => <div>Biểu đồ xác suất ML</div>,
   OpportunityMatrixChart: () => <div>Ma trận cơ hội khách hàng</div>,
+}))
+vi.mock("@/api/dashboard", () => ({
+  getDashboardOverview: vi.fn(),
+  getDashboardOptions: vi.fn(),
+  exportDashboardCsv: vi.fn(),
 }))
 
 function renderDashboard(searchParams = "") {
@@ -40,7 +51,38 @@ function renderDashboard(searchParams = "") {
 }
 
 describe("Dashboard demo", () => {
-  beforeEach(() =>
+  beforeEach(() => {
+    vi.mocked(getDashboardOverview).mockImplementation(async (filters) =>
+      buildDemoDashboard(filters)
+    )
+    const dashboard = buildDemoDashboard(DEFAULT_DASHBOARD_FILTERS)
+    vi.mocked(getDashboardOptions).mockResolvedValue({
+      segments: dashboard.segments.map((segment) => ({
+        id: segment.key,
+        name: segment.label,
+      })),
+      potential_levels: [
+        { id: "HIGH", name: "Tiềm năng cao (≥ 80)" },
+        { id: "POTENTIAL", name: "Tiềm năng (60–79)" },
+        { id: "NORMAL", name: "Thông thường (< 60)" },
+        { id: "INSUFFICIENT_DATA", name: "Chưa đủ dữ liệu" },
+      ],
+      categories: dashboard.categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+      })),
+      employees: DASHBOARD_EMPLOYEES.map((employee) => ({
+        id: employee.value,
+        name: employee.label,
+      })),
+      thresholds: dashboard.potential.thresholds,
+      weights: dashboard.potential.weights,
+      analysis_date: dashboard.meta.analysis_date,
+      max_custom_range_days: 366,
+      currency: "VND",
+      timezone: "Asia/Ho_Chi_Minh",
+    })
+    vi.mocked(exportDashboardCsv).mockResolvedValue(new Blob(["date,revenue"]))
     useAuthStore.setState({
       user: {
         id: "demo-admin",
@@ -53,7 +95,7 @@ describe("Dashboard demo", () => {
         last_login_at: null,
       },
     })
-  )
+  })
   afterEach(() => useAuthStore.setState({ user: null }))
 
   it("đổi bộ lọc và đặt lại sẽ cập nhật KPI, bảng và URL", async () => {

@@ -6,21 +6,30 @@ import { SegmentBadge } from "@/components/admin/management/analytics-status-bad
 import { ProbabilityValue } from "@/components/admin/management/probability-value"
 import { UserAvatar } from "@/components/common/user-avatar"
 import { Badge } from "@/components/ui/badge"
+import {
+  CardAction,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { SquircleCard, SquircleCardBody } from "@/components/ui/squircle-card"
 import { DASHBOARD_SEGMENTS, formatDashboardMoney } from "@/lib/dashboard"
 import type {
+  DashboardOption,
   DashboardOverview,
   DashboardPriorityCustomer,
 } from "@/types/dashboard"
 
-const columns: CommonTableColumn<DashboardPriorityCustomer>[] = [
-  { id: "code", header: "Mã khách hàng", cell: (customer) => customer.code },
+const getColumns = (
+  employeeNames: Record<string, string>
+): CommonTableColumn<DashboardPriorityCustomer>[] => [
   {
     id: "customer",
     header: "Khách hàng",
     className: "min-w-52",
     cell: (customer) => (
       <div className="flex items-center gap-3">
-        <UserAvatar email={customer.email} name={customer.name} />
+        <UserAvatar name={customer.name} />
         <span>{customer.name}</span>
       </div>
     ),
@@ -61,38 +70,52 @@ const columns: CommonTableColumn<DashboardPriorityCustomer>[] = [
   {
     id: "employee",
     header: "Nhân viên phụ trách",
-    cell: (customer) => customer.employee_name,
+    cell: (customer) =>
+      customer.employee_id
+        ? (employeeNames[customer.employee_id] ?? customer.employee_id)
+        : "Chưa phân công",
   },
 ]
 
-export function PriorityCustomers({ data }: { data: DashboardOverview }) {
+export function PriorityCustomers({
+  data,
+  employees,
+}: {
+  data: DashboardOverview
+  employees: DashboardOption[]
+}) {
+  const employeeNames = Object.fromEntries(
+    employees.map((employee) => [employee.id, employee.name])
+  )
+  const columns = getColumns(employeeNames)
+
   return (
-    <section
-      aria-labelledby="priority-title"
-      className="-mx-3 flex min-w-0 flex-col gap-4"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3">
-        <div>
-          <h2 id="priority-title" className="text-base font-medium">
-            Khách hàng tiềm năng cao
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+    <section aria-labelledby="priority-title" className="min-w-0">
+      <SquircleCard>
+        <CardHeader>
+          <CardTitle id="priority-title">Khách hàng tiềm năng cao</CardTitle>
+          <CardDescription>
             10 khách hàng có điểm cao nhất · Ưu tiên chăm sóc theo nhu cầu thực
             tế
-          </p>
-        </div>
-        <Badge variant="secondary">
-          {data.priority_total} khách hàng đạt từ{" "}
-          {data.potential.thresholds.high} điểm
-        </Badge>
-      </div>
-      <CommonTable
-        data={data.priority_customers}
-        columns={columns}
-        itemLabel="khách hàng trong top 10"
-        getRowId={(customer) => customer.id}
-        emptyMessage="Chưa có khách hàng đạt ngưỡng tiềm năng cao."
-      />
+          </CardDescription>
+          <CardAction>
+            <Badge variant="secondary">
+              {data.priority_total} khách hàng đạt từ{" "}
+              {data.potential.thresholds.high} điểm
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <SquircleCardBody className="pt-3 pb-0">
+          <CommonTable
+            data={data.priority_customers}
+            columns={columns}
+            itemLabel="khách hàng trong top 10"
+            getRowId={(customer) => customer.id}
+            emptyMessage="Chưa có khách hàng đạt ngưỡng tiềm năng cao."
+            variant="embedded"
+          />
+        </SquircleCardBody>
+      </SquircleCard>
     </section>
   )
 }

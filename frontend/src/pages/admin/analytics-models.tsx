@@ -1,6 +1,13 @@
 import { useState, type FormEvent } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { RocketIcon } from "lucide-react"
+import {
+  debounce,
+  defaultRateLimit,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs"
 
 import { getApiErrorMessage } from "@/api/errors"
 import {
@@ -16,10 +23,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AppSelect } from "@/components/common/app-select"
 import { TableActions } from "@/components/common/table-actions"
+import { TableSearch } from "@/components/common/table-search"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { analyticsQueryKeys, useModels } from "@/hooks/use-analytics"
+import { useDebounce } from "@/hooks/use-debounce"
 import { MODEL_STATUS_LABELS, MODEL_TYPE_LABELS } from "@/lib/admin-management"
 import { formatEnumLabel } from "@/lib/format"
 import { toastError, toastSuccess } from "@/utils/toast"
@@ -29,10 +38,23 @@ const today = new Date().toISOString().slice(0, 10)
 const PAGE_SIZE = 10
 
 export const Component = () => {
-  const [page, setPage] = useState(1)
+  const [{ page, search }, setQuery] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      search: parseAsString.withDefault(""),
+    },
+    { urlKeys: { search: "q" } }
+  )
+  const debouncedSearch = useDebounce(search, 300)
   const queryClient = useQueryClient()
-  const modelsQuery = useModels()
-  const models = modelsQuery.data ?? []
+  const modelsQuery = useModels({
+    page,
+    size: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  })
+  const models = modelsQuery.data?.records ?? []
+  const total = modelsQuery.data?.total ?? 0
+  const pages = modelsQuery.data?.pages ?? 1
   const [version, setVersion] = useState(`purchase-repeat-${today}`)
   const [modelType, setModelType] = useState<
     "LOGISTIC_REGRESSION" | "RANDOM_FOREST"
@@ -46,7 +68,7 @@ export const Component = () => {
     onSuccess: async () => {
       toastSuccess("Đã hoàn tất huấn luyện và đánh giá")
       await queryClient.invalidateQueries({
-        queryKey: analyticsQueryKeys.models,
+        queryKey: analyticsQueryKeys.all,
       })
     },
     onError: (error) => toastError(getApiErrorMessage(error)),
@@ -56,7 +78,7 @@ export const Component = () => {
     onSuccess: async () => {
       toastSuccess("Đã đưa mô hình vào sử dụng")
       await queryClient.invalidateQueries({
-        queryKey: analyticsQueryKeys.models,
+        queryKey: analyticsQueryKeys.all,
       })
     },
     onError: (error) => toastError(getApiErrorMessage(error)),
@@ -222,6 +244,18 @@ export const Component = () => {
         </CardContent>
       </Card>
 
+      <TableSearch
+        value={search}
+        onChange={(value) => {
+          void setQuery(
+            { search: value, page: 1 },
+            { limitUrlUpdates: value ? debounce(300) : defaultRateLimit }
+          )
+        }}
+        placeholder="Tìm phiên bản, loại hoặc trạng thái mô hình..."
+        ariaLabel="Tìm kiếm mô hình"
+      />
+
       <section aria-label="Danh sách mô hình">
         <CommonTable
           data={models}
@@ -233,7 +267,9 @@ export const Component = () => {
           pagination={{
             page,
             pageSize: PAGE_SIZE,
-            onPageChange: setPage,
+            total,
+            totalPages: pages,
+            onPageChange: (nextPage) => void setQuery({ page: nextPage }),
           }}
         />
       </section>

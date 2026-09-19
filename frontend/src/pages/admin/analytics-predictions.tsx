@@ -1,4 +1,10 @@
-import { useState } from "react"
+import {
+  debounce,
+  defaultRateLimit,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs"
 
 import type { PurchasePredictionRecord } from "@/api/analytics"
 import { ProbabilityValue } from "@/components/admin/management/probability-value"
@@ -6,16 +12,31 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from "@/components/common/common-table"
+import { TableSearch } from "@/components/common/table-search"
 import { UserAvatar } from "@/components/common/user-avatar"
+import { useDebounce } from "@/hooks/use-debounce"
 import { formatDate } from "@/lib/date"
 import { usePurchasePredictions } from "@/hooks/use-analytics"
 
 const PAGE_SIZE = 10
 
 export const Component = () => {
-  const [page, setPage] = useState(1)
-  const predictionsQuery = usePurchasePredictions()
-  const predictions = predictionsQuery.data ?? []
+  const [{ page, search }, setQuery] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      search: parseAsString.withDefault(""),
+    },
+    { urlKeys: { search: "q" } }
+  )
+  const debouncedSearch = useDebounce(search, 300)
+  const predictionsQuery = usePurchasePredictions({
+    page,
+    size: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  })
+  const predictions = predictionsQuery.data?.records ?? []
+  const total = predictionsQuery.data?.total ?? 0
+  const pages = predictionsQuery.data?.pages ?? 1
 
   const columns: CommonTableColumn<PurchasePredictionRecord>[] = [
     {
@@ -62,6 +83,18 @@ export const Component = () => {
         </p>
       </header>
 
+      <TableSearch
+        value={search}
+        onChange={(value) => {
+          void setQuery(
+            { search: value, page: 1 },
+            { limitUrlUpdates: value ? debounce(300) : defaultRateLimit }
+          )
+        }}
+        placeholder="Tìm khách hàng, xác suất, mô hình..."
+        ariaLabel="Tìm kiếm dự đoán mua lại"
+      />
+
       <section aria-label="Danh sách khách hàng">
         <CommonTable
           data={predictions}
@@ -69,7 +102,13 @@ export const Component = () => {
           loading={predictionsQuery.isPending}
           getRowId={(prediction) => prediction.customer_id}
           itemLabel="khách hàng"
-          pagination={{ page, pageSize: PAGE_SIZE, onPageChange: setPage }}
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+            totalPages: pages,
+            onPageChange: (nextPage) => void setQuery({ page: nextPage }),
+          }}
         />
       </section>
     </div>

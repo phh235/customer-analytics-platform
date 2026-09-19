@@ -71,7 +71,7 @@ Ví dụ: `?period=90d&segment=all&potential=HIGH&category=phone&employee=nv-01`
 | `categories[]` | `id`, `name`, `revenue`, `orders`, `units`, `customers`; giảm dần theo revenue |
 | `predictions` | `status`, `model_version`, `prediction_date`, `horizon_days`, `feature_window`, `evaluated_customers`, `insufficient_count`, `distribution[]` |
 | `opportunity_customers[]` | Tối đa 80 khách đồng thời có Potential Score và kết quả ML; gồm `id`, `name`, `segment`, `potential_score`, `purchase_probability`, `revenue` |
-| `priority_customers[]` | Tối đa 10 khách hàng điểm cao nhất; chi tiết field xem kiểu `DashboardPriorityCustomer` và JSON mẫu |
+| `priority_customers[]` | Tối đa 10 khách hàng điểm cao nhất; gồm ID, tên, phân khúc, điểm, xác suất, doanh thu và `employee_id` |
 | `priority_total` | Tổng số khách đạt ngưỡng cao trong phạm vi lọc, có thể lớn hơn 10 |
 | `data_quality` | `valid_orders`, `excluded_orders`, `unscored_customers`, `interaction_source: real/simulated` |
 
