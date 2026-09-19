@@ -27,6 +27,12 @@ dependencies = [
     "uuid-utils>=0.17.0",
     "python-multipart>=0.0.32",
     "slowapi>=0.1.10",
+    "authlib>=1.7.2",
+    "httpx>=0.28.1",
+    "itsdangerous>=2.2.0",
+    "openpyxl>=3.1.5",
+    "cloudinary>=1.44.1",
+    "tzdata>=2024.1",
 ]
 
 # === Dev Dependencies ===
@@ -63,8 +69,11 @@ select = [
 ]
 # Cấm một số pattern nguy hiểm
 [tool.ruff.lint.per-file-ignores]
+# FastAPI route declarations intentionally construct dependency metadata in
+# function signatures; B008 is a false positive for Depends/File/permissions.
+"src/customer_analytics/app/features/**/presentation/routes/*.py" = ["B008"]
+"src/customer_analytics/app/features/import_data/**/*.py" = ["E501"]
 "tests/**" = ["B"]
-
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

@@ -20,6 +20,11 @@ class UserRepository(BaseRepository[UserEntity]):
         raise NotImplementedError()
 
     @abstractmethod
+    async def find_by_google_id(self, google_id: str) -> UserEntity | None:
+        """Find a user by Google ID."""
+        raise NotImplementedError()
+
+    @abstractmethod
     async def find_by_email_with_permissions(
         self, email: str
     ) -> tuple[UserEntity, list[str]] | None:

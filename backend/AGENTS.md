@@ -9,60 +9,60 @@ FastAPI backend for customer analytics API. Src layout (`src/customer_analytics`
 ```
 backend/
 ├── src/customer_analytics/
-│   ├── main.py           # App entry → register_middleware + exception handlers + routers
-│   ├── configuration/    # Cross-cutting infra
-│   │   ├── __init__.py   # Re-export: settings, engine, Base, get_db, register_middleware
-│   │   ├── settings.py   # pydantic-settings, env-driven, extra="forbid"
-│   │   ├── dependencies.py # DatabaseSessionDep = Annotated[AsyncSession, Depends(get_db)]
-│   │   ├── database/     # async engine, session, base model, mixins
-│   │   │   ├── engine.py       # create_async_engine singleton (pool, pre-ping)
-│   │   │   ├── base.py         # Base(DeclarativeBase) + naming convention
-│   │   │   ├── session.py      # AsyncSessionFactory + get_db + check_db_connection
-│   │   │   ├── mixins.py       # UUIDPrimaryKeyMixin + TimestampMixin
-│   │   │   └── __init__.py     # Re-export all public API
-│   │   ├── middleware/   # HTTP middleware (one file per middleware)
-│   │   │   ├── cors.py         # CORSMiddleware builder (from settings)
-│   │   │   ├── request_id.py   # X-Request-ID + structlog context
-│   │   │   └── __init__.py     # register_middleware(app) + re-exports
-│   │   └── logging/     # Structured logging
-│   │       ├── sanitizers.py   # _sanitize_sensitive_data (password/token/redaction)
-│   │       └── __init__.py     # configure_logging() + get_logger()
-│   ├── shared/
-│   │   ├── domain/       # Empty — shared DDD domain layer
-│   │   ├── application/  # Empty — shared use cases
-│   │   ├── infrastructure/ # Empty — shared adapters
-│   │   └── presentation/
-│   │       ├── errors.py     # ErrorCode enum → status_code + message
-│   │       ├── exceptions.py # AppException + 3 handlers (app/validation/general)
-│   │       └── health.py     # GET /health, GET /api/v1/health
-│   └── features/
-│       └── identity/     # Auth/RBAC domain (4-layer DDD)
-│           ├── presentation/     # Presentation Layer
-│           │   ├── routes/       # API endpoints (auth_routes, user_routes)
-│           │   ├── schema/       # Pydantic request/response schemas
-│           │   └── dependencies.py # FastAPI dependencies (CurrentUserDep, AdminDep)
-│           ├── application/      # Application Layer
-│           │   ├── usecases/     # Use cases (LoginUser, CreateUser, GetUsers, etc.)
-│           │   └── dto/          # Data Transfer Objects (UserCreateModel, UserReadModel)
-│           ├── domain/           # Domain Layer
-│           │   ├── entities/     # Domain entities (UserEntity)
-│           │   ├── repositories/ # Repository interfaces (UserRepository, UserUnitOfWork)
-│           │   ├── enums.py      # Domain enums (UserStatus, PermissionAction)
-│           │   └── exceptions.py # Domain exceptions (UserNotFoundError, etc.)
-│           └── infrastructure/   # Infrastructure Layer
-│               ├── models/       # SQLAlchemy models (UserModel, RoleModel, etc.)
-│               ├── repositories/ # Repository implementations (UserRepositoryImpl)
-│               ├── jwt_service.py    # JWT token creation/verification
-│               └── password_hasher.py # Password hashing (argon2)
-├── migrations/           # Alembic (async env.py, naming conventions)
-├── tests/                # pytest: unit/ integration/ e2e/ + test_health.py
-├── scripts/
-│   └── seed_data.py      # Seed roles, permissions, admin user
+│   ├── main.py                    # App entry → register_middleware + exception handlers + routers
+│   ├── app/                       # Application layer
+│   │   ├── config.py              # Settings (pydantic-settings, env-driven, extra="forbid")
+│   │   ├── dependencies.py        # DatabaseSessionDep = Annotated[AsyncSession, Depends(get_db)]
+│   │   ├── main.py                # FastAPI app, middleware, handlers, router registration
+│   │   ├── features/              # Domain features (each follows 4-layer DDD)
+│   │   │   ├── identity/          # Auth/RBAC domain
+│   │   │   │   ├── presentation/  # Routes, schema, dependencies
+│   │   │   │   ├── application/   # Use cases, DTOs
+│   │   │   │   ├── domain/        # Entities, repositories, enums, exceptions
+│   │   │   │   └── infrastructure/# Models, repos impl, JWT, password hasher
+│   │   │   ├── analytics/         # Analytics domain
+│   │   │   ├── customer/          # Customer domain
+│   │   │   ├── product/           # Product domain
+│   │   │   ├── order/             # Order domain
+│   │   │   └── import_data/       # Import & Data Quality domain
+│   │   └── shared/                # Cross-feature shared code
+│   │       ├── errors.py          # ErrorCode enum → status_code + message
+│   │       ├── exceptions.py      # AppException + 3 handlers (app/validation/general)
+│   │       ├── health.py          # GET /health, GET /api/v1/health
+│   │       └── schemas.py         # Shared Pydantic schemas
+│   └── core/                      # Infrastructure layer
+│       ├── database/              # Async engine, session, base model, mixins
+│       │   ├── engine.py          # create_async_engine singleton (pool, pre-ping)
+│       │   ├── base.py            # Base(DeclarativeBase) + naming convention
+│       │   ├── session.py         # AsyncSessionFactory + get_db + check_db_connection
+│       │   └── mixins.py          # UUIDPrimaryKeyMixin + TimestampMixin
+│       ├── middleware/             # HTTP middleware (one file per middleware)
+│       │   ├── cors.py            # CORSMiddleware builder (from settings)
+│       │   ├── request_id.py      # X-Request-ID + structlog context
+│       │   ├── rate_limit.py      # Rate limiting middleware
+│       │   └── gzip.py            # Gzip compression
+│       ├── logging/               # Structured logging
+│       │   ├── sanitizers.py      # _sanitize_sensitive_data (password/token/redaction)
+│       │   └── __init__.py        # configure_logging() + get_logger()
+│       ├── repositories/          # Base repository pattern
+│       │   └── base_repository.py # Generic CRUD operations
+│       ├── unit_of_work/          # Unit of Work pattern
+│       │   └── unit_of_work.py    # Transaction management
+│       ├── use_cases/             # Base use case pattern
+│       │   └── use_case.py        # Abstract use case class
+│       └── dependencies.py        # Core FastAPI dependencies
+├── migrations/                    # Alembic (async env.py, naming conventions)
+├── tests/                         # pytest: unit/ integration/ e2e/ + test_health.py
+├── scripts/                      # Standalone maintenance/test-data scripts
+│   ├── check_data.py
+│   └── seed_test_data.py
+├── src/customer_analytics/scripts/
+│   └── seed_data.py              # Seed roles, permissions, admin user
 ├── docs/
-│   └── API.md            # API documentation
-├── compose.yml           # postgres:17 + redis:7 + backend
-├── alembic.ini           # script_location + ruff post-write hook
-└── pyproject.toml        # deps, ruff, mypy strict, pytest config
+│   └── API.md                    # API documentation
+├── docker-compose.yml            # postgres:17 + redis:7 + backend
+├── alembic.ini                   # script_location + ruff post-write hook
+└── pyproject.toml                # deps, ruff, mypy strict, pytest config
 ```
 
 ## DDD LAYERS
@@ -93,22 +93,33 @@ backend/
 ## WHERE TO LOOK
 | Task | Location |
 |------|----------|
-| Add new domain | `src/customer_analytics/features/{domain}/` — own 4 layers |
-| Add route | domain's `presentation/routes/` + register in `main.py` |
+| Add new domain | `app/features/{domain}/` — own 4 layers |
+| Add route | domain's `presentation/routes/` + register in `app/main.py` |
 | Add use case | domain's `application/usecases/` |
 | Add entity | domain's `domain/entities/` |
 | Add repository | domain's `domain/repositories/` (interface) + `infrastructure/repositories/` (impl) |
-| New error code | `shared/presentation/errors.py` |
+| New error code | `app/shared/errors.py` |
 | Business errors | domain's `domain/exceptions.py` — raise domain exceptions |
-| Config/settings | `configuration/settings.py` — env vars, `extra="forbid"` |
-| DB session | `configuration/dependencies.py` — `db: DatabaseSessionDep` |
+| Config/settings | `app/config.py` — env vars, `extra="forbid"` |
+| DB session | `app/dependencies.py` — `db: DatabaseSessionDep` |
 | Migration | `uv run alembic revision --autogenerate -m "..."` then `uv run alembic upgrade head` |
-| Model base | `configuration/database/base.py` — `Base` + naming convention |
-| Model mixins | `configuration/database/mixins.py` — `UUIDPrimaryKeyMixin` + `TimestampMixin` |
-| Middleware | `configuration/middleware/` — one file per middleware, `register_middleware(app)` |
-| Logging | `configuration/logging/` — `get_logger(__name__)` |
+| Model base | `core/database/base.py` — `Base` + naming convention |
+| Model mixins | `core/database/mixins.py` — `UUIDPrimaryKeyMixin` + `TimestampMixin` |
+| Middleware | `core/middleware/` — one file per middleware, `register_middleware(app)` |
+| Logging | `core/logging/` — `get_logger(__name__)` |
 | RBAC permissions | `features/identity/infrastructure/models/user.py` — PermissionModel, RolePermissionModel |
-| Seed data | `scripts/seed_data.py` — roles, permissions, admin user |
+| Seed data | `src/customer_analytics/scripts/seed_data.py` — roles, permissions, admin user |
+| Import/CSV | `features/import_data/` — upload, preview, process, consolidate |
+
+## FEATURES
+| Feature | Routes | Use Cases | Status |
+|---------|--------|-----------|--------|
+| Identity | Auth + User CRUD | 7 use cases | ✅ Complete |
+| Customer | CRUD | 5 use cases | ✅ Complete |
+| Product | CRUD | 5 use cases | ✅ Complete |
+| Order | CRUD | 5 use cases | ✅ Complete |
+| Analytics | RFM/Segment/Score/360/Dashboard/Predictions + CSV/XLSX export | 4 use cases | ✅ Complete |
+| Import | Upload/Preview/Process/Consolidate | 4 use cases | ✅ Complete |
 
 ## CONVENTIONS
 - Imports: `from customer_analytics.{module}` — absolute, never relative, never `from app.`
@@ -127,7 +138,7 @@ backend/
 - Raw `except Exception` — raise domain exceptions; let general handler catch the rest
 - Import `from app.` or relative — always `from customer_analytics.`
 - Hardcoded status codes — use `ErrorCode.status_code`
-- Hardcoded secrets — env only via `settings.py`
+- Hardcoded secrets — env only via `config.py`
 - Logging passwords/tokens — redacted by `_sanitize_sensitive_data`
 - Routers querying DB directly — use application use cases + repositories
 - Domain layer importing infrastructure — use dependency inversion

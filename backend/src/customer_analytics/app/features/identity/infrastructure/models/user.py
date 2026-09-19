@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Uuid
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Uuid
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,6 +15,20 @@ from customer_analytics.core.database.mixins import (
     TimestampMixin,
     UUIDPrimaryKeyMixin,
 )
+
+
+class TeamModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """Team used by manager-level data scoping."""
+
+    __tablename__ = "teams"
+    __table_args__ = {"extend_existing": True}
+
+    code: Mapped[str] = mapped_column(
+        String(50), unique=True, nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
 class UserModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -37,11 +51,34 @@ class UserModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Uuid(as_uuid=True), ForeignKey("roles.id"), nullable=False
     )
     failed_login_count: Mapped[int] = mapped_column(default=0, nullable=False)
+    employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("employees.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    team_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("teams.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     locked_until: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     last_login_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+
+    # ── OAuth2 fields ──────────────────────────────────────
+    google_id: Mapped[str | None] = mapped_column(
+        String(100), unique=True, nullable=True, index=True
+    )
+    auth_provider: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="local",  # "local" | "google"
     )
 
     # Relationships

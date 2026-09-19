@@ -18,6 +18,12 @@ Requires-Dist: pydantic[email]>=2.13.4
 Requires-Dist: uuid-utils>=0.17.0
 Requires-Dist: python-multipart>=0.0.32
 Requires-Dist: slowapi>=0.1.10
+Requires-Dist: authlib>=1.7.2
+Requires-Dist: httpx>=0.28.1
+Requires-Dist: itsdangerous>=2.2.0
+Requires-Dist: openpyxl>=3.1.5
+Requires-Dist: cloudinary>=1.44.1
+Requires-Dist: tzdata>=2024.1
 
 # Customer Analytics — Backend
 

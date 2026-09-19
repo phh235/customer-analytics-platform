@@ -86,11 +86,12 @@ class RegisterRequest(BaseModel):
         examples=["Nguyen Van A"],
     )
     role_code: str = Field(
-        default="CLIENT",
+        default="ANALYST",
         max_length=50,
-        description="Role code (ADMIN or CLIENT)",
-        examples=["CLIENT"],
+        description="Role code (ADMIN, ANALYST, or MANAGER)",
+        examples=["ANALYST"],
     )
+    team_id: uuid.UUID | None = Field(default=None, description="Team ID")
 
     model_config = {
         "json_schema_extra": {
@@ -99,7 +100,7 @@ class RegisterRequest(BaseModel):
                     "email": "newuser@example.com",
                     "password": "StrongPassword123!",
                     "full_name": "Nguyen Van A",
-                    "role_code": "CLIENT",
+                    "role_code": "ANALYST",
                 }
             ]
         }
@@ -119,7 +120,7 @@ class UpdateUserRequest(BaseModel):
     role_code: str | None = Field(
         default=None,
         max_length=50,
-        description="Role code (ADMIN or CLIENT)",
+        description="Role code (ADMIN, ANALYST, or MANAGER)",
         examples=["ADMIN"],
     )
     status: str | None = Field(
@@ -127,6 +128,7 @@ class UpdateUserRequest(BaseModel):
         description="Account status (ACTIVE, DISABLED)",
         examples=["ACTIVE"],
     )
+    team_id: uuid.UUID | None = Field(default=None, description="Team ID")
 
     model_config = {
         "json_schema_extra": {
@@ -152,6 +154,7 @@ class UserResponse(BaseModel):
     full_name: str = Field(..., description="Full name")
     status: str = Field(..., description="Account status (ACTIVE, DISABLED, LOCKED)")
     role_code: str = Field(..., description="Role code")
+    team_id: uuid.UUID | None = Field(default=None, description="Team ID")
     permissions: list[str] = Field(
         default_factory=list, description="List of permission codes"
     )
@@ -167,6 +170,9 @@ class UserResponse(BaseModel):
             full_name=entity.full_name,
             status=entity.status,
             role_code=entity.role_code,
+            team_id=(
+                uuid.UUID(entity.team_id) if getattr(entity, "team_id", None) else None
+            ),
             permissions=entity.permissions if hasattr(entity, "permissions") else [],
             created_at=entity.created_at,
             last_login_at=entity.last_login_at,
@@ -181,7 +187,7 @@ class UserResponse(BaseModel):
                     "email": "user@example.com",
                     "full_name": "Nguyen Van A",
                     "status": "ACTIVE",
-                    "role_code": "CLIENT",
+                    "role_code": "ANALYST",
                     "permissions": [
                         "customers:read",
                         "customers:export",
@@ -264,7 +270,7 @@ class PaginatedUsersResponse(BaseModel):
                             "email": "user@example.com",
                             "full_name": "Nguyen Van A",
                             "status": "ACTIVE",
-                            "role_code": "CLIENT",
+                            "role_code": "ANALYST",
                             "permissions": [
                                 "customers:read",
                                 "customers:export",

@@ -53,6 +53,7 @@ class ErrorCode(Enum):
     INTERNAL_SERVER_ERROR = (500, "Internal server error")
     DATABASE_ERROR = (500, "Database storage failure")
     SERVICE_UNAVAILABLE = (503, "Service temporarily unavailable")
+    MODEL_NOT_AVAILABLE = (503, "No deployed prediction model is available")
     NOT_IMPLEMENTED = (501, "Feature not implemented")
 
     # ── Identity domain ────────────────────────────────
