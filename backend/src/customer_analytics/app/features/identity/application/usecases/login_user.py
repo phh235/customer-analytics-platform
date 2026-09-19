@@ -54,7 +54,17 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
 
         user, permissions = result
 
-        # 2. Check if account is disabled
+        # 2. Check if user is a Google-only account
+        if user.auth_provider == "google":
+            raise AppException(
+                error_code=ErrorCode.INVALID_CREDENTIALS,
+                message=(
+                    "Tài khoản này sử dụng Google để đăng nhập. "
+                    "Vui lòng sử dụng nút 'Đăng nhập bằng Google'."
+                ),
+            )
+
+        # 3. Check if account is disabled
         if user.status == "DISABLED":
             raise AppException(
                 error_code=ErrorCode.USER_DISABLED,
@@ -86,10 +96,10 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
                 message="Email hoặc mật khẩu không chính xác.",
             )
 
-        # 5. Record successful login (don't commit here - caller will commit)
+        # 5. Record successful login and persist the audit timestamp.
         updated_user = user.record_successful_login()
         await self.unit_of_work.repository.update(updated_user)
-
+        await self.unit_of_work.commit()
         # 6. Attach permissions (already loaded from query)
         updated_user.permissions = permissions
 

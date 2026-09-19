@@ -247,13 +247,14 @@ async def refresh_token(
             message="Refresh token đã bị sử dụng lại — tất cả session đã bị thu hồi.",
         )
 
-    # Find user
+    # Find user and reload role permissions for the new access token.
     user = await unit_of_work.repository.find_by_id(user_id)
     if not user:
         raise AppException(
             error_code=ErrorCode.INVALID_CREDENTIALS,
             message="User not found.",
         )
+    user.permissions = await unit_of_work.repository.get_user_permissions(user.id_)
 
     # Check if user is active
     if user.status != "ACTIVE":
@@ -261,11 +262,10 @@ async def refresh_token(
             error_code=ErrorCode.USER_DISABLED,
             message="Tài khoản đã bị vô hiệu hóa.",
         )
-
-    # Revoke old refresh token
+    # Revoke old refresh token.
     await refresh_token_repo.revoke_by_token_hash(token_hash)
 
-    # Create new tokens with same family_id
+    # Create new tokens with same family_id.
     new_access_token = create_access_token(
         user_id=user.id_,
         role_code=user.role_code,
@@ -274,7 +274,7 @@ async def refresh_token(
     new_family_id = family_id or create_refresh_token_family()
     new_refresh_token = create_refresh_token(user_id=user.id_, family_id=new_family_id)
 
-    # Save new refresh token to DB
+    # Save new refresh token to DB.
     new_token_hash = hash_refresh_token(new_refresh_token)
     expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_TTL_DAYS)
     await refresh_token_repo.save(
@@ -286,13 +286,13 @@ async def refresh_token(
         user_agent=request.headers.get("user-agent"),
     )
 
-    # Commit all changes (revoke old token + insert new token)
+    # Commit all changes (revoke old token + insert new token).
     await unit_of_work.commit()
 
-    # Set new refresh token in HTTP-only cookie
+    # Set new refresh token in HTTP-only cookie.
     _set_refresh_token_cookie(response, new_refresh_token)
 
-    # Return new access token in response body
+    # Return new access token in response body.
     return LoginResponse(
         access_token=new_access_token,
         role_code=user.role_code,

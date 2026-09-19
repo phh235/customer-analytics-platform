@@ -15,6 +15,15 @@ import {
   useQueryStates,
 } from "nuqs"
 
+import { getApiErrorMessage } from "@/api/errors"
+import {
+  createProduct,
+  deleteProduct,
+  getProducts,
+  updateProduct,
+  type ProductRecord,
+} from "@/api/products"
+import { useAuthStore } from "@/stores/use-auth-store"
 import {
   CommonTable,
   type CommonTableColumn,
@@ -37,17 +46,24 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
-  createId,
   formatCurrency,
   formatDate,
   normalize,
-  PRODUCT_CATEGORIES,
-  SAMPLE_PRODUCTS,
   type Product,
   type ProductFormData,
   type ProductStatus,
 } from "@/lib/admin-management"
-import { toastSuccess } from "@/utils/toast"
+import { toastError, toastSuccess } from "@/utils/toast"
+const mapProduct = (product: ProductRecord): Product => ({
+  id: product.id,
+  productCode: product.product_code,
+  name: product.name,
+  sku: product.sku ?? "",
+  category: product.category,
+  price: Number(product.price),
+  status: product.status === "ACTIVE" ? "active" : "inactive",
+  updatedAt: product.updated_at,
+})
 
 const PRODUCT_SORT_KEYS = ["name", "category", "price"] as const
 const SORT_DIRECTIONS = ["asc", "desc"] as const
@@ -67,7 +83,7 @@ const productQueryParsers = {
 const productQueryOptions = { urlKeys: { search: "q" } }
 
 export const Component = () => {
-  const [products, setProducts] = useState(SAMPLE_PRODUCTS)
+  const [products, setProducts] = useState<Product[]>([])
   const [{ search, category, status, sort, direction, page }, setQuery] =
     useQueryStates(productQueryParsers, productQueryOptions)
   const debouncedSearch = useDebounce(search, 300)
@@ -80,20 +96,32 @@ export const Component = () => {
     name: string
     nextStatus: ProductStatus
   } | null>(null)
+  const currentUser = useAuthStore((state) => state.user)
+  const canManageProducts = currentUser?.role_code === "ADMIN"
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 650)
-    return () => window.clearTimeout(timer)
+    let cancelled = false
+    void getProducts({ page: 1, size: 100 })
+      .then((response) => {
+        if (!cancelled) setProducts(response.records.map(mapProduct))
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) toastError(getApiErrorMessage(error))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const categories = useMemo(
     () =>
-      Array.from(
-        new Set([
-          ...PRODUCT_CATEGORIES,
-          ...products.map((product) => product.category),
-        ])
-      ).sort((first, second) => first.localeCompare(second, "vi")),
+      Array.from(new Set(products.map((product) => product.category))).sort(
+        (first, second) => first.localeCompare(second, "vi")
+      ),
     [products]
   )
 
@@ -131,62 +159,77 @@ export const Component = () => {
     setSheetOpen(true)
   }
 
-  const handleSave = (data: ProductFormData) => {
-    if (editingProduct) {
-      setProducts((current) =>
-        current.map((product) =>
-          product.id === editingProduct.id
-            ? { ...product, ...data, updatedAt: new Date().toISOString() }
-            : product
-        )
-      )
-      toastSuccess("Đã cập nhật sản phẩm")
-    } else {
-      setProducts((current) => [
-        {
-          id: createId("SP"),
-          ...data,
-          updatedAt: new Date().toISOString(),
-        },
-        ...current,
-      ])
-      toastSuccess("Đã thêm sản phẩm mới")
-    }
+  const handleSave = async (data: ProductFormData) => {
+    try {
+      const payload = {
+        name: data.name,
+        sku: data.sku,
+        category: data.category,
+        price: data.price,
+        status:
+          data.status === "active"
+            ? ("ACTIVE" as const)
+            : ("INACTIVE" as const),
+      }
+      const savedProduct = editingProduct
+        ? await updateProduct(editingProduct.id, payload)
+        : await createProduct(payload)
+      const mappedProduct = mapProduct(savedProduct)
 
-    setSheetOpen(false)
-    setEditingProduct(null)
+      setProducts((current) =>
+        editingProduct
+          ? current.map((product) =>
+              product.id === editingProduct.id ? mappedProduct : product
+            )
+          : [mappedProduct, ...current]
+      )
+      toastSuccess(
+        editingProduct ? "Đã cập nhật sản phẩm" : "Đã thêm sản phẩm mới"
+      )
+      setSheetOpen(false)
+      setEditingProduct(null)
+    } catch (error: unknown) {
+      toastError(getApiErrorMessage(error))
+    }
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return
 
-    setProducts((current) =>
-      current.filter((product) => product.id !== deleteTarget.id)
-    )
-    toastSuccess("Đã xoá sản phẩm")
-    setDeleteTarget(null)
+    try {
+      await deleteProduct(deleteTarget.id)
+      setProducts((current) =>
+        current.filter((product) => product.id !== deleteTarget.id)
+      )
+      toastSuccess("Đã xoá sản phẩm")
+      setDeleteTarget(null)
+    } catch (error: unknown) {
+      toastError(getApiErrorMessage(error))
+    }
   }
 
-  const handleStatusChange = () => {
+  const handleStatusChange = async () => {
     if (!statusTarget) return
 
-    setProducts((current) =>
-      current.map((product) =>
-        product.id === statusTarget.id
-          ? {
-              ...product,
-              status: statusTarget.nextStatus,
-              updatedAt: new Date().toISOString(),
-            }
-          : product
+    try {
+      const savedProduct = await updateProduct(statusTarget.id, {
+        status: statusTarget.nextStatus === "active" ? "ACTIVE" : "INACTIVE",
+      })
+      const mappedProduct = mapProduct(savedProduct)
+      setProducts((current) =>
+        current.map((product) =>
+          product.id === statusTarget.id ? mappedProduct : product
+        )
       )
-    )
-    toastSuccess(
-      statusTarget.nextStatus === "active"
-        ? "Đã hiển thị sản phẩm"
-        : "Đã ẩn sản phẩm"
-    )
-    setStatusTarget(null)
+      toastSuccess(
+        statusTarget.nextStatus === "active"
+          ? "Đã hiển thị sản phẩm"
+          : "Đã ẩn sản phẩm"
+      )
+      setStatusTarget(null)
+    } catch (error: unknown) {
+      toastError(getApiErrorMessage(error))
+    }
   }
 
   const toggleSort = (key: ProductSortKey) => {
@@ -218,11 +261,13 @@ export const Component = () => {
   const columns: CommonTableColumn<Product>[] = useMemo(
     () => [
       {
-        id: "id",
+        id: "productCode",
         header: "Mã sản phẩm",
         className: "min-w-28 whitespace-nowrap",
         cell: (product) => (
-          <span className="text-sm whitespace-nowrap">{product.id}</span>
+          <span className="text-sm whitespace-nowrap">
+            {product.productCode}
+          </span>
         ),
       },
       {
@@ -295,6 +340,7 @@ export const Component = () => {
             <div className="flex items-center gap-2 whitespace-nowrap">
               <Switch
                 checked={isActive}
+                disabled={!canManageProducts}
                 onCheckedChange={(checked) =>
                   setStatusTarget({
                     id: product.id,
@@ -352,7 +398,7 @@ export const Component = () => {
         ),
       },
     ],
-    [direction, openProductSheet, sort, toggleSort]
+    [canManageProducts, direction, openProductSheet, sort, toggleSort]
   )
 
   return (
@@ -405,10 +451,12 @@ export const Component = () => {
                 Xoá lọc
               </Button>
             )}
-            <Button onClick={() => openProductSheet()} className="ml-auto">
-              <PlusIcon />
-              Thêm sản phẩm
-            </Button>
+            {canManageProducts && (
+              <Button onClick={() => openProductSheet()} className="ml-auto">
+                <PlusIcon />
+                Thêm sản phẩm
+              </Button>
+            )}
           </div>
         </div>
         <CommonTable

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { EditIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react"
+import { SearchIcon } from "lucide-react"
 import {
   debounce,
   defaultRateLimit,
@@ -9,12 +9,10 @@ import {
   useQueryStates,
 } from "nuqs"
 
-import { CategoryFormSheet } from "@/components/admin/management/category-form-sheet"
-import { ConfirmDeleteDialog } from "@/components/admin/management/confirm-delete-dialog"
+import { getApiErrorMessage } from "@/api/errors"
+import { getProducts, type ProductRecord } from "@/api/products"
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
 import { SortButton } from "@/components/admin/management/sort-button"
-import type { DeleteTarget } from "@/components/admin/management/types"
-import { AppDropdown } from "@/components/common/app-dropdown"
 import {
   CommonTable,
   type CommonTableColumn,
@@ -26,16 +24,8 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { useDebounce } from "@/hooks/use-debounce"
-import {
-  createId,
-  formatDate,
-  normalize,
-  PRODUCT_CATEGORIES,
-  SAMPLE_PRODUCTS,
-  type Category,
-  type CategoryFormData,
-} from "@/lib/admin-management"
-import { toastSuccess } from "@/utils/toast"
+import { formatDate, normalize, type Category } from "@/lib/admin-management"
+import { toastError } from "@/utils/toast"
 
 const CATEGORY_SORT_KEYS = ["name", "productCount", "updatedAt"] as const
 const SORT_DIRECTIONS = ["asc", "desc"] as const
@@ -51,31 +41,56 @@ const categoryQueryParsers = {
 }
 const categoryQueryOptions = { urlKeys: { search: "q" } }
 
-const createInitialCategories = (): Category[] =>
-  PRODUCT_CATEGORIES.map((name, index) => ({
-    id: `DM-${String(index + 1).padStart(4, "0")}`,
-    code: `DM-${String(index + 1).padStart(4, "0")}`,
-    name,
-    productCount: SAMPLE_PRODUCTS.filter((product) => product.category === name)
-      .length,
-    updatedAt: "2026-07-28",
-  }))
+const mapCategories = (products: ProductRecord[]): Category[] => {
+  const categoryMap = new Map<string, Category>()
+
+  for (const product of products) {
+    const current = categoryMap.get(product.category)
+    if (current) {
+      current.productCount += 1
+      if (product.updated_at > current.updatedAt) {
+        current.updatedAt = product.updated_at
+      }
+      continue
+    }
+
+    categoryMap.set(product.category, {
+      id: `category:${product.category}`,
+      code: product.category,
+      name: product.category,
+      productCount: 1,
+      updatedAt: product.updated_at,
+    })
+  }
+
+  return Array.from(categoryMap.values())
+}
 
 export const Component = () => {
-  const [categories, setCategories] = useState(createInitialCategories)
+  const [categories, setCategories] = useState<Category[]>([])
   const [{ search, sort, direction, page }, setQuery] = useQueryStates(
     categoryQueryParsers,
     categoryQueryOptions
   )
   const debouncedSearch = useDebounce(search, 300)
   const [loading, setLoading] = useState(true)
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 650)
-    return () => window.clearTimeout(timer)
+    let cancelled = false
+    void getProducts({ page: 1, size: 100 })
+      .then((response) => {
+        if (!cancelled) setCategories(mapCategories(response.records))
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) toastError(getApiErrorMessage(error))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const filteredCategories = useMemo(() => {
@@ -101,52 +116,6 @@ export const Component = () => {
         return comparison * sortMultiplier
       })
   }, [categories, debouncedSearch, direction, sort])
-
-  const openCategorySheet = (category: Category | null = null) => {
-    setEditingCategory(category)
-    setSheetOpen(true)
-  }
-
-  const handleSave = (data: CategoryFormData) => {
-    if (editingCategory) {
-      setCategories((current) =>
-        current.map((category) =>
-          category.id === editingCategory.id
-            ? {
-                ...category,
-                ...data,
-                updatedAt: new Date().toISOString(),
-              }
-            : category
-        )
-      )
-      toastSuccess("Đã cập nhật danh mục")
-    } else {
-      setCategories((current) => [
-        {
-          id: createId("DM"),
-          ...data,
-          productCount: 0,
-          updatedAt: new Date().toISOString(),
-        },
-        ...current,
-      ])
-      toastSuccess("Đã thêm danh mục mới")
-    }
-
-    setSheetOpen(false)
-    setEditingCategory(null)
-  }
-
-  const handleDelete = () => {
-    if (!deleteTarget) return
-
-    setCategories((current) =>
-      current.filter((category) => category.id !== deleteTarget.id)
-    )
-    toastSuccess("Đã xoá danh mục")
-    setDeleteTarget(null)
-  }
 
   const toggleSort = (key: CategorySortKey) => {
     void setQuery({
@@ -228,38 +197,6 @@ export const Component = () => {
           </span>
         ),
       },
-      {
-        id: "actions",
-        header: <span className="sr-only">Thao tác</span>,
-        className: "w-14 text-right whitespace-nowrap",
-        cell: (category) => (
-          <div className="flex justify-end">
-            <AppDropdown
-              aria-label={`Thao tác với ${category.name}`}
-              items={[
-                {
-                  key: "edit",
-                  label: "Chỉnh sửa",
-                  icon: <EditIcon />,
-                  onClick: () => openCategorySheet(category),
-                },
-                {
-                  key: "delete",
-                  label: "Xoá",
-                  icon: <Trash2Icon />,
-                  variant: "destructive",
-                  onClick: () =>
-                    setDeleteTarget({
-                      type: "category",
-                      id: category.id,
-                      name: category.name,
-                    }),
-                },
-              ]}
-            />
-          </div>
-        ),
-      },
     ],
     [direction, sort]
   )
@@ -289,10 +226,6 @@ export const Component = () => {
                 Xoá lọc
               </Button>
             )}
-            <Button onClick={() => openCategorySheet()} className="ml-auto">
-              <PlusIcon />
-              Thêm danh mục
-            </Button>
           </div>
         </div>
         <CommonTable
@@ -308,7 +241,7 @@ export const Component = () => {
           emptyMessage={
             <EmptyTableState
               title="Không tìm thấy danh mục"
-              description="Thử đổi từ khoá hoặc xoá bộ lọc để xem lại dữ liệu."
+              description="Danh mục được tổng hợp từ sản phẩm trong hệ thống."
             />
           }
           pagination={{
@@ -318,23 +251,6 @@ export const Component = () => {
           }}
         />
       </div>
-
-      <CategoryFormSheet
-        open={sheetOpen}
-        onOpenChange={(open) => {
-          setSheetOpen(open)
-          if (!open) setEditingCategory(null)
-        }}
-        category={editingCategory}
-        onSave={handleSave}
-      />
-      <ConfirmDeleteDialog
-        target={deleteTarget}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null)
-        }}
-        onConfirm={handleDelete}
-      />
     </div>
   )
 }

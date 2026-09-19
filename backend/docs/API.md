@@ -158,6 +158,130 @@ Authorization: Bearer <access_token>  (cần quyền "users:create")
 
 ---
 
+## Product Catalog
+
+### `GET /api/v1/products`
+Lấy danh sách sản phẩm phân trang (cần quyền `products:read`).
+
+Mỗi product response gồm:
+
+- `id`, `name`, `category`, `price`, `status`
+- `sku`: mã SKU, có thể `null`
+- `description`: mô tả, có thể `null`
+- `image_url`: URL ảnh Cloudinary, có thể `null`
+### `GET /api/v1/products/{product_id}`
+Lấy chi tiết sản phẩm và tối đa 4 sản phẩm liên quan cùng category (cần quyền
+`products:read`). Response giữ các field product chuẩn và thêm:
+
+- `related_products`: danh sách product cùng category, không bao gồm product hiện tại
+
+
+### `POST /api/v1/products/{product_id}/image`
+Tải ảnh sản phẩm lên Cloudinary và lưu `image_url` (cần quyền
+`products:update`).
+
+- Content type: `multipart/form-data`
+- Field: `image`
+- Giới hạn: 10 MB, chỉ nhận MIME type ảnh
+- Cấu hình backend: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
+  `CLOUDINARY_API_SECRET`, và tùy chọn `CLOUDINARY_PRODUCT_FOLDER`
+
+Khi chưa cấu hình đủ credential Cloudinary, endpoint trả `503`.
+
+---
+
+## Analytics scenario workflow
+
+### Potential score levels
+
+The API uses the scenario names and thresholds:
+
+| Score | Level |
+|-------|-------|
+| `>= 80` | `HIGH` |
+| `60-<80` | `POTENTIAL` |
+| `< 60` | `NORMAL` |
+| No valid order in window | `INSUFFICIENT_DATA` |
+
+For `INSUFFICIENT_DATA`, `recency_days`, R/F/M component scores, and
+`potential_score` are `null`. The response includes the missing component names
+instead of substituting zero-valued scores.
+
+### Model lifecycle
+
+`POST /api/v1/analytics/models/train` trains and evaluates a Logistic Regression
+or Random Forest model. A model is not deployed automatically.
+
+`GET /api/v1/analytics/models` lists registered versions. An `APPROVED` version
+can be deployed with:
+
+```text
+POST /api/v1/analytics/models/{version}/deploy
+```
+
+Approval requires all configured gates to pass:
+
+- PR-AUC greater than the baseline conversion PR-AUC.
+- Lift@Top10 at least `ML_MIN_LIFT_TOP10` (default `2.0`).
+- Precision@Top10 at least
+  `ML_MIN_PRECISION_TOP10_MULTIPLIER × overall_conversion` (default `2.0×`).
+
+The purchase prediction and priority-list endpoints return `503` when no
+deployed model artifact is available. This prevents serving unapproved or
+missing model output.
+
+### Priority list
+
+`GET /api/v1/analytics/priority-list` returns customers where:
+
+```text
+potential_score >= 80
+OR
+purchase_probability >= ML_PRIORITY_PROBABILITY_THRESHOLD
+```
+
+The response includes the preferred category, purchase cycle, priority reason,
+and recommended next action.
+
+---
+### Deterministic scenario fixture
+
+To replace business data with the minimal local test scenario while preserving
+users and configuration, run from `backend/`:
+
+```bash
+uv run python scripts/reset_scenario_fixture.py --confirm
+```
+
+This destructive reset keeps 6 users and creates 6 customers, 3 products, 21
+delivered orders, 21 order items, and 3 interactions. The primary scenario
+customer is `KH0013` (`10000000-0000-4000-8000-000000000013`), with 8 historical
+orders, VND 18.5M monetary value, and interaction score 76.
+
+The script is for a dedicated local/test database only. It truncates business
+records (`customers`, `products`, `orders`, `import_jobs`, `model_registry`, and
+`analysis_runs`) and requires the explicit `--confirm` flag.
+
+---
+
+### E2E data cleanup
+
+E2E imports and model artifacts are intentionally not deleted automatically.
+Before removing them, verify the target database and collect the generated
+customer/product/order IDs. Delete dependent rows in this order inside one
+transaction:
+
+```text
+order_items -> orders -> customer_interactions -> customers
+```
+
+Then remove only model artifacts whose filenames start with `e2e-` and model
+registry versions whose versions start with `e2e-`. Do not use a broad
+`TRUNCATE` or unscoped delete against a shared database.
+
+---
+
+
 ## Health
 
 ### `GET /health`

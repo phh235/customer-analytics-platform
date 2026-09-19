@@ -29,8 +29,7 @@ def upgrade() -> None:
     # Alter the status column from VARCHAR to ENUM
     # Using explicit casting for existing data
     op.execute(
-        "ALTER TABLE users ALTER COLUMN status TYPE userstatus "
-        "USING status::userstatus"
+        "ALTER TABLE users ALTER COLUMN status TYPE userstatus USING status::userstatus"
     )
     op.alter_column(
         "users",

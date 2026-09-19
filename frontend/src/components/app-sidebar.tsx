@@ -20,12 +20,21 @@ export const AppSidebar = ({
   const authUser = useAuthStore((state) => state.user)
 
   if (!authUser) return null
-
   const user = { name: authUser.full_name, email: authUser.email }
-  const visibleNavItems = navMain.filter(
-    (item) =>
-      !item.requiredRoles || item.requiredRoles.includes(authUser.role_code)
-  )
+
+  const visibleNavItems = navMain
+    .map((item) => ({
+      ...item,
+      items: item.items?.filter(
+        (subItem) =>
+          !subItem.requiredRoles ||
+          subItem.requiredRoles.includes(authUser.role_code)
+      ),
+    }))
+    .filter(
+      (item) =>
+        !item.requiredRoles || item.requiredRoles.includes(authUser.role_code)
+    )
 
   return (
     <Sidebar collapsible="icon" {...props} variant="inset">

@@ -51,13 +51,17 @@ async def get_current_user(
     try:
         payload = decode_access_token(token)
         user_id = payload.get("sub")
+        role_code = payload.get("role")
         if not user_id:
             raise AppException(
                 error_code=ErrorCode.TOKEN_INVALID,
                 message="Invalid token: missing subject",
             )
 
-        user = await user_repo.find_by_id(user_id)
+        if isinstance(role_code, str):
+            user = await user_repo.find_by_id_for_auth(user_id, role_code)
+        else:
+            user = await user_repo.find_by_id(user_id)
         if not user:
             raise AppException(
                 error_code=ErrorCode.USER_NOT_FOUND,
