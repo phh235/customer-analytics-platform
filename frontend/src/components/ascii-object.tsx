@@ -8,7 +8,7 @@ import type { DRACOLoader as DracoLoader } from "three/addons/loaders/DRACOLoade
 import type { GLTFLoader as GltfLoader } from "three/addons/loaders/GLTFLoader.js"
 
 export interface AsciiObjectOptions {
-  /** URL of the asset to display: GLB/glTF, SVG, PNG, JPEG, WebP, or GIF. If omitted, a built-in abstract object is rendered. */
+  /** URL of the asset to display: GLB/glTF, SVG, PNG, JPEG, WebP, or GIF. */
   src?: string
   /** Render the object as ASCII characters. Turn off to see the raw render. */
   ascii?: boolean
@@ -508,7 +508,7 @@ function sniffKind(bytes: Uint8Array): AssetKind | null {
   if (bytes[0] === 0xff && bytes[1] === 0xd8) return "bitmap"
   if (ascii(0, "RIFF") && ascii(8, "WEBP")) return "bitmap"
   if (ascii(0, "GIF8")) return "bitmap"
-  let head = ""
+  let head: string
   try {
     head = new TextDecoder()
       .decode(bytes.subarray(0, 2048))
@@ -882,17 +882,6 @@ function createImageObject(
   return new THREE.Mesh(geometry, material)
 }
 
-function createDefaultObject(color: string): THREE.Mesh {
-  const geometry = new THREE.TorusKnotGeometry(1, 0.28, 96, 24)
-  const material = new THREE.MeshStandardMaterial({
-    color,
-    metalness: 0.2,
-    roughness: 0.45,
-  })
-
-  return new THREE.Mesh(geometry, material)
-}
-
 function disposeObject(root: THREE.Object3D) {
   root.traverse((node) => {
     const mesh = node as THREE.Mesh
@@ -1168,7 +1157,7 @@ export function createAsciiObject(
     loadedSrc = src
     const token = ++loadToken
     if (!src) {
-      adoptModel(createDefaultObject(config.highlight))
+      clearModel()
       config.onLoad?.()
       return
     }
@@ -1227,8 +1216,7 @@ export function createAsciiObject(
   motionQuery.addEventListener("change", onMotionChange)
 
   const syncAutoRotate = () => {
-    controls.autoRotate =
-      config.autoRotate && !reducedMotion && !isInteracting
+    controls.autoRotate = config.autoRotate && !reducedMotion && !isInteracting
   }
   const onControlsStart = () => {
     isInteracting = true

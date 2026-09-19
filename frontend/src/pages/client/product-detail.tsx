@@ -1,51 +1,24 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { ArrowLeftIcon } from "lucide-react"
 import { Link, Navigate, useParams } from "react-router"
 
-import { getApiErrorMessage } from "@/api/errors"
-import { getProduct, type ProductRecord } from "@/api/products"
 import { ClientPageLayout } from "@/components/client-page-layout"
 import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuthStore } from "@/stores/use-auth-store"
-import { toastError } from "@/utils/toast"
-
-const productPriceFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-})
+import { useProduct } from "@/hooks/use-products"
+import { formatCurrency } from "@/lib/format"
 
 export const Component = () => {
   const { productId } = useParams()
   const isSessionPending = useAuthStore(
     (state) => state.status === "unknown" || state.status === "loading"
   )
-  const [product, setProduct] = useState<ProductRecord | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!productId) return
-
-    let cancelled = false
-    void getProduct(productId)
-      .then((productResponse) => {
-        if (cancelled) return
-        setProduct(productResponse)
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) toastError(getApiErrorMessage(error))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [productId])
+  const productQuery = useProduct(productId)
+  const product = productQuery.data ?? null
+  const loading = productQuery.isPending
 
   const relatedProducts = useMemo(
     () => product?.related_products ?? [],
@@ -93,7 +66,7 @@ export const Component = () => {
                   src={product.image_url}
                 />
               ) : (
-                <span className="text-8xl font-black uppercase tracking-tight text-foreground/15">
+                <span className="text-8xl font-black tracking-tight text-foreground/15 uppercase">
                   {product.category.slice(0, 2)}
                 </span>
               )}
@@ -104,14 +77,15 @@ export const Component = () => {
               </p>
               <h1 className="text-2xl font-bold">{product.name}</h1>
               <p className="text-xl font-semibold">
-                {productPriceFormatter.format(Number(product.price))}
+                {formatCurrency(Number(product.price))}
               </p>
               <p className="text-sm leading-7 text-muted-foreground md:text-base">
                 {product.description ||
                   `Sản phẩm đang được cung cấp trong danh mục ${product.category}.`}
               </p>
               <p className="text-xs text-muted-foreground">
-                Trạng thái: {product.status === "ACTIVE" ? "Đang bán" : "Tạm ẩn"}
+                Trạng thái:{" "}
+                {product.status === "ACTIVE" ? "Đang bán" : "Tạm ẩn"}
               </p>
             </div>
           </div>

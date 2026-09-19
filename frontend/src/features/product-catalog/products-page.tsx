@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { FilterXIcon, SearchIcon } from "lucide-react"
 import { debounce, defaultRateLimit, parseAsString, useQueryStates } from "nuqs"
 
-import { getApiErrorMessage } from "@/api/errors"
-import { getProducts, type ProductRecord } from "@/api/products"
 import { ClientPageLayout } from "@/components/client-page-layout"
 import { ProductCard } from "@/components/product-card"
 import { ProductCardSkeleton } from "@/features/product-catalog/product-card-skeleton"
@@ -24,8 +22,8 @@ import {
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDebounce } from "@/hooks/use-debounce"
+import { useProducts } from "@/hooks/use-products"
 import { useAuthStore } from "@/stores/use-auth-store"
-import { toastError } from "@/utils/toast"
 
 const clientProductQueryParsers = {
   search: parseAsString.withDefault(""),
@@ -52,26 +50,12 @@ export const Component = () => {
     clientProductQueryOptions
   )
   const debouncedSearch = useDebounce(search, 300)
-  const [products, setProducts] = useState<ProductRecord[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    void getProducts({ page: 1, size: 100 })
-      .then((response) => {
-        if (!cancelled) setProducts(response.records)
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) toastError(getApiErrorMessage(error))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const productsQuery = useProducts({ page: 1, size: 100 })
+  const products = useMemo(
+    () => productsQuery.data?.records ?? [],
+    [productsQuery.data?.records]
+  )
+  const loading = productsQuery.isPending
 
   const categories = useMemo(
     () =>

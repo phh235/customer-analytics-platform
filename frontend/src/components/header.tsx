@@ -3,27 +3,15 @@ import { LogOutIcon } from "lucide-react"
 
 import { ThemeToggle } from "@/components/common/theme-toggle"
 import { UserAvatar } from "@/components/common/user-avatar"
+import { AppDropdown } from "@/components/common/app-dropdown"
 import { MobileNav } from "@/components/mobile-nav"
 import { buttonVariants } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Spinner } from "@/components/ui/spinner"
+import { clientNavLinks } from "@/config/client-navigation"
 import { useLogout } from "@/hooks/use-logout"
 import { BRAND_NAME } from "@/lib/brand"
 import { MainLogo } from "@/lib/svg"
 import { useAuthStore } from "@/stores/use-auth-store"
-
-export const navLinks = [
-  { label: "Trang chủ", href: "/" },
-  { label: "Sản phẩm", href: "/products" },
-]
 
 export function Header() {
   const user = useAuthStore((state) => state.user)
@@ -42,13 +30,13 @@ export function Header() {
             className="flex items-center gap-2 p-2"
             to="/"
           >
-            <MainLogo className="size-8" />
+            <MainLogo className="size-10" />
             <span className="text-lg font-semibold tracking-tight">
               {BRAND_NAME}
             </span>
           </Link>
           <div className="hidden items-center gap-1 md:flex">
-            {navLinks.map((link) => (
+            {clientNavLinks.map((link) => (
               <Link
                 className={buttonVariants({ variant: "ghost" })}
                 key={link.href}
@@ -62,36 +50,40 @@ export function Header() {
 
         <div className="hidden items-center gap-2 md:flex">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <UserAvatar email={user.email} />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-50" sideOffset={8}>
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col">
-                      <span className="truncate text-sm font-medium text-foreground">
-                        {user.full_name}
-                      </span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        {user.email}
-                      </span>
-                    </div>
-                  </DropdownMenuLabel>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem
-                    disabled={isLoggingOut}
-                    onClick={() => void handleLogout()}
-                    variant="destructive"
-                  >
-                    {isLoggingOut ? <Spinner /> : <LogOutIcon />}
-                    Đăng xuất
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AppDropdown
+              aria-label="Mở menu tài khoản"
+              sideOffset={8}
+              contentClassName="w-40"
+              trigger={
+                <button
+                  type="button"
+                  className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                  aria-label="Mở menu tài khoản"
+                >
+                  <UserAvatar email={user.email} name={user.full_name} />
+                </button>
+              }
+              header={
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm font-medium text-foreground">
+                    {user.full_name}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {user.email}
+                  </span>
+                </div>
+              }
+              items={[
+                {
+                  key: "logout",
+                  label: "Đăng xuất",
+                  icon: isLoggingOut ? <Spinner /> : <LogOutIcon />,
+                  disabled: isLoggingOut,
+                  variant: "destructive",
+                  onClick: () => void handleLogout(),
+                },
+              ]}
+            />
           ) : authStatus === "unauthenticated" ? (
             <>
               <Link

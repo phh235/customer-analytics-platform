@@ -12,7 +12,7 @@ export const AuthLayout = () => {
           <FullWidthDivider position="top" className="hidden sm:block" />
           <div className="relative w-full p-6">
             <div className="flex items-center justify-center gap-2">
-              <MainLogo className="size-9" />
+              <MainLogo className="size-11" />
               <span className="text-xl font-semibold">{BRAND_NAME}</span>
             </div>
             <Outlet />
