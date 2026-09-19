@@ -40,4 +40,19 @@ describe("AppDropdown", () => {
     fireEvent.click(editItem)
     expect(handleEdit).toHaveBeenCalledTimes(1)
   })
+
+  it("hiển thị header trước danh sách thao tác", async () => {
+    render(
+      <AppDropdown
+        header={<span>admin@example.com</span>}
+        items={[{ key: "logout", label: "Đăng xuất" }]}
+      />
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Tùy chọn thao tác" }))
+    expect(await screen.findByText("admin@example.com")).toBeInTheDocument()
+    expect(
+      screen.getByRole("menuitem", { name: "Đăng xuất" })
+    ).toBeInTheDocument()
+  })
 })

@@ -72,7 +72,29 @@ describe("CommonTable", () => {
     expect(onPageChange).toHaveBeenCalledWith(2)
   })
 
-  it("giới hạn tối đa ba nút số trang", () => {
+  it("hiển thị đầy đủ khi tổng số trang không quá năm", () => {
+    render(
+      <CommonTable
+        data={[{ id: "1", name: "Nguyễn An" }]}
+        columns={columns}
+        pagination={{
+          page: 1,
+          pageSize: 10,
+          total: 40,
+          totalPages: 4,
+          onPageChange: vi.fn(),
+        }}
+      />
+    )
+
+    for (const page of [1, 2, 3, 4]) {
+      expect(
+        screen.getByRole("button", { name: `Trang ${page}` })
+      ).toBeInTheDocument()
+    }
+  })
+
+  it("giữ trang đầu, trang cuối và dùng dấu rút gọn khi có nhiều trang", () => {
     render(
       <CommonTable
         data={[{ id: "1", name: "Nguyễn An" }]}
@@ -87,10 +109,13 @@ describe("CommonTable", () => {
       />
     )
 
+    expect(screen.getByText("1")).toBeInTheDocument()
     expect(screen.getByText("4")).toBeInTheDocument()
     expect(screen.getByText("5")).toBeInTheDocument()
     expect(screen.getByText("6")).toBeInTheDocument()
-    expect(screen.queryByText("3")).not.toBeInTheDocument()
+    expect(screen.getByText("10")).toBeInTheDocument()
+    expect(screen.getAllByText("More pages")).toHaveLength(2)
+    expect(screen.queryByText("2")).not.toBeInTheDocument()
     expect(screen.queryByText("7")).not.toBeInTheDocument()
   })
   it("phân trang dữ liệu cục bộ và tính đúng khoảng hiển thị khi trang vượt giới hạn", () => {
@@ -127,8 +152,7 @@ describe("CommonTable", () => {
     ).toBeInTheDocument()
   })
 
-  it("khóa chuyển trang trong lúc tải", async () => {
-    const user = userEvent.setup()
+  it("ẩn thông tin và phân trang trong lúc tải", () => {
     const onPageChange = vi.fn()
     render(
       <CommonTable
@@ -139,12 +163,10 @@ describe("CommonTable", () => {
         pagination={{ page: 1, pageSize: 10, total: 20, onPageChange }}
       />
     )
-    expect(screen.getByRole("button", { name: "Trang sau" })).toHaveAttribute(
-      "aria-disabled",
-      "true"
-    )
-    await user.click(screen.getByRole("button", { name: "Trang 2" }))
+    expect(
+      screen.queryByRole("button", { name: "Trang sau" })
+    ).not.toBeInTheDocument()
     expect(onPageChange).not.toHaveBeenCalled()
-    expect(screen.getByText("Đang tải khách hàng...")).toBeInTheDocument()
+    expect(screen.queryByText("Đang tải khách hàng...")).not.toBeInTheDocument()
   })
 })

@@ -61,4 +61,17 @@ export default defineConfig([
       ],
     },
   },
+  {
+    files: ["src/components/ui/**/*.{ts,tsx}"],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+      "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    files: ["src/components/ascii-object.tsx"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 ])

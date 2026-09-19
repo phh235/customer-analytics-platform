@@ -21,6 +21,7 @@ Run these from `frontend/`:
 - `pnpm run lint` — run ESLint across the project.
 - `pnpm run format` / `pnpm run format:check` — format or validate TypeScript and TSX files.
 - `pnpm run build` — type-check and create the production bundle in `dist/`.
+- `pnpm run test` / `pnpm run test:watch` — run Vitest once or in watch mode.
 - `pnpm run preview` — serve the built bundle locally.
 
 ## Coding Style & Naming Conventions
@@ -29,7 +30,11 @@ Use two spaces, LF line endings, no semicolons, double quotes, an 80-character p
 
 ## Testing Guidelines
 
-No test runner, test script, or coverage threshold is currently configured. For new behavior, add focused `*.test.ts` or `*.test.tsx` tests when a framework is introduced, and always run `pnpm run typecheck`, `pnpm run lint`, and `pnpm run build` before opening a PR.
+Vitest, Testing Library, and jsdom are configured. Add focused `*.test.ts` or
+`*.test.tsx` tests for behavior that can regress, especially authentication,
+permissions, forms, and shared controls. No coverage threshold is enforced.
+Run `pnpm run test`, `pnpm run typecheck`, `pnpm run lint`, and
+`pnpm run build` before opening a PR.
 
 ## Commit & Pull Request Guidelines
 

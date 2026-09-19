@@ -25,6 +25,7 @@ export function DashboardSessionSkeleton() {
     <SidebarProvider
       aria-busy="true"
       aria-label="Đang xác thực phiên đăng nhập"
+      className="h-svh min-h-0 overflow-hidden"
     >
       <Sidebar collapsible="icon" variant="inset">
         <SidebarHeader>
@@ -54,8 +55,8 @@ export function DashboardSessionSkeleton() {
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
-      <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b px-3">
+      <SidebarInset className="min-h-0 overflow-hidden">
+        <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-background px-3">
           <div className="flex items-center gap-2">
             <Skeleton className="size-8 rounded-lg" />
             <Separator
@@ -66,7 +67,7 @@ export function DashboardSessionSkeleton() {
           </div>
           <Skeleton className="size-8 rounded-lg" />
         </header>
-        <main className="flex flex-1 p-4">
+        <main className="flex min-h-0 flex-1 overflow-hidden p-4">
           <Skeleton className="min-h-72 w-full flex-1 rounded-xl" />
         </main>
       </SidebarInset>

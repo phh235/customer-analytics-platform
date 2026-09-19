@@ -20,15 +20,11 @@ const images = [
 const CarouselClient = () => {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
-  const [count, setCount] = useState(0)
 
   useEffect(() => {
     if (!api) {
       return
     }
-
-    setCount(api.scrollSnapList().length)
-    setCurrent(api.selectedScrollSnap())
 
     const handleSelect = () => {
       setCurrent(api.selectedScrollSnap())
@@ -53,7 +49,7 @@ const CarouselClient = () => {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [api, current])
+  }, [api])
 
   return (
     <Carousel className="relative w-full" setApi={setApi} opts={{ loop: true }}>
@@ -72,9 +68,9 @@ const CarouselClient = () => {
         ))}
       </CarouselContent>
       <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
-        {Array.from({ length: count }).map((_, index) => (
+        {images.map((image, index) => (
           <button
-            key={index}
+            key={image}
             onClick={() => api?.scrollTo(index)}
             className={cn(
               "h-2 w-2 cursor-pointer rounded-full transition-all",
