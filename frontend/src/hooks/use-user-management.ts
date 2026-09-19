@@ -5,6 +5,12 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query"
+import {
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from "nuqs"
 
 import { getApiErrorMessage } from "@/api/errors"
 import { createUser, deleteUser, listUsers, updateUser } from "@/api/users"
@@ -27,6 +33,14 @@ import { toastError, toastSuccess } from "@/utils/toast"
 const EMPTY_USERS: User[] = []
 const USER_PAGE_SIZE = 10
 const DEFAULT_SORT: UserSortOption = "created_at_desc"
+const MANAGEABLE_ROLE_FILTERS = [
+  "ALL",
+  "MANAGER",
+  "ANALYST",
+  "SALES",
+  "CSKH",
+  "USER",
+] as const
 
 const USER_SORT_PARAMS: Record<
   UserSortOption,
@@ -71,12 +85,38 @@ export function useUserManagement() {
   const startGlobalLoading = useLoadingStore((state) => state.startLoading)
   const stopGlobalLoading = useLoadingStore((state) => state.stopLoading)
   const queryClient = useQueryClient()
-  const [search, setSearch] = useState("")
+  const [{ search, roleFilter, statusFilter, sort, page }, setQuery] =
+    useQueryStates(
+      {
+        search: parseAsString.withDefault(""),
+        roleFilter: parseAsStringLiteral(MANAGEABLE_ROLE_FILTERS).withDefault(
+          "ALL"
+        ),
+        statusFilter: parseAsStringLiteral([
+          "ALL",
+          "ACTIVE",
+          "DISABLED",
+          "LOCKED",
+        ] as const).withDefault("ALL"),
+        sort: parseAsStringLiteral([
+          "created_at_desc",
+          "created_at_asc",
+          "full_name_asc",
+          "full_name_desc",
+          "last_login_at_desc",
+          "last_login_at_asc",
+        ] as const).withDefault(DEFAULT_SORT),
+        page: parseAsInteger.withDefault(1),
+      },
+      {
+        urlKeys: {
+          search: "q",
+          roleFilter: "role",
+          statusFilter: "status",
+        },
+      }
+    )
   const debouncedSearch = useDebounce(search, 300)
-  const [roleFilter, setRoleFilter] = useState<UserRoleFilter>("ALL")
-  const [statusFilter, setStatusFilter] = useState<UserStatusFilter>("ALL")
-  const [sort, setSort] = useState<UserSortOption>(DEFAULT_SORT)
-  const [page, setPage] = useState(1)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
@@ -142,7 +182,7 @@ export function useUserManagement() {
       setSheetOpen(false)
       setEditingUser(null)
 
-      if (!variables.user && page !== 1) setPage(1)
+      if (!variables.user && page !== 1) void setQuery({ page: 1 })
       await queryClient.invalidateQueries({ queryKey: userQueryKeys.all })
     },
     onError: (error) => {
@@ -157,7 +197,9 @@ export function useUserManagement() {
     onSuccess: async () => {
       toastSuccess("Đã vô hiệu hóa tài khoản")
       setDeleteTarget(null)
-      if (users.length === 1 && page > 1) setPage((current) => current - 1)
+      if (users.length === 1 && page > 1) {
+        void setQuery({ page: page - 1 })
+      }
       await queryClient.invalidateQueries({ queryKey: userQueryKeys.all })
     },
     onError: (error) => {
@@ -166,33 +208,32 @@ export function useUserManagement() {
     onSettled: () => stopGlobalLoading(),
   })
 
-  const updateSearch = useCallback((value: string) => {
-    setSearch(value)
-    setPage(1)
-  }, [])
+  const updateSearch = useCallback(
+    (value: string) => void setQuery({ search: value, page: 1 }),
+    [setQuery]
+  )
 
-  const updateRoleFilter = useCallback((value: UserRoleFilter) => {
-    setRoleFilter(value)
-    setPage(1)
-  }, [])
+  const updateRoleFilter = useCallback(
+    (value: UserRoleFilter) =>
+      void setQuery({
+        roleFilter: value as (typeof MANAGEABLE_ROLE_FILTERS)[number],
+        page: 1,
+      }),
+    [setQuery]
+  )
 
-  const updateStatusFilter = useCallback((value: UserStatusFilter) => {
-    setStatusFilter(value)
-    setPage(1)
-  }, [])
+  const updateStatusFilter = useCallback(
+    (value: UserStatusFilter) =>
+      void setQuery({ statusFilter: value, page: 1 }),
+    [setQuery]
+  )
 
-  const updateSort = useCallback((value: UserSortOption) => {
-    setSort(value)
-    setPage(1)
-  }, [])
+  const updateSort = useCallback(
+    (value: UserSortOption) => void setQuery({ sort: value, page: 1 }),
+    [setQuery]
+  )
 
-  const resetFilters = useCallback(() => {
-    setSearch("")
-    setRoleFilter("ALL")
-    setStatusFilter("ALL")
-    setSort(DEFAULT_SORT)
-    setPage(1)
-  }, [])
+  const resetFilters = useCallback(() => void setQuery(null), [setQuery])
 
   const openUserSheet = useCallback((user: User | null = null) => {
     setEditingUser(user)
@@ -253,7 +294,7 @@ export function useUserManagement() {
       statusFilter !== "ALL" ||
       sort !== DEFAULT_SORT,
     page,
-    setPage,
+    setPage: (nextPage: number) => void setQuery({ page: nextPage }),
     updateSearch,
     updateRoleFilter,
     updateStatusFilter,

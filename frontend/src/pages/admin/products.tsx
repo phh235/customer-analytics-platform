@@ -38,6 +38,7 @@ import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
 import type { DeleteTarget } from "@/components/admin/management/types"
 import { TableActions } from "@/components/common/table-actions"
+import { ProductImagePlaceholder } from "@/components/common/product-image-placeholder"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
@@ -273,12 +274,10 @@ export const Component = () => {
               loading="lazy"
             />
           ) : (
-            <div
-              aria-label={`Chưa có ảnh ${product.name}`}
-              className="flex size-10 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground"
-            >
-              {product.name.slice(0, 1).toUpperCase()}
-            </div>
+            <ProductImagePlaceholder
+              productName={product.name}
+              className="size-10 rounded-md"
+            />
           ),
       },
       {
