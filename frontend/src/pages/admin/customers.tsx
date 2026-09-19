@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   FilterXIcon,
   EditIcon,
@@ -15,12 +15,12 @@ import {
   useQueryStates,
 } from "nuqs"
 
-import { getApiErrorMessage } from "@/api/errors"
 import {
   createCustomer,
   deleteCustomer,
   getCustomers,
   updateCustomer,
+  uploadCustomerImage,
   type CustomerRecord,
 } from "@/api/customers"
 import {
@@ -35,13 +35,13 @@ import { EmptyTableState } from "@/components/admin/management/empty-table-state
 import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
 import type { DeleteTarget } from "@/components/admin/management/types"
-import { TableActions } from "@/components/common/table-actions"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import { getApiErrorMessage } from "@/api/errors"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
   formatDate,
@@ -55,6 +55,7 @@ const mapCustomer = (customer: CustomerRecord): Customer => ({
   id: customer.id,
   customerCode: customer.customer_code,
   name: customer.name,
+  imageUrl: customer.image_url,
   email: customer.email ?? "",
   phone: customer.phone ?? "",
   orders: customer.total_orders,
@@ -138,10 +139,10 @@ export const Component = () => {
       })
   }, [customers, debouncedSearch, direction, sort, status])
 
-  const openCustomerSheet = (customer: Customer | null = null) => {
+  const openCustomerSheet = useCallback((customer: Customer | null = null) => {
     setEditingCustomer(customer)
     setSheetOpen(true)
-  }
+  }, [])
 
   const handleSave = async (data: CustomerFormData) => {
     try {
@@ -157,7 +158,10 @@ export const Component = () => {
       const savedCustomer = editingCustomer
         ? await updateCustomer(editingCustomer.id, payload)
         : await createCustomer(payload)
-      const mappedCustomer = mapCustomer(savedCustomer)
+      const customerWithImage = data.image
+        ? await uploadCustomerImage(savedCustomer.id, data.image)
+        : savedCustomer
+      const mappedCustomer = mapCustomer(customerWithImage)
 
       setCustomers((current) =>
         editingCustomer
@@ -169,10 +173,9 @@ export const Component = () => {
       toastSuccess(
         editingCustomer ? "Đã cập nhật khách hàng" : "Đã thêm khách hàng mới"
       )
-      setSheetOpen(false)
-      setEditingCustomer(null)
     } catch (error: unknown) {
       toastError(getApiErrorMessage(error))
+      throw error
     }
   }
 
@@ -191,13 +194,16 @@ export const Component = () => {
     }
   }
 
-  const toggleSort = (key: CustomerSortKey) => {
-    void setQuery({
-      sort: key,
-      direction: sort === key && direction === "asc" ? "desc" : "asc",
-      page: 1,
-    })
-  }
+  const toggleSort = useCallback(
+    (key: CustomerSortKey) => {
+      void setQuery({
+        sort: key,
+        direction: sort === key && direction === "asc" ? "desc" : "asc",
+        page: 1,
+      })
+    },
+    [direction, setQuery, sort]
+  )
 
   const updateSearch = (value: string) => {
     void setQuery(
@@ -212,111 +218,126 @@ export const Component = () => {
 
   const currentPage = Math.max(page, 1)
 
-  const columns: CommonTableColumn<Customer>[] = [
-    {
-      id: "customerCode",
-      header: "Mã khách hàng",
-      className: "min-w-28 whitespace-nowrap",
-      cell: (customer) => (
-        <span className="text-sm whitespace-nowrap">
-          {customer.customerCode}
-        </span>
-      ),
-    },
-    {
-      id: "customer",
-      header: (
-        <SortButton
-          label="Khách hàng"
-          sortKey="name"
-          activeKey={sort}
-          direction={direction}
-          onClick={() => toggleSort("name")}
-        />
-      ),
-      className: "min-w-52 whitespace-nowrap",
-      cell: (customer) => (
-        <div className="flex min-w-48 items-center gap-3 whitespace-nowrap">
-          <UserAvatar email={customer.email} />
-          <span className="truncate">{customer.name}</span>
-        </div>
-      ),
-      skeletonClassName: "h-8 w-4/5",
-    },
-    {
-      id: "email",
-      header: "Email",
-      className: "min-w-64 whitespace-nowrap",
-      cell: (customer) => (
-        <span className="whitespace-nowrap">{customer.email}</span>
-      ),
-    },
-    {
-      id: "phone",
-      header: "Số điện thoại",
-      className: "min-w-36 whitespace-nowrap",
-      cell: (customer) => (
-        <span className="whitespace-nowrap">{customer.phone}</span>
-      ),
-    },
-    {
-      id: "status",
-      header: "Trạng thái",
-      className: "min-w-32 whitespace-nowrap",
-      cell: (customer) => (
-        <StatusBadge status={customer.status} entity="customer" />
-      ),
-    },
-    {
-      id: "joinedAt",
-      header: (
-        <SortButton
-          label="Tham gia"
-          sortKey="joinedAt"
-          activeKey={sort}
-          direction={direction}
-          onClick={() => toggleSort("joinedAt")}
-        />
-      ),
-      className: "min-w-28 whitespace-nowrap",
-      cell: (customer) => (
-        <span className="whitespace-nowrap">
-          {formatDate(customer.joinedAt)}
-        </span>
-      ),
-    },
-    {
-      id: "actions",
-      header: "Thao tác",
-      className: "w-24 text-right",
-      cell: (customer) => (
-        <TableActions
-          actions={[
-            {
-              key: "edit",
-              label: "Chỉnh sửa",
-              icon: <EditIcon />,
-              disabled: !canManageCustomers,
-              onClick: () => openCustomerSheet(customer),
-            },
-            {
-              key: "delete",
-              label: "Xoá",
-              icon: <Trash2Icon />,
-              disabled: !canManageCustomers,
-              variant: "destructive",
-              onClick: () =>
-                setDeleteTarget({
-                  type: "customer",
-                  id: customer.id,
-                  name: customer.name,
-                }),
-            },
-          ]}
-        />
-      ),
-    },
-  ]
+  const columns: CommonTableColumn<Customer>[] = useMemo(
+    () => [
+      {
+        id: "customerCode",
+        header: "Mã khách hàng",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (customer) => (
+          <span className="text-sm whitespace-nowrap">
+            {customer.customerCode}
+          </span>
+        ),
+      },
+      {
+        id: "customer",
+        header: (
+          <SortButton
+            label="Khách hàng"
+            sortKey="name"
+            activeKey={sort}
+            direction={direction}
+            onClick={() => toggleSort("name")}
+          />
+        ),
+        className: "min-w-52 whitespace-nowrap",
+        cell: (customer) => (
+          <div className="flex min-w-48 items-center gap-3 whitespace-nowrap">
+            {customer.imageUrl ? (
+              <img
+                src={customer.imageUrl}
+                alt={customer.name}
+                className="size-8 shrink-0 rounded-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <UserAvatar email={customer.email} />
+            )}
+            <span className="truncate">{customer.name}</span>
+          </div>
+        ),
+        skeletonClassName: "h-8 w-4/5",
+      },
+      {
+        id: "email",
+        header: "Email",
+        className: "min-w-64 whitespace-nowrap",
+        cell: (customer) => (
+          <span className="whitespace-nowrap">{customer.email}</span>
+        ),
+      },
+      {
+        id: "phone",
+        header: "Số điện thoại",
+        className: "min-w-36 whitespace-nowrap",
+        cell: (customer) => (
+          <span className="whitespace-nowrap">{customer.phone}</span>
+        ),
+      },
+      {
+        id: "status",
+        header: "Trạng thái",
+        className: "min-w-32 whitespace-nowrap",
+        cell: (customer) => (
+          <StatusBadge status={customer.status} entity="customer" />
+        ),
+      },
+      {
+        id: "joinedAt",
+        header: (
+          <SortButton
+            label="Tham gia"
+            sortKey="joinedAt"
+            activeKey={sort}
+            direction={direction}
+            onClick={() => toggleSort("joinedAt")}
+          />
+        ),
+        className: "min-w-28 whitespace-nowrap",
+        cell: (customer) => (
+          <span className="whitespace-nowrap">
+            {formatDate(customer.joinedAt)}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Thao tác",
+        className: "w-28 text-right",
+        cell: (customer) =>
+          canManageCustomers ? (
+            <div className="flex justify-end gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                aria-label={`Chỉnh sửa ${customer.name}`}
+                onClick={() => openCustomerSheet(customer)}
+              >
+                <EditIcon />
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon-sm"
+                aria-label={`Xoá ${customer.name}`}
+                onClick={() =>
+                  setDeleteTarget({
+                    type: "customer",
+                    id: customer.id,
+                    name: customer.name,
+                  })
+                }
+              >
+                <Trash2Icon />
+              </Button>
+            </div>
+          ) : null,
+      },
+    ],
+    [canManageCustomers, direction, openCustomerSheet, sort, toggleSort]
+  )
 
   return (
     <div className="mx-auto flex w-full flex-col gap-6">
@@ -386,6 +407,7 @@ export const Component = () => {
       </div>
 
       <CustomerFormSheet
+        key={`${editingCustomer?.id ?? "new"}-${sheetOpen ? "open" : "closed"}`}
         open={sheetOpen}
         onOpenChange={(open) => {
           setSheetOpen(open)

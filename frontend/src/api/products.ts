@@ -82,7 +82,12 @@ export async function uploadProductImage(
   formData.append("image", image)
   const { data } = await apiClient.post<ProductRecord>(
     `/products/${productId}/image`,
-    formData
+    formData,
+    {
+      headers: {
+        "Content-Type": undefined,
+      },
+    }
   )
   return data
 }
