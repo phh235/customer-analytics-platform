@@ -209,6 +209,7 @@ export function ProductFormSheet({
                   previewClassName="w-full rounded-lg"
                   selectedFile={field.value}
                   onFileChange={field.onChange}
+                  disabled={isSubmitting}
                 />
               )}
             />

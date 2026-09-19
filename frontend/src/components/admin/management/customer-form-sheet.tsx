@@ -142,6 +142,7 @@ export function CustomerFormSheet({
                   previewClassName="w-32 rounded-full"
                   selectedFile={field.value}
                   onFileChange={field.onChange}
+                  disabled={isSubmitting}
                 />
               )}
             />

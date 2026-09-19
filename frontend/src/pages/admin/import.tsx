@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { FileSpreadsheetIcon, UploadCloudIcon, XIcon } from "lucide-react"
+import { parseAsInteger, useQueryState } from "nuqs"
 
 import { getApiErrorMessage } from "@/api/errors"
 import {
@@ -13,9 +15,17 @@ import {
 } from "@/components/common/common-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadList,
+  FileUploadTrigger,
+} from "@/components/ui/file-upload"
 import { importJobQueryKeys, useImportJobs } from "@/hooks/use-import-jobs"
 import {
   IMPORT_STATUS_LABELS,
@@ -29,7 +39,7 @@ const PAGE_SIZE = 10
 export const Component = () => {
   const [error, setError] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1))
   const queryClient = useQueryClient()
   const jobsQuery = useImportJobs(page, PAGE_SIZE)
   const jobs = jobsQuery.data?.records ?? []
@@ -42,7 +52,7 @@ export const Component = () => {
     },
     onSuccess: async () => {
       setFile(null)
-      setPage(1)
+      void setPage(1)
       await queryClient.invalidateQueries({ queryKey: importJobQueryKeys.all })
     },
     onError: (requestError) => setError(getApiErrorMessage(requestError)),
@@ -107,57 +117,103 @@ export const Component = () => {
         </p>
       </header>
 
-      <Card className="mx-3">
-        <CardHeader>
-          <CardTitle>Tải dữ liệu</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form
-            className="flex flex-col gap-4 md:flex-row md:items-end"
-            onSubmit={handleUpload}
-          >
-            <FieldGroup className="min-w-0 flex-1">
-              <Field>
-                <FieldLabel htmlFor="import-file">Tệp Excel</FieldLabel>
-                <Input
-                  id="import-file"
-                  type="file"
-                  accept=".xlsx"
-                  onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-                />
-              </Field>
-            </FieldGroup>
-            <Button
-              className="self-end"
-              disabled={uploadMutation.isPending}
-              type="submit"
-            >
-              {uploadMutation.isPending ? "Đang xử lý..." : "Tải và xử lý"}
-            </Button>
-          </form>
-          {error ? (
-            <p className="mt-4 text-sm text-destructive">{error}</p>
-          ) : null}
-        </CardContent>
-      </Card>
+      <div className="grid min-w-0 items-start gap-4 px-3 xl:grid-cols-[minmax(18rem,1fr)_minmax(0,2.2fr)]">
+        <Card className="min-w-0 xl:sticky xl:top-4">
+          <CardHeader>
+            <CardTitle>Tải dữ liệu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="flex flex-col gap-4" onSubmit={handleUpload}>
+              <FileUpload
+                value={file ? [file] : []}
+                onValueChange={(files) => {
+                  setFile(files[0] ?? null)
+                  setError(null)
+                }}
+                onFileReject={(_, message) => setError(message)}
+                accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                maxFiles={1}
+                label="Tệp Excel cần nhập"
+                disabled={uploadMutation.isPending}
+              >
+                <FileUploadDropzone className="min-h-40 p-4 text-center">
+                  <FileSpreadsheetIcon className="size-8 text-primary" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">
+                      Kéo thả tệp Excel vào đây
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Chỉ chấp nhận workbook định dạng .xlsx
+                    </p>
+                  </div>
+                  <FileUploadTrigger
+                    render={
+                      <Button type="button" variant="outline" size="sm" />
+                    }
+                  >
+                    <UploadCloudIcon data-icon="inline-start" />
+                    Chọn tệp
+                  </FileUploadTrigger>
+                </FileUploadDropzone>
 
-      <section aria-label="Danh sách phiên nhập dữ liệu">
-        <CommonTable
-          data={jobs}
-          columns={columns}
-          loading={jobsQuery.isPending}
-          getRowId={(job) => job.id}
-          emptyMessage="Chưa có phiên import nào."
-          itemLabel="phiên nhập dữ liệu"
-          pagination={{
-            page,
-            pageSize: PAGE_SIZE,
-            total,
-            totalPages: pages,
-            onPageChange: setPage,
-          }}
-        />
-      </section>
+                <FileUploadList>
+                  {file ? (
+                    <FileUploadItem value={file}>
+                      <FileUploadItemPreview className="[&>svg]:size-5" />
+                      <FileUploadItemMetadata />
+                      <FileUploadItemDelete
+                        render={
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label="Xóa tệp đã chọn"
+                          />
+                        }
+                      >
+                        <XIcon />
+                      </FileUploadItemDelete>
+                    </FileUploadItem>
+                  ) : null}
+                </FileUploadList>
+              </FileUpload>
+
+              {error ? (
+                <p className="text-sm text-destructive">{error}</p>
+              ) : null}
+
+              <Button
+                className="w-full"
+                disabled={!file || uploadMutation.isPending}
+                type="submit"
+              >
+                {uploadMutation.isPending ? "Đang xử lý..." : "Tải và xử lý"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <section
+          aria-label="Danh sách phiên nhập dữ liệu"
+          className="min-w-0 [&>[aria-busy]]:px-0"
+        >
+          <CommonTable
+            data={jobs}
+            columns={columns}
+            loading={jobsQuery.isPending}
+            getRowId={(job) => job.id}
+            emptyMessage="Chưa có phiên import nào."
+            itemLabel="phiên nhập dữ liệu"
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              total,
+              totalPages: pages,
+              onPageChange: (nextPage) => void setPage(nextPage),
+            }}
+          />
+        </section>
+      </div>
     </div>
   )
 }

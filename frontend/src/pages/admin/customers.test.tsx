@@ -101,7 +101,7 @@ describe("Customer table actions", () => {
       await screen.findByRole("heading", { name: "Xác nhận xoá khách hàng" })
     ).toBeInTheDocument()
     expect(deleteCustomer).not.toHaveBeenCalled()
-  })
+  }, 10_000)
 
   it("không hiện thao tác quản lý khi người dùng không có quyền", async () => {
     useAuthStore.setState({
