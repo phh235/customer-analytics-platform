@@ -15,8 +15,9 @@ export default defineConfig({
     port: 4000,
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:8000",
+        target: "https://lift-other-yards-memo.trycloudflare.com",
         changeOrigin: true,
+        secure: false,
       },
     },
   },

@@ -8,7 +8,6 @@ import {
   type CommonTableColumn,
 } from "@/components/common/common-table"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   formatCurrency,
   formatEnumLabel,
@@ -28,7 +27,6 @@ export const Component = () => {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
     void getOrders({ page, size: PAGE_SIZE })
       .then((response) => {
         if (cancelled) return
@@ -53,19 +51,26 @@ export const Component = () => {
     {
       id: "order_number",
       header: "Mã đơn",
-      cell: (order) => <span className="font-medium">{order.order_number}</span>,
+      cell: (order) => <span>{order.order_number}</span>,
     },
     {
       id: "channel",
       header: "Kênh",
-      cell: (order) =>
-        formatEnumLabel(order.channel, ORDER_CHANNEL_LABELS),
+      cell: (order) => formatEnumLabel(order.channel, ORDER_CHANNEL_LABELS),
     },
     {
       id: "status",
       header: "Trạng thái",
       cell: (order) => (
-        <Badge variant="outline">
+        <Badge
+          variant={
+            ["PAID", "COMPLETED", "DELIVERED"].includes(order.status)
+              ? "success"
+              : ["CANCELLED", "FAILED"].includes(order.status)
+                ? "destructive"
+                : "secondary"
+          }
+        >
           {formatEnumLabel(order.status, ORDER_STATUS_LABELS)}
         </Badge>
       ),
@@ -75,16 +80,14 @@ export const Component = () => {
       header: "Giá trị",
       className: "text-right",
       cell: (order) => (
-        <span className="font-medium">
-          {formatCurrency(Number(order.total_amount))}
-        </span>
+        <span>{formatCurrency(Number(order.total_amount))}</span>
       ),
     },
   ]
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
-      <header>
+    <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
+      <header className="px-3 pt-3">
         <div className="flex items-center gap-2">
           <ArrowLeftRightIcon className="size-5 text-muted-foreground" />
           <h1 className="text-2xl font-semibold">Giao dịch</h1>
@@ -94,31 +97,30 @@ export const Component = () => {
         </p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách đơn hàng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <p className="py-8 text-center text-sm text-destructive">{error}</p>
-          ) : (
-            <CommonTable
-              data={orders}
-              columns={columns}
-              loading={loading}
-              getRowId={(order) => order.id}
-              summary={`Đang hiển thị ${orders.length} trên ${total} đơn hàng`}
-              pagination={{
-                page,
-                pageSize: PAGE_SIZE,
-                total,
-                totalPages: pages,
-                onPageChange: setPage,
-              }}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <section aria-label="Danh sách đơn hàng">
+        {error ? (
+          <p className="py-8 text-center text-sm text-destructive">{error}</p>
+        ) : (
+          <CommonTable
+            data={orders}
+            columns={columns}
+            loading={loading}
+            getRowId={(order) => order.id}
+            itemLabel="đơn hàng"
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              total,
+              totalPages: pages,
+              onPageChange: (nextPage) => {
+                if (nextPage === page) return
+                setLoading(true)
+                setPage(nextPage)
+              },
+            }}
+          />
+        )}
+      </section>
     </div>
   )
 }

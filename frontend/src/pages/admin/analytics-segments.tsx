@@ -8,14 +8,16 @@ import {
   type CommonTableColumn,
 } from "@/components/common/common-table"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   formatDate,
   formatEnumLabel,
   SEGMENT_LABELS,
 } from "@/lib/admin-management"
 
+const PAGE_SIZE = 10
+
 export const Component = () => {
+  const [page, setPage] = useState(1)
   const [segments, setSegments] = useState<SegmentRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -44,13 +46,13 @@ export const Component = () => {
     {
       id: "name",
       header: "Khách hàng",
-      cell: (segment) => <span className="font-medium">{segment.name}</span>,
+      cell: (segment) => <span>{segment.name}</span>,
     },
     {
       id: "segment_type",
       header: "Phân khúc",
       cell: (segment) => (
-        <Badge variant="outline">
+        <Badge variant="secondary">
           {formatEnumLabel(segment.segment_type, SEGMENT_LABELS)}
         </Badge>
       ),
@@ -59,7 +61,10 @@ export const Component = () => {
       id: "reason",
       header: "Lý do",
       cell: (segment) => (
-        <span className="line-clamp-2 max-w-xl text-muted-foreground">
+        <span
+          title={segment.reason}
+          className="block max-w-xl truncate text-muted-foreground"
+        >
           {segment.reason}
         </span>
       ),
@@ -72,8 +77,8 @@ export const Component = () => {
   ]
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
-      <header>
+    <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
+      <header className="px-3 pt-3">
         <div className="flex items-center gap-2">
           <ChartNoAxesCombinedIcon className="size-5 text-muted-foreground" />
           <h1 className="text-2xl font-semibold">Phân khúc khách hàng</h1>
@@ -83,24 +88,24 @@ export const Component = () => {
         </p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách phân khúc</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <p className="py-8 text-center text-sm text-destructive">{error}</p>
-          ) : (
-            <CommonTable
-              data={segments}
-              columns={columns}
-              loading={loading}
-              getRowId={(segment) => segment.customer_id}
-              summary={`${segments.length} khách hàng được phân tích`}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <section aria-label="Danh sách khách hàng">
+        {error ? (
+          <p className="py-8 text-center text-sm text-destructive">{error}</p>
+        ) : (
+          <CommonTable
+            data={segments}
+            columns={columns}
+            loading={loading}
+            getRowId={(segment) => segment.customer_id}
+            itemLabel="khách hàng"
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              onPageChange: setPage,
+            }}
+          />
+        )}
+      </section>
     </div>
   )
 }

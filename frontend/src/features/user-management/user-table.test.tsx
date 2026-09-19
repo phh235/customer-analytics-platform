@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
+import userEvent from "@testing-library/user-event"
 
 import { UserTable } from "@/features/user-management/user-table"
 import type { User } from "@/types/user"
@@ -53,41 +54,30 @@ describe("UserTable", () => {
       />
     )
 
-    const actionButton = screen.getByRole("button", {
-      name: "Thao tác với Nguyễn An",
+    const user = userEvent.setup()
+    const editableRow = within(screen.getByRole("row", { name: /Nguyễn An/ }))
+    const trigger = editableRow.getByRole("button", {
+      name: "Tùy chọn thao tác",
     })
-    fireEvent.click(actionButton)
-
-    const editItem = await screen.findByRole("menuitem", {
-      name: "Chỉnh sửa",
-    })
-    const deleteItem = screen.getByRole("menuitem", {
-      name: "Vô hiệu hóa",
-    })
-
-    expect(editItem).not.toHaveAttribute("data-disabled")
-    expect(deleteItem).not.toHaveAttribute("data-disabled")
-
-    fireEvent.click(editItem)
+    await user.click(trigger)
+    await user.click(await screen.findByRole("menuitem", { name: "Chỉnh sửa" }))
     expect(onEdit).toHaveBeenCalledWith(editableUser)
-
-    fireEvent.click(actionButton)
-    const deleteItemReopened = await screen.findByRole("menuitem", {
-      name: "Vô hiệu hóa",
-    })
-    fireEvent.click(deleteItemReopened)
+    await user.click(trigger)
+    await user.click(
+      await screen.findByRole("menuitem", { name: "Vô hiệu hóa" })
+    )
     expect(onDelete).toHaveBeenCalledWith(editableUser)
 
-    const currentActionBtn = screen.getByRole("button", {
-      name: "Thao tác với Tài khoản hiện tại",
-    })
-    fireEvent.click(currentActionBtn)
-    const disabledEditItem = await screen.findByRole("menuitem", {
-      name: "Chỉnh sửa",
-    })
-    expect(disabledEditItem).toHaveAttribute("data-disabled")
-    expect(
-      screen.getByRole("menuitem", { name: "Vô hiệu hóa" })
-    ).toHaveAttribute("data-disabled")
+    for (const name of [currentUser.full_name, adminUser.full_name]) {
+      const row = within(screen.getByRole("row", { name: new RegExp(name) }))
+      await user.click(row.getByRole("button", { name: "Tùy chọn thao tác" }))
+      expect(
+        await screen.findByRole("menuitem", { name: "Chỉnh sửa" })
+      ).toHaveAttribute("data-disabled")
+      expect(
+        screen.getByRole("menuitem", { name: "Vô hiệu hóa" })
+      ).toHaveAttribute("data-disabled")
+      await user.keyboard("{Escape}")
+    }
   })
 })

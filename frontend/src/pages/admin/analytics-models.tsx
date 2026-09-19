@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react"
-import { BrainCircuitIcon } from "lucide-react"
+import { BrainCircuitIcon, RocketIcon } from "lucide-react"
 
 import { getApiErrorMessage } from "@/api/errors"
 import {
@@ -14,6 +14,10 @@ import {
 } from "@/components/common/common-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { AppSelect } from "@/components/common/app-select"
+import { TableActions } from "@/components/common/table-actions"
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   formatEnumLabel,
@@ -23,7 +27,10 @@ import {
 
 const today = new Date().toISOString().slice(0, 10)
 
+const PAGE_SIZE = 10
+
 export const Component = () => {
+  const [page, setPage] = useState(1)
   const [models, setModels] = useState<ModelLifecycleRecord[]>([])
   const [version, setVersion] = useState(`purchase-repeat-${today}`)
   const [modelType, setModelType] = useState<
@@ -96,19 +103,26 @@ export const Component = () => {
     {
       id: "version",
       header: "Phiên bản",
-      cell: (model) => <span className="font-medium">{model.version}</span>,
+      cell: (model) => <span>{model.version}</span>,
     },
     {
       id: "model_type",
       header: "Loại mô hình",
-      cell: (model) =>
-        formatEnumLabel(model.model_type, MODEL_TYPE_LABELS),
+      cell: (model) => formatEnumLabel(model.model_type, MODEL_TYPE_LABELS),
     },
     {
       id: "status",
       header: "Trạng thái",
       cell: (model) => (
-        <Badge variant="outline">
+        <Badge
+          variant={
+            ["APPROVED", "DEPLOYED"].includes(model.status)
+              ? "success"
+              : model.status === "FAILED"
+                ? "destructive"
+                : "secondary"
+          }
+        >
           {formatEnumLabel(model.status, MODEL_STATUS_LABELS)}
         </Badge>
       ),
@@ -121,131 +135,131 @@ export const Component = () => {
     {
       id: "action",
       header: "Thao tác",
+      className: "w-24 text-right",
       cell: (model) => (
-        <Button
-          disabled={model.status !== "APPROVED"}
-          onClick={() => void handleDeploy(model.version)}
-          size="sm"
-          type="button"
-        >
-          {model.status === "APPROVED" ? "Đưa vào sử dụng" : "Không khả dụng"}
-        </Button>
+        <TableActions
+          actions={[
+            {
+              key: "deploy",
+              label: "Đưa vào sử dụng",
+              icon: <RocketIcon />,
+              disabled: model.status !== "APPROVED",
+              onClick: () => void handleDeploy(model.version),
+            },
+          ]}
+        />
       ),
     },
   ]
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
-      <header>
+    <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
+      <header className="px-3 pt-3">
         <div className="flex items-center gap-2">
           <BrainCircuitIcon className="size-5 text-muted-foreground" />
           <h1 className="text-2xl font-semibold">Quản lý mô hình</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Chỉ deploy model APPROVED; model phải vượt các gate PR-AUC, Lift@10 và
-          Precision@10.
+          Huấn luyện, đánh giá và đưa các mô hình đã được duyệt vào sử dụng.
         </p>
       </header>
 
-      <Card>
+      <Card className="mx-3">
         <CardHeader>
-          <CardTitle>Train model</CardTitle>
+          <CardTitle>Huấn luyện mô hình</CardTitle>
         </CardHeader>
         <CardContent>
-          <form
-            className="grid gap-4 md:grid-cols-2 lg:grid-cols-5"
-            onSubmit={handleTrain}
-          >
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Version</span>
-              <input
-                className="h-9 rounded-md border bg-background px-3"
-                required
-                value={version}
-                onChange={(event) => setVersion(event.target.value)}
-              />
-            </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Model</span>
-              <select
-                className="h-9 rounded-md border bg-background px-3"
-                value={modelType}
-                onChange={(event) =>
-                  setModelType(
-                    event.target.value as
-                      "LOGISTIC_REGRESSION" | "RANDOM_FOREST"
-                  )
-                }
-              >
-                <option value="LOGISTIC_REGRESSION">Logistic Regression</option>
-                <option value="RANDOM_FOREST">Random Forest</option>
-              </select>
-            </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Feature window</span>
-              <input
-                className="h-9 rounded-md border bg-background px-3"
-                min={30}
-                max={3650}
-                type="number"
-                value={featureWindowDays}
-                onChange={(event) =>
-                  setFeatureWindowDays(Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Prediction horizon</span>
-              <input
-                className="h-9 rounded-md border bg-background px-3"
-                min={1}
-                max={365}
-                type="number"
-                value={predictionHorizonDays}
-                onChange={(event) =>
-                  setPredictionHorizonDays(Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Analysis date</span>
-              <input
-                className="h-9 rounded-md border bg-background px-3"
-                type="date"
-                value={analysisDate}
-                onChange={(event) => setAnalysisDate(event.target.value)}
-              />
-            </label>
-            <Button
-              className="lg:col-span-5"
-              disabled={submitting}
-              type="submit"
-            >
-              {submitting ? "Đang train..." : "Train và evaluate"}
+          <form className="flex flex-col gap-4" onSubmit={handleTrain}>
+            <FieldGroup className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <Field>
+                <FieldLabel htmlFor="model-version">Phiên bản</FieldLabel>
+                <Input
+                  id="model-version"
+                  required
+                  value={version}
+                  onChange={(event) => setVersion(event.target.value)}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="model-type">Loại mô hình</FieldLabel>
+                <AppSelect
+                  id="model-type"
+                  className="w-full"
+                  value={modelType}
+                  onChange={setModelType}
+                  options={[
+                    { value: "LOGISTIC_REGRESSION", label: "Hồi quy logistic" },
+                    { value: "RANDOM_FOREST", label: "Rừng ngẫu nhiên" },
+                  ]}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="feature-window">
+                  Kỳ quan sát (ngày)
+                </FieldLabel>
+                <Input
+                  id="feature-window"
+                  type="number"
+                  min={30}
+                  max={3650}
+                  value={featureWindowDays}
+                  onChange={(event) =>
+                    setFeatureWindowDays(Number(event.target.value))
+                  }
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="prediction-horizon">
+                  Kỳ dự đoán (ngày)
+                </FieldLabel>
+                <Input
+                  id="prediction-horizon"
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={predictionHorizonDays}
+                  onChange={(event) =>
+                    setPredictionHorizonDays(Number(event.target.value))
+                  }
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="analysis-date">Ngày phân tích</FieldLabel>
+                <Input
+                  id="analysis-date"
+                  className="scheme-light dark:scheme-dark"
+                  type="date"
+                  value={analysisDate}
+                  onChange={(event) => setAnalysisDate(event.target.value)}
+                />
+              </Field>
+            </FieldGroup>
+            <Button className="self-end" disabled={submitting} type="submit">
+              {submitting ? "Đang huấn luyện..." : "Huấn luyện và đánh giá"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Model registry</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <p className="py-8 text-center text-sm text-destructive">{error}</p>
-          ) : (
-            <CommonTable
-              data={models}
-              columns={columns}
-              loading={loading}
-              getRowId={(model) => model.version}
-              emptyMessage="Chưa có model nào được đăng ký."
-              summary={`${models.length} model version`}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <section aria-label="Danh sách mô hình">
+        {error ? (
+          <p className="py-8 text-center text-sm text-destructive">{error}</p>
+        ) : (
+          <CommonTable
+            data={models}
+            columns={columns}
+            loading={loading}
+            getRowId={(model) => model.version}
+            emptyMessage="Chưa có mô hình nào được đăng ký."
+            itemLabel="mô hình"
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              onPageChange: setPage,
+            }}
+          />
+        )}
+      </section>
     </div>
   )
 }

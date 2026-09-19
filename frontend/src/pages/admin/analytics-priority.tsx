@@ -8,13 +8,12 @@ import {
   type CommonTableColumn,
 } from "@/components/common/common-table"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  formatEnumLabel,
-  SCORE_LEVEL_LABELS,
-} from "@/lib/admin-management"
+import { formatEnumLabel, SCORE_LEVEL_LABELS } from "@/lib/admin-management"
+
+const PAGE_SIZE = 10
 
 export const Component = () => {
+  const [page, setPage] = useState(1)
   const [customers, setCustomers] = useState<PriorityCustomerRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +42,7 @@ export const Component = () => {
     {
       id: "name",
       header: "Khách hàng",
-      cell: (customer) => <span className="font-medium">{customer.name}</span>,
+      cell: (customer) => <span>{customer.name}</span>,
     },
     {
       id: "potential_score",
@@ -51,7 +50,12 @@ export const Component = () => {
       cell: (customer) => (
         <span>
           {customer.potential_score.toFixed(1)} / 100
-          <Badge className="ml-2" variant="outline">
+          <Badge
+            className="ml-2"
+            variant={
+              customer.potential_level === "HIGH" ? "success" : "secondary"
+            }
+          >
             {formatEnumLabel(customer.potential_level, SCORE_LEVEL_LABELS)}
           </Badge>
         </span>
@@ -80,7 +84,10 @@ export const Component = () => {
       id: "recommendation",
       header: "Khuyến nghị",
       cell: (customer) => (
-        <span className="line-clamp-2 max-w-sm text-muted-foreground">
+        <span
+          title={customer.recommendation}
+          className="block max-w-sm truncate text-muted-foreground"
+        >
           {customer.recommendation}
         </span>
       ),
@@ -88,8 +95,8 @@ export const Component = () => {
   ]
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
-      <header>
+    <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
+      <header className="px-3 pt-3">
         <div className="flex items-center gap-2">
           <ListChecksIcon className="size-5 text-muted-foreground" />
           <h1 className="text-2xl font-semibold">Danh sách ưu tiên</h1>
@@ -99,25 +106,25 @@ export const Component = () => {
         </p>
       </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Ưu tiên chăm sóc</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <p className="py-8 text-center text-sm text-destructive">{error}</p>
-          ) : (
-            <CommonTable
-              data={customers}
-              columns={columns}
-              loading={loading}
-              getRowId={(customer) => customer.customer_id}
-              emptyMessage="Chưa có khách hàng trong danh sách ưu tiên."
-              summary={`${customers.length} khách hàng được ưu tiên`}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <section aria-label="Danh sách khách hàng">
+        {error ? (
+          <p className="py-8 text-center text-sm text-destructive">{error}</p>
+        ) : (
+          <CommonTable
+            data={customers}
+            columns={columns}
+            loading={loading}
+            getRowId={(customer) => customer.customer_id}
+            emptyMessage="Chưa có khách hàng trong danh sách ưu tiên."
+            itemLabel="khách hàng"
+            pagination={{
+              page,
+              pageSize: PAGE_SIZE,
+              onPageChange: setPage,
+            }}
+          />
+        )}
+      </section>
     </div>
   )
 }
