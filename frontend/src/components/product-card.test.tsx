@@ -14,9 +14,13 @@ describe("ProductCard", () => {
             name: "Giày thể thao Urban Run",
             category: "Giày dép",
             price: 1290000,
-            shortDescription: "Thiết kế nhẹ cho những buổi chạy hằng ngày.",
+            product_code: "SP-001",
+            sku: "UR-001",
+            status: "ACTIVE",
+            created_at: "2026-09-19T08:00:00Z",
+            updated_at: "2026-09-19T08:00:00Z",
             description: "Mô tả chi tiết",
-            image: "/images/urban-run.jpg",
+            image_url: "/images/urban-run.jpg",
           }}
         />
       </MemoryRouter>
@@ -31,8 +35,6 @@ describe("ProductCard", () => {
       screen.getByRole("img", { name: "Giày thể thao Urban Run" })
     ).toHaveAttribute("src", "/images/urban-run.jpg")
     expect(screen.getByText("1.290.000", { exact: false })).toBeInTheDocument()
-    expect(
-      screen.getByText("Thiết kế nhẹ cho những buổi chạy hằng ngày.")
-    ).toBeInTheDocument()
+    expect(screen.getByText("Giày dép")).toBeInTheDocument()
   })
 })

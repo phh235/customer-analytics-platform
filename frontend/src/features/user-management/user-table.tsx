@@ -2,7 +2,7 @@ import { useMemo } from "react"
 import { EditIcon, Trash2Icon } from "lucide-react"
 
 import { EmptyTableState } from "@/components/admin/management/empty-table-state"
-import { AppDropdown } from "@/components/common/app-dropdown"
+import { TableActions } from "@/components/common/table-actions"
 import {
   CommonTable,
   type CommonTableColumn,
@@ -85,7 +85,7 @@ export function UserTable({
         header: "Vai trò",
         className: "min-w-36 whitespace-nowrap",
         cell: (user) => (
-          <Badge variant="outline">{roleLabel(user.role_code)}</Badge>
+          <Badge variant="secondary">{roleLabel(user.role_code)}</Badge>
         ),
       },
       {
@@ -108,8 +108,8 @@ export function UserTable({
       },
       {
         id: "actions",
-        header: <span className="sr-only">Thao tác</span>,
-        className: "w-14 text-right",
+        header: "Thao tác",
+        className: "w-24 text-right",
         cell: (user) => {
           const isCurrentUser = user.id === currentUserId
           const isAdmin = user.role_code === "ADMIN"
@@ -117,28 +117,25 @@ export function UserTable({
             isCurrentUser || isAdmin || user.status === "DISABLED"
 
           return (
-            <div className="flex justify-end">
-              <AppDropdown
-                aria-label={`Thao tác với ${user.full_name}`}
-                items={[
-                  {
-                    key: "edit",
-                    label: "Chỉnh sửa",
-                    icon: <EditIcon />,
-                    disabled: isActionDisabled,
-                    onClick: () => onEdit(user),
-                  },
-                  {
-                    key: "delete",
-                    label: "Vô hiệu hóa",
-                    icon: <Trash2Icon />,
-                    variant: "destructive",
-                    disabled: isActionDisabled,
-                    onClick: () => onDelete(user),
-                  },
-                ]}
-              />
-            </div>
+            <TableActions
+              actions={[
+                {
+                  key: "edit",
+                  label: "Chỉnh sửa",
+                  icon: <EditIcon />,
+                  disabled: isActionDisabled,
+                  onClick: () => onEdit(user),
+                },
+                {
+                  key: "delete",
+                  label: "Vô hiệu hóa",
+                  icon: <Trash2Icon />,
+                  variant: "destructive",
+                  disabled: isActionDisabled,
+                  onClick: () => onDelete(user),
+                },
+              ]}
+            />
           )
         },
       },
@@ -151,11 +148,7 @@ export function UserTable({
       data={users}
       columns={columns}
       loading={loading}
-      summary={
-        loading
-          ? "Đang tải tài khoản..."
-          : `Hiển thị ${users.length} / ${pagination?.total ?? 0} tài khoản`
-      }
+      itemLabel="tài khoản"
       getRowId={(user) => user.id}
       emptyMessage={
         <EmptyTableState

@@ -1,10 +1,11 @@
 import * as React from "react"
-import { MoreVerticalIcon } from "lucide-react"
+import { MoreHorizontalIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -57,24 +58,26 @@ export const AppDropdown = ({
           )
         }
       >
-        {!trigger ? <MoreVerticalIcon /> : null}
+        {!trigger ? <MoreHorizontalIcon /> : null}
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
         sideOffset={sideOffset}
         className={cn("w-fit min-w-32", contentClassName)}
       >
-        {items.map((item) => (
-          <DropdownMenuItem
-            key={item.key}
-            variant={item.variant}
-            disabled={item.disabled}
-            onClick={item.onClick}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          {items.map((item) => (
+            <DropdownMenuItem
+              key={item.key}
+              variant={item.variant}
+              disabled={item.disabled}
+              onClick={item.onClick}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

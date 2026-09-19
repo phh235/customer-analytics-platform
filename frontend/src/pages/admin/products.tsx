@@ -36,7 +36,7 @@ import { ProductFormSheet } from "@/components/admin/management/product-form-she
 import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
 import type { DeleteTarget } from "@/components/admin/management/types"
-import { AppDropdown } from "@/components/common/app-dropdown"
+import { TableActions } from "@/components/common/table-actions"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
@@ -258,148 +258,142 @@ export const Component = () => {
 
   const currentPage = Math.max(page, 1)
 
-  const columns: CommonTableColumn<Product>[] = useMemo(
-    () => [
-      {
-        id: "productCode",
-        header: "Mã sản phẩm",
-        className: "min-w-28 whitespace-nowrap",
-        cell: (product) => (
-          <span className="text-sm whitespace-nowrap">
-            {product.productCode}
-          </span>
-        ),
-      },
-      {
-        id: "product",
-        header: (
-          <SortButton
-            label="Sản phẩm"
-            sortKey="name"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("name")}
-          />
-        ),
-        className: "min-w-52 whitespace-nowrap",
-        cell: (product) => (
-          <span className="whitespace-nowrap">{product.name}</span>
-        ),
-        skeletonClassName: "h-6 w-4/5",
-      },
-      {
-        id: "sku",
-        header: "SKU",
-        className: "min-w-28 whitespace-nowrap",
-        cell: (product) => (
-          <span className="text-sm whitespace-nowrap">{product.sku}</span>
-        ),
-      },
-      {
-        id: "category",
-        header: (
-          <SortButton
-            label="Danh mục"
-            sortKey="category"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("category")}
-          />
-        ),
-        className: "min-w-40 whitespace-nowrap",
-        cell: (product) => (
-          <span className="whitespace-nowrap">{product.category}</span>
-        ),
-      },
-      {
-        id: "price",
-        header: (
-          <SortButton
-            label="Giá bán"
-            sortKey="price"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("price")}
-          />
-        ),
-        className: "min-w-32 whitespace-nowrap",
-        cell: (product) => (
-          <span className="whitespace-nowrap">
-            {formatCurrency(product.price)}
-          </span>
-        ),
-      },
-      {
-        id: "status",
-        header: "Trạng thái",
-        className: "min-w-28 whitespace-nowrap",
-        cell: (product) => {
-          const isActive = product.status === "active"
+  const columns: CommonTableColumn<Product>[] = [
+    {
+      id: "productCode",
+      header: "Mã sản phẩm",
+      className: "min-w-28 whitespace-nowrap",
+      cell: (product) => (
+        <span className="text-sm whitespace-nowrap">{product.productCode}</span>
+      ),
+    },
+    {
+      id: "product",
+      header: (
+        <SortButton
+          label="Sản phẩm"
+          sortKey="name"
+          activeKey={sort}
+          direction={direction}
+          onClick={() => toggleSort("name")}
+        />
+      ),
+      className: "min-w-52 whitespace-nowrap",
+      cell: (product) => (
+        <span className="whitespace-nowrap">{product.name}</span>
+      ),
+      skeletonClassName: "h-6 w-4/5",
+    },
+    {
+      id: "sku",
+      header: "SKU",
+      className: "min-w-28 whitespace-nowrap",
+      cell: (product) => (
+        <span className="text-sm whitespace-nowrap">{product.sku}</span>
+      ),
+    },
+    {
+      id: "category",
+      header: (
+        <SortButton
+          label="Danh mục"
+          sortKey="category"
+          activeKey={sort}
+          direction={direction}
+          onClick={() => toggleSort("category")}
+        />
+      ),
+      className: "min-w-40 whitespace-nowrap",
+      cell: (product) => (
+        <span className="whitespace-nowrap">{product.category}</span>
+      ),
+    },
+    {
+      id: "price",
+      header: (
+        <SortButton
+          label="Giá bán"
+          sortKey="price"
+          activeKey={sort}
+          direction={direction}
+          onClick={() => toggleSort("price")}
+        />
+      ),
+      className: "min-w-32 whitespace-nowrap",
+      cell: (product) => (
+        <span className="whitespace-nowrap">
+          {formatCurrency(product.price)}
+        </span>
+      ),
+    },
+    {
+      id: "status",
+      header: "Trạng thái",
+      className: "min-w-28 whitespace-nowrap",
+      cell: (product) => {
+        const isActive = product.status === "active"
 
-          return (
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <Switch
-                checked={isActive}
-                disabled={!canManageProducts}
-                onCheckedChange={(checked) =>
-                  setStatusTarget({
-                    id: product.id,
-                    name: product.name,
-                    nextStatus: checked ? "active" : "inactive",
-                  })
-                }
-                aria-label={`${isActive ? "Ẩn" : "Hiển thị"} ${product.name}`}
-              />
-              <StatusBadge status={product.status} entity="product" />
-            </div>
-          )
-        },
-      },
-      {
-        id: "updatedAt",
-        header: "Cập nhật",
-        className: "min-w-28 whitespace-nowrap",
-        cell: (product) => (
-          <span className="whitespace-nowrap">
-            {formatDate(product.updatedAt)}
-          </span>
-        ),
-      },
-      {
-        id: "actions",
-        header: <span className="sr-only">Thao tác</span>,
-        className: "w-14 text-right",
-        cell: (product) => (
-          <div className="flex justify-end">
-            <AppDropdown
-              aria-label={`Thao tác với ${product.name}`}
-              items={[
-                {
-                  key: "edit",
-                  label: "Chỉnh sửa",
-                  icon: <EditIcon />,
-                  onClick: () => openProductSheet(product),
-                },
-                {
-                  key: "delete",
-                  label: "Xoá",
-                  icon: <Trash2Icon />,
-                  variant: "destructive",
-                  onClick: () =>
-                    setDeleteTarget({
-                      type: "product",
-                      id: product.id,
-                      name: product.name,
-                    }),
-                },
-              ]}
+        return (
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <Switch
+              checked={isActive}
+              disabled={!canManageProducts}
+              onCheckedChange={(checked) =>
+                setStatusTarget({
+                  id: product.id,
+                  name: product.name,
+                  nextStatus: checked ? "active" : "inactive",
+                })
+              }
+              aria-label={isActive ? "Ẩn" : "Hiển thị"}
             />
+            <StatusBadge status={product.status} entity="product" />
           </div>
-        ),
+        )
       },
-    ],
-    [canManageProducts, direction, openProductSheet, sort, toggleSort]
-  )
+    },
+    {
+      id: "updatedAt",
+      header: "Cập nhật",
+      className: "min-w-28 whitespace-nowrap",
+      cell: (product) => (
+        <span className="whitespace-nowrap">
+          {formatDate(product.updatedAt)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Thao tác",
+      className: "w-24 text-right",
+      cell: (product) => (
+        <TableActions
+          actions={[
+            {
+              key: "edit",
+              label: "Chỉnh sửa",
+              icon: <EditIcon />,
+              disabled: !canManageProducts,
+              onClick: () => openProductSheet(product),
+            },
+            {
+              key: "delete",
+              label: "Xoá",
+              icon: <Trash2Icon />,
+              disabled: !canManageProducts,
+              variant: "destructive",
+              onClick: () =>
+                setDeleteTarget({
+                  type: "product",
+                  id: product.id,
+                  name: product.name,
+                }),
+            },
+          ]}
+        />
+      ),
+    },
+  ]
 
   return (
     <div className="mx-auto flex w-full flex-col gap-6">
@@ -463,11 +457,7 @@ export const Component = () => {
           data={filteredProducts}
           columns={columns}
           loading={loading}
-          summary={
-            loading
-              ? "Đang tải sản phẩm..."
-              : `Hiển thị ${filteredProducts.length === 0 ? "0" : `${(currentPage - 1) * PRODUCT_PAGE_SIZE + 1}–${Math.min(currentPage * PRODUCT_PAGE_SIZE, filteredProducts.length)}`} / ${filteredProducts.length} sản phẩm`
-          }
+          itemLabel="sản phẩm"
           getRowId={(product) => product.id}
           emptyMessage={
             <EmptyTableState

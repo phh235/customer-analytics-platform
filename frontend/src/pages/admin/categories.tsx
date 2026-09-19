@@ -134,72 +134,69 @@ export const Component = () => {
 
   const currentPage = Math.max(page, 1)
 
-  const columns: CommonTableColumn<Category>[] = useMemo(
-    () => [
-      {
-        id: "category",
-        header: (
-          <SortButton
-            label="Danh mục"
-            sortKey="name"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("name")}
-          />
-        ),
-        className: "min-w-56 whitespace-nowrap",
-        cell: (category) => (
-          <span className="whitespace-nowrap">{category.name}</span>
-        ),
-        skeletonClassName: "h-6 w-4/5",
-      },
-      {
-        id: "code",
-        header: "Mã danh mục",
-        className: "min-w-32 whitespace-nowrap",
-        cell: (category) => (
-          <span className="text-sm whitespace-nowrap">{category.code}</span>
-        ),
-      },
-      {
-        id: "productCount",
-        header: (
-          <SortButton
-            label="Số sản phẩm"
-            sortKey="productCount"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("productCount")}
-          />
-        ),
-        className: "min-w-32 whitespace-nowrap",
-        cell: (category) => (
-          <span className="whitespace-nowrap">
-            {category.productCount} sản phẩm
-          </span>
-        ),
-      },
-      {
-        id: "updatedAt",
-        header: (
-          <SortButton
-            label="Cập nhật"
-            sortKey="updatedAt"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("updatedAt")}
-          />
-        ),
-        className: "min-w-32 whitespace-nowrap",
-        cell: (category) => (
-          <span className="whitespace-nowrap">
-            {formatDate(category.updatedAt)}
-          </span>
-        ),
-      },
-    ],
-    [direction, sort]
-  )
+  const columns: CommonTableColumn<Category>[] = [
+    {
+      id: "category",
+      header: (
+        <SortButton
+          label="Danh mục"
+          sortKey="name"
+          activeKey={sort}
+          direction={direction}
+          onClick={() => toggleSort("name")}
+        />
+      ),
+      className: "min-w-56 whitespace-nowrap",
+      cell: (category) => (
+        <span className="whitespace-nowrap">{category.name}</span>
+      ),
+      skeletonClassName: "h-6 w-4/5",
+    },
+    {
+      id: "code",
+      header: "Mã danh mục",
+      className: "min-w-32 whitespace-nowrap",
+      cell: (category) => (
+        <span className="text-sm whitespace-nowrap">{category.code}</span>
+      ),
+    },
+    {
+      id: "productCount",
+      header: (
+        <SortButton
+          label="Số sản phẩm"
+          sortKey="productCount"
+          activeKey={sort}
+          direction={direction}
+          onClick={() => toggleSort("productCount")}
+        />
+      ),
+      className: "min-w-32 whitespace-nowrap",
+      cell: (category) => (
+        <span className="whitespace-nowrap">
+          {category.productCount} sản phẩm
+        </span>
+      ),
+    },
+    {
+      id: "updatedAt",
+      header: (
+        <SortButton
+          label="Cập nhật"
+          sortKey="updatedAt"
+          activeKey={sort}
+          direction={direction}
+          onClick={() => toggleSort("updatedAt")}
+        />
+      ),
+      className: "min-w-32 whitespace-nowrap",
+      cell: (category) => (
+        <span className="whitespace-nowrap">
+          {formatDate(category.updatedAt)}
+        </span>
+      ),
+    },
+  ]
 
   return (
     <div className="mx-auto flex w-full flex-col gap-6">
@@ -232,11 +229,7 @@ export const Component = () => {
           data={filteredCategories}
           columns={columns}
           loading={loading}
-          summary={
-            loading
-              ? "Đang tải danh mục..."
-              : `Hiển thị ${filteredCategories.length === 0 ? "0" : `${(currentPage - 1) * CATEGORY_PAGE_SIZE + 1}–${Math.min(currentPage * CATEGORY_PAGE_SIZE, filteredCategories.length)}`} / ${filteredCategories.length} danh mục`
-          }
+          itemLabel="danh mục"
           getRowId={(category) => category.id}
           emptyMessage={
             <EmptyTableState

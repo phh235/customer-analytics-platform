@@ -35,7 +35,7 @@ export const AppSelect = <Value extends string = string>({
   value,
   defaultValue,
   onChange,
-  placeholder = "Select an option",
+  placeholder = "Chọn một tùy chọn",
   disabled,
   size = "default",
   className,

@@ -44,6 +44,7 @@ interface CommonTableProps<T> {
   loading?: boolean
   emptyMessage?: ReactNode
   summary?: ReactNode
+  itemLabel?: string
   getRowId?: (item: T, index: number) => string | number
   pagination?: CommonTablePagination
 }
@@ -60,13 +61,13 @@ function getVisiblePages(currentPage: number, pageCount: number) {
   return [firstPage, firstPage + 1, firstPage + 2]
 }
 
-
 export function CommonTable<T>({
   data,
   columns,
   loading = false,
   emptyMessage = "Không có dữ liệu.",
   summary,
+  itemLabel,
   getRowId,
   pagination,
 }: CommonTableProps<T>) {
@@ -85,9 +86,7 @@ export function CommonTable<T>({
     (pagination?.previousPage !== undefined
       ? pagination.previousPage !== null
       : currentPage > 1)
-  const visiblePages = pagination
-    ? getVisiblePages(currentPage, pageCount)
-    : []
+  const visiblePages = pagination ? getVisiblePages(currentPage, pageCount) : []
 
   const canGoNext =
     pagination?.hasNext ??
@@ -103,11 +102,26 @@ export function CommonTable<T>({
       : data
 
   const skeletonRows = Math.min(pagination?.pageSize ?? 6, 6)
+  const firstItem =
+    pageData.length > 0
+      ? (currentPage - 1) * (pagination?.pageSize ?? data.length) + 1
+      : 0
+  const lastItem = Math.min(firstItem + pageData.length - 1, total)
+  const tableSummary =
+    summary ??
+    (itemLabel
+      ? loading
+        ? `Đang tải ${itemLabel}...`
+        : `Hiển thị ${firstItem === 0 ? "0" : `${firstItem}–${lastItem}`} / ${total} ${itemLabel}`
+      : undefined)
 
   return (
-    <div aria-busy={loading} className="flex flex-col gap-2 px-3 pb-3">
-      <div className="overflow-hidden rounded-xl border border-border">
-        <Table className="min-w-full table-auto border-y-0 [&_td]:px-4 [&_th]:px-4">
+    <div aria-busy={loading} className="flex min-w-0 flex-col gap-2 px-3 pb-3">
+      <div className="overflow-hidden rounded-xl border border-border bg-background">
+        <Table
+          aria-label={itemLabel ? `Danh sách ${itemLabel}` : undefined}
+          className="min-w-full table-auto border-y-0 [&_td]:px-4 [&_th]:px-4"
+        >
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
@@ -120,7 +134,7 @@ export function CommonTable<T>({
           <TableBody>
             {loading
               ? Array.from({ length: skeletonRows }, (_, rowIndex) => (
-                  <TableRow key={`skeleton-row-${rowIndex}`}>
+                  <TableRow className="h-12" key={`skeleton-row-${rowIndex}`}>
                     {columns.map((column) => (
                       <TableCell key={column.id} className={column.className}>
                         <Skeleton
@@ -131,7 +145,10 @@ export function CommonTable<T>({
                   </TableRow>
                 ))
               : pageData.map((item, index) => (
-                  <TableRow key={getRowId?.(item, index) ?? index}>
+                  <TableRow
+                    className="h-12"
+                    key={getRowId?.(item, index) ?? index}
+                  >
                     {columns.map((column) => (
                       <TableCell key={column.id} className={column.className}>
                         {column.cell(item)}
@@ -153,31 +170,37 @@ export function CommonTable<T>({
         </Table>
       </div>
 
-      {summary || (pagination && pageCount > 1) ? (
-        <div className="flex flex-col gap-4 px-3 sm:flex-row sm:items-center sm:justify-between">
-          {summary ? (
-            <div className="text-sm text-muted-foreground">{summary}</div>
+      {tableSummary || (pagination && pageCount > 1) ? (
+        <div className="flex min-h-8 flex-col gap-2 px-3 sm:flex-row sm:items-center sm:justify-between">
+          {tableSummary ? (
+            <div role="status" className="text-sm text-muted-foreground">
+              {tableSummary}
+            </div>
           ) : (
             <div />
           )}
 
           {pagination && pageCount > 1 ? (
-            <Pagination className="mx-0 w-auto justify-end">
+            <Pagination
+              aria-label={itemLabel ? `Phân trang ${itemLabel}` : "Phân trang"}
+              className="mx-0 w-auto justify-end self-end sm:self-auto"
+            >
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
                     href="#"
                     text="Trước"
                     aria-label="Trang trước"
-                    aria-disabled={!canGoPrevious}
+                    aria-disabled={loading || !canGoPrevious}
+                    tabIndex={loading || !canGoPrevious ? -1 : undefined}
                     className={
-                      !canGoPrevious
+                      loading || !canGoPrevious
                         ? "pointer-events-none opacity-50"
                         : undefined
                     }
                     onClick={(event) => {
                       event.preventDefault()
-                      if (canGoPrevious) {
+                      if (!loading && canGoPrevious) {
                         pagination.onPageChange(
                           pagination.previousPage ?? currentPage - 1
                         )
@@ -190,9 +213,12 @@ export function CommonTable<T>({
                     <UiPaginationLink
                       href="#"
                       isActive={pageNumber === currentPage}
+                      aria-label={`Trang ${pageNumber}`}
+                      aria-disabled={loading}
+                      tabIndex={loading ? -1 : undefined}
                       onClick={(event) => {
                         event.preventDefault()
-                        pagination.onPageChange(pageNumber)
+                        if (!loading) pagination.onPageChange(pageNumber)
                       }}
                     >
                       {pageNumber}
@@ -204,13 +230,16 @@ export function CommonTable<T>({
                     href="#"
                     text="Sau"
                     aria-label="Trang sau"
-                    aria-disabled={!canGoNext}
+                    aria-disabled={loading || !canGoNext}
+                    tabIndex={loading || !canGoNext ? -1 : undefined}
                     className={
-                      !canGoNext ? "pointer-events-none opacity-50" : undefined
+                      loading || !canGoNext
+                        ? "pointer-events-none opacity-50"
+                        : undefined
                     }
                     onClick={(event) => {
                       event.preventDefault()
-                      if (canGoNext) {
+                      if (!loading && canGoNext) {
                         pagination.onPageChange(
                           pagination.nextPage ?? currentPage + 1
                         )

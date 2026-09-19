@@ -35,7 +35,7 @@ import { EmptyTableState } from "@/components/admin/management/empty-table-state
 import { SortButton } from "@/components/admin/management/sort-button"
 import { StatusBadge } from "@/components/admin/management/status-badge"
 import type { DeleteTarget } from "@/components/admin/management/types"
-import { AppDropdown } from "@/components/common/app-dropdown"
+import { TableActions } from "@/components/common/table-actions"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
@@ -212,115 +212,111 @@ export const Component = () => {
 
   const currentPage = Math.max(page, 1)
 
-  const columns: CommonTableColumn<Customer>[] = useMemo(
-    () => [
-      {
-        id: "customerCode",
-        header: "Mã khách hàng",
-        className: "min-w-28 whitespace-nowrap",
-        cell: (customer) => (
-          <span className="text-sm whitespace-nowrap">
-            {customer.customerCode}
-          </span>
-        ),
-      },
-      {
-        id: "customer",
-        header: (
-          <SortButton
-            label="Khách hàng"
-            sortKey="name"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("name")}
-          />
-        ),
-        className: "min-w-52 whitespace-nowrap",
-        cell: (customer) => (
-          <div className="flex min-w-48 items-center gap-3 whitespace-nowrap">
-            <UserAvatar email={customer.email} />
-            <span className="truncate">{customer.name}</span>
-          </div>
-        ),
-        skeletonClassName: "h-8 w-4/5",
-      },
-      {
-        id: "email",
-        header: "Email",
-        className: "min-w-64 whitespace-nowrap",
-        cell: (customer) => (
-          <span className="whitespace-nowrap">{customer.email}</span>
-        ),
-      },
-      {
-        id: "phone",
-        header: "Số điện thoại",
-        className: "min-w-36 whitespace-nowrap",
-        cell: (customer) => (
-          <span className="whitespace-nowrap">{customer.phone}</span>
-        ),
-      },
-      {
-        id: "status",
-        header: "Trạng thái",
-        className: "min-w-32 whitespace-nowrap",
-        cell: (customer) => (
-          <StatusBadge status={customer.status} entity="customer" />
-        ),
-      },
-      {
-        id: "joinedAt",
-        header: (
-          <SortButton
-            label="Tham gia"
-            sortKey="joinedAt"
-            activeKey={sort}
-            direction={direction}
-            onClick={() => toggleSort("joinedAt")}
-          />
-        ),
-        className: "min-w-28 whitespace-nowrap",
-        cell: (customer) => (
-          <span className="whitespace-nowrap">
-            {formatDate(customer.joinedAt)}
-          </span>
-        ),
-      },
-      {
-        id: "actions",
-        header: <span className="sr-only">Thao tác</span>,
-        className: "w-14 text-right",
-        cell: (customer) => (
-          <div className="flex justify-end">
-            <AppDropdown
-              aria-label={`Thao tác với ${customer.name}`}
-              items={[
-                {
-                  key: "edit",
-                  label: "Chỉnh sửa",
-                  icon: <EditIcon />,
-                  onClick: () => openCustomerSheet(customer),
-                },
-                {
-                  key: "delete",
-                  label: "Xoá",
-                  icon: <Trash2Icon />,
-                  variant: "destructive",
-                  onClick: () =>
-                    setDeleteTarget({
-                      type: "customer",
-                      id: customer.id,
-                      name: customer.name,
-                    }),
-                },
-              ]}
-            />
-          </div>
-        ),
-      },
-    ],
-    [canManageCustomers, direction, openCustomerSheet, sort, toggleSort]
-  )
+  const columns: CommonTableColumn<Customer>[] = [
+    {
+      id: "customerCode",
+      header: "Mã khách hàng",
+      className: "min-w-28 whitespace-nowrap",
+      cell: (customer) => (
+        <span className="text-sm whitespace-nowrap">
+          {customer.customerCode}
+        </span>
+      ),
+    },
+    {
+      id: "customer",
+      header: (
+        <SortButton
+          label="Khách hàng"
+          sortKey="name"
+          activeKey={sort}
+          direction={direction}
+          onClick={() => toggleSort("name")}
+        />
+      ),
+      className: "min-w-52 whitespace-nowrap",
+      cell: (customer) => (
+        <div className="flex min-w-48 items-center gap-3 whitespace-nowrap">
+          <UserAvatar email={customer.email} />
+          <span className="truncate">{customer.name}</span>
+        </div>
+      ),
+      skeletonClassName: "h-8 w-4/5",
+    },
+    {
+      id: "email",
+      header: "Email",
+      className: "min-w-64 whitespace-nowrap",
+      cell: (customer) => (
+        <span className="whitespace-nowrap">{customer.email}</span>
+      ),
+    },
+    {
+      id: "phone",
+      header: "Số điện thoại",
+      className: "min-w-36 whitespace-nowrap",
+      cell: (customer) => (
+        <span className="whitespace-nowrap">{customer.phone}</span>
+      ),
+    },
+    {
+      id: "status",
+      header: "Trạng thái",
+      className: "min-w-32 whitespace-nowrap",
+      cell: (customer) => (
+        <StatusBadge status={customer.status} entity="customer" />
+      ),
+    },
+    {
+      id: "joinedAt",
+      header: (
+        <SortButton
+          label="Tham gia"
+          sortKey="joinedAt"
+          activeKey={sort}
+          direction={direction}
+          onClick={() => toggleSort("joinedAt")}
+        />
+      ),
+      className: "min-w-28 whitespace-nowrap",
+      cell: (customer) => (
+        <span className="whitespace-nowrap">
+          {formatDate(customer.joinedAt)}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "Thao tác",
+      className: "w-24 text-right",
+      cell: (customer) => (
+        <TableActions
+          actions={[
+            {
+              key: "edit",
+              label: "Chỉnh sửa",
+              icon: <EditIcon />,
+              disabled: !canManageCustomers,
+              onClick: () => openCustomerSheet(customer),
+            },
+            {
+              key: "delete",
+              label: "Xoá",
+              icon: <Trash2Icon />,
+              disabled: !canManageCustomers,
+              variant: "destructive",
+              onClick: () =>
+                setDeleteTarget({
+                  type: "customer",
+                  id: customer.id,
+                  name: customer.name,
+                }),
+            },
+          ]}
+        />
+      ),
+    },
+  ]
 
   return (
     <div className="mx-auto flex w-full flex-col gap-6">
@@ -373,11 +369,7 @@ export const Component = () => {
           data={filteredCustomers}
           columns={columns}
           loading={loading}
-          summary={
-            loading
-              ? "Đang tải khách hàng..."
-              : `Hiển thị ${filteredCustomers.length === 0 ? "0" : `${(currentPage - 1) * CUSTOMER_PAGE_SIZE + 1}–${Math.min(currentPage * CUSTOMER_PAGE_SIZE, filteredCustomers.length)}`} / ${filteredCustomers.length} khách hàng`
-          }
+          itemLabel="khách hàng"
           getRowId={(customer) => customer.id}
           emptyMessage={
             <EmptyTableState

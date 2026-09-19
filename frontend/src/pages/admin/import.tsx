@@ -14,6 +14,8 @@ import {
 } from "@/components/common/common-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   formatDate,
@@ -81,7 +83,7 @@ export const Component = () => {
     {
       id: "filename",
       header: "Tệp",
-      cell: (job) => <span className="font-medium">{job.filename}</span>,
+      cell: (job) => <span>{job.filename}</span>,
     },
     {
       id: "import_type",
@@ -92,7 +94,15 @@ export const Component = () => {
       id: "status",
       header: "Trạng thái",
       cell: (job) => (
-        <Badge variant="outline">
+        <Badge
+          variant={
+            job.status === "COMPLETED"
+              ? "success"
+              : job.status === "FAILED"
+                ? "destructive"
+                : "secondary"
+          }
+        >
           {formatEnumLabel(job.status, IMPORT_STATUS_LABELS)}
         </Badge>
       ),
@@ -110,35 +120,37 @@ export const Component = () => {
   ]
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
-      <header>
+    <div className="mx-auto flex w-full min-w-0 flex-col gap-4">
+      <header className="px-3 pt-3">
         <div className="flex items-center gap-2">
           <FileUpIcon className="size-5 text-muted-foreground" />
           <h1 className="text-2xl font-semibold">Nhập dữ liệu</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Import workbook Excel 14 sheet theo đúng contract dữ liệu.
+          Tải lên tệp Excel theo mẫu dữ liệu gồm 14 trang tính.
         </p>
       </header>
 
-      <Card>
+      <Card className="mx-3">
         <CardHeader>
           <CardTitle>Tải dữ liệu</CardTitle>
         </CardHeader>
         <CardContent>
           <form
-            className="grid gap-4 md:grid-cols-[1fr_auto]"
+            className="flex flex-col gap-4 md:flex-row md:items-end"
             onSubmit={handleUpload}
           >
-            <label className="grid gap-1 text-sm">
-              <span className="font-medium">Workbook Excel</span>
-              <input
-                className="h-9 rounded-md border px-3 py-1 text-sm"
-                type="file"
-                accept=".xlsx"
-                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-              />
-            </label>
+            <FieldGroup className="min-w-0 flex-1">
+              <Field>
+                <FieldLabel htmlFor="import-file">Tệp Excel</FieldLabel>
+                <Input
+                  id="import-file"
+                  type="file"
+                  accept=".xlsx"
+                  onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                />
+              </Field>
+            </FieldGroup>
             <Button className="self-end" disabled={uploading} type="submit">
               {uploading ? "Đang xử lý..." : "Tải và xử lý"}
             </Button>
@@ -149,28 +161,23 @@ export const Component = () => {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lịch sử import</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CommonTable
-            data={jobs}
-            columns={columns}
-            loading={loading}
-            getRowId={(job) => job.id}
-            emptyMessage="Chưa có phiên import nào."
-            summary={`${jobs.length} phiên import trên ${total} phiên`}
-            pagination={{
-              page,
-              pageSize: PAGE_SIZE,
-              total,
-              totalPages: pages,
-              onPageChange: setPage,
-            }}
-          />
-        </CardContent>
-      </Card>
+      <section aria-label="Danh sách phiên nhập dữ liệu">
+        <CommonTable
+          data={jobs}
+          columns={columns}
+          loading={loading}
+          getRowId={(job) => job.id}
+          emptyMessage="Chưa có phiên import nào."
+          itemLabel="phiên nhập dữ liệu"
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+            totalPages: pages,
+            onPageChange: setPage,
+          }}
+        />
+      </section>
     </div>
   )
 }
