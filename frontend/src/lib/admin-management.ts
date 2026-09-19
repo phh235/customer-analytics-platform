@@ -94,15 +94,16 @@ export interface Product {
   name: string
   sku: string
   category: string
+  imageUrl: string | null
   price: number
   status: ProductStatus
   updatedAt: string
 }
-
 export interface Customer {
   id: string
   customerCode: string
   name: string
+  imageUrl: string | null
   email: string
   phone: string
   orders: number
@@ -117,6 +118,7 @@ export interface ProductFormData {
   category: string
   price: number
   status: ProductStatus
+  image: File | null
 }
 
 export interface CustomerFormData {
@@ -124,7 +126,9 @@ export interface CustomerFormData {
   email: string
   phone: string
   status: CustomerStatus
+  image: File | null
 }
+
 
 export interface Category {
   id: string

@@ -1,5 +1,5 @@
 import type { FormEvent } from "react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { AppSelect } from "@/components/common/app-select"
 import { Button } from "@/components/ui/button"
@@ -29,36 +29,28 @@ export function CustomerFormSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
   customer: Customer | null
-  onSave: (data: CustomerFormData) => void
+  onSave: (data: CustomerFormData) => void | Promise<void>
 }) {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    status: "active" as CustomerStatus,
-  })
+  const [form, setForm] = useState(() =>
+    customer
+      ? {
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          status: customer.status,
+          image: null as File | null,
+        }
+      : {
+          name: "",
+          email: "",
+          phone: "",
+          status: "active" as CustomerStatus,
+          image: null as File | null,
+        }
+  )
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (!open) return
-
-    setForm(
-      customer
-        ? {
-            name: customer.name,
-            email: customer.email,
-            phone: customer.phone,
-            status: customer.status,
-          }
-        : {
-            name: "",
-            email: "",
-            phone: "",
-            status: "active",
-          }
-    )
-  }, [customer, open])
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
@@ -66,12 +58,21 @@ export function CustomerFormSheet({
       return
     }
 
-    onSave({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      status: form.status,
-    })
+    setSaving(true)
+    try {
+      await onSave({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        status: form.status,
+        image: form.image,
+      })
+      onOpenChange(false)
+    } catch {
+      // The parent displays the API error; keep the sheet open for correction.
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -124,6 +125,39 @@ export function CustomerFormSheet({
                 required
               />
             </Field>
+            <Field>
+              <FieldLabel htmlFor="customer-image">Ảnh khách hàng</FieldLabel>
+              {customer?.imageUrl ? (
+                <img
+                  src={customer.imageUrl}
+                  alt={customer.name}
+                  className="h-32 w-32 rounded-full border object-cover"
+                />
+              ) : null}
+              <Input
+                id="customer-image"
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null
+                  if (file && !file.type.startsWith("image/")) {
+                    toastError("Vui lòng chọn một tệp ảnh")
+                    event.currentTarget.value = ""
+                    return
+                  }
+                  if (file && file.size > 10 * 1024 * 1024) {
+                    toastError("Ảnh không được vượt quá 10 MB")
+                    event.currentTarget.value = ""
+                    return
+                  }
+                  setForm((current) => ({ ...current, image: file }))
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                JPG, PNG, WEBP; tối đa 10 MB.
+                {form.image ? ` Đã chọn: ${form.image.name}` : ""}
+              </p>
+            </Field>
             <FieldGroup className="grid gap-4 sm:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="customer-phone">Số điện thoại</FieldLabel>
@@ -168,11 +202,16 @@ export function CustomerFormSheet({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            disabled={saving}
           >
             Huỷ
           </Button>
-          <Button type="submit" form="customer-form-sheet">
-            {customer ? "Lưu thay đổi" : "Thêm khách hàng"}
+          <Button type="submit" form="customer-form-sheet" disabled={saving}>
+            {saving
+              ? "Đang lưu..."
+              : customer
+                ? "Lưu thay đổi"
+                : "Thêm khách hàng"}
           </Button>
         </SheetFooter>
       </SheetContent>

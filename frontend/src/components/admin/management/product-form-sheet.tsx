@@ -1,5 +1,5 @@
 import type { FormEvent } from "react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { AppSelect } from "@/components/common/app-select"
 import { Button } from "@/components/ui/button"
@@ -40,39 +40,30 @@ export function ProductFormSheet({
   onOpenChange: (open: boolean) => void
   product: Product | null
   categories: string[]
-  onSave: (data: ProductFormData) => void
+  onSave: (data: ProductFormData) => void | Promise<void>
 }) {
-  const [form, setForm] = useState({
-    name: "",
-    sku: "",
-    category: categories[0] ?? "",
-    price: "",
-    status: "active" as ProductStatus,
-  })
+  const [form, setForm] = useState(() =>
+    product
+      ? {
+          name: product.name,
+          sku: product.sku,
+          category: product.category,
+          price: formatPriceInput(product.price),
+          status: product.status,
+          image: null as File | null,
+        }
+      : {
+          name: "",
+          sku: "",
+          category: categories[0] ?? "",
+          price: "",
+          status: "active" as ProductStatus,
+          image: null as File | null,
+        }
+  )
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (!open) return
-
-    setForm(
-      product
-        ? {
-            name: product.name,
-            sku: product.sku,
-            category: product.category,
-            price: formatPriceInput(product.price),
-            status: product.status,
-          }
-        : {
-            name: "",
-            sku: "",
-            category: categories[0] ?? "",
-            price: "",
-            status: "active",
-          }
-    )
-  }, [categories, open, product])
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const rawPrice = form.price.replace(/,/g, "")
@@ -90,13 +81,22 @@ export function ProductFormSheet({
       return
     }
 
-    onSave({
-      name: form.name.trim(),
-      sku: form.sku.trim(),
-      category: form.category,
-      price,
-      status: form.status,
-    })
+    setSaving(true)
+    try {
+      await onSave({
+        name: form.name.trim(),
+        sku: form.sku.trim(),
+        category: form.category,
+        price,
+        status: form.status,
+        image: form.image,
+      })
+      onOpenChange(false)
+    } catch {
+      // The parent displays the API error; keep the sheet open for correction.
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -190,6 +190,39 @@ export function ProductFormSheet({
               </Field>
             </FieldGroup>
             <Field>
+              <FieldLabel htmlFor="product-image">Ảnh sản phẩm</FieldLabel>
+              {product?.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="h-32 w-full rounded-lg border object-cover"
+                />
+              ) : null}
+              <Input
+                id="product-image"
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null
+                  if (file && !file.type.startsWith("image/")) {
+                    toastError("Vui lòng chọn một tệp ảnh")
+                    event.currentTarget.value = ""
+                    return
+                  }
+                  if (file && file.size > 10 * 1024 * 1024) {
+                    toastError("Ảnh không được vượt quá 10 MB")
+                    event.currentTarget.value = ""
+                    return
+                  }
+                  setForm((current) => ({ ...current, image: file }))
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                JPG, PNG, WEBP; tối đa 10 MB.
+                {form.image ? ` Đã chọn: ${form.image.name}` : ""}
+              </p>
+            </Field>
+            <Field>
               <FieldLabel htmlFor="product-price">Giá bán (VNĐ)</FieldLabel>
               <Input
                 id="product-price"
@@ -214,11 +247,16 @@ export function ProductFormSheet({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            disabled={saving}
           >
             Huỷ
           </Button>
-          <Button type="submit" form="product-form-sheet">
-            {product ? "Lưu thay đổi" : "Thêm sản phẩm"}
+          <Button type="submit" form="product-form-sheet" disabled={saving}>
+            {saving
+              ? "Đang lưu..."
+              : product
+                ? "Lưu thay đổi"
+                : "Thêm sản phẩm"}
           </Button>
         </SheetFooter>
       </SheetContent>
