@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
 import { PasswordInput } from "@/components/ui/password-input"
+import { Spinner } from "@/components/ui/spinner"
+import { registerAccount } from "@/api/auth"
+import { getApiErrorMessage } from "@/api/errors"
+import { toastError, toastSuccess } from "@/utils/toast"
 
 const formSchema = z
   .object({
@@ -32,9 +36,26 @@ export const Component = () => {
     resolver: zodResolver(formSchema),
   })
 
-  const onSubmit = () => {
-    navigate("/login", { replace: true })
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const response = await registerAccount({
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+        full_name: values.name.trim(),
+      })
+      toastSuccess(response.message)
+      navigate("/login", { replace: true })
+    } catch (error) {
+      toastError(
+        getApiErrorMessage(
+          error,
+          "Không thể đăng ký tài khoản. Vui lòng thử lại."
+        )
+      )
+    }
   }
+
+  const isSubmitting = form.formState.isSubmitting
 
   return (
     <>
@@ -61,6 +82,7 @@ export const Component = () => {
                   aria-invalid={fieldState.invalid}
                   autoComplete="name"
                   placeholder="Họ và tên"
+                  disabled={isSubmitting}
                   {...field}
                 />
               </InputGroup>
@@ -81,6 +103,7 @@ export const Component = () => {
                   autoComplete="email"
                   placeholder="Email"
                   type="email"
+                  disabled={isSubmitting}
                   {...field}
                 />
               </InputGroup>
@@ -100,6 +123,7 @@ export const Component = () => {
                 autoComplete="new-password"
                 className="h-9 w-full"
                 placeholder="Mật khẩu"
+                disabled={isSubmitting}
                 {...field}
               />
               <FieldError errors={[fieldState.error]} />
@@ -120,13 +144,20 @@ export const Component = () => {
                 autoComplete="new-password"
                 className="h-9 w-full"
                 placeholder="Nhập lại mật khẩu"
+                disabled={isSubmitting}
                 {...field}
               />
               <FieldError errors={[fieldState.error]} />
             </Field>
           )}
         />
-        <Button className="w-full" type="submit" size="lg">
+        <Button
+          className="w-full"
+          type="submit"
+          size="lg"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? <Spinner data-icon="inline-start" /> : null}
           Đăng ký
         </Button>
       </form>

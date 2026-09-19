@@ -4,12 +4,10 @@ This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
 
 ## Local API and login sessions
 
-In development, the browser calls `/api/v1` on the frontend origin so the
-HttpOnly SameSite refresh cookie remains available. Vite proxies those requests
-to the origin configured by `VITE_API_URL` in `.env.development`. The Network
-panel therefore shows `localhost:4000/api/...`, while the actual upstream is
-the configured backend tunnel. Restart the development server after changing
-the target URL.
+All browser requests, including authentication and refresh, call
+`VITE_API_URL` directly. The backend must allow the current frontend origin,
+enable credentialed CORS, and issue a cookie compatible with the frontend and
+backend origins. Restart the development server after changing the API URL.
 
 Supported account roles match the backend: `ADMIN`, `MANAGER`, `ANALYST`,
 `SALES`, `CSKH`, and `USER`. `USER` opens the customer area; staff roles open
