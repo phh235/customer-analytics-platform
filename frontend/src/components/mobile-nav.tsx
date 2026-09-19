@@ -9,7 +9,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { useLogout } from "@/hooks/use-logout"
 import { Portal, PortalBackdrop } from "@/components/portal"
 import { cn } from "@/lib/utils"
-import { navLinks } from "@/components/header"
+import { clientNavLinks } from "@/config/client-navigation"
 import { useAuthStore } from "@/stores/use-auth-store"
 
 export function MobileNav() {
@@ -42,7 +42,7 @@ export function MobileNav() {
             data-slot="open"
           >
             <div className="grid gap-2">
-              {navLinks.map((link) => (
+              {clientNavLinks.map((link) => (
                 <Link
                   className={cn(
                     buttonVariants({ variant: "ghost" }),
@@ -60,7 +60,7 @@ export function MobileNav() {
               {user ? (
                 <>
                   <div className="flex min-w-0 items-center gap-3 px-3 py-2">
-                    <UserAvatar email={user.email} />
+                    <UserAvatar email={user.email} name={user.full_name} />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
                         {user.full_name}

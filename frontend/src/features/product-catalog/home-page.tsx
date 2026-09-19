@@ -1,9 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from "react"
+import { lazy, Suspense } from "react"
 
 import { Link } from "react-router"
 
-import { getApiErrorMessage } from "@/api/errors"
-import { getProducts, type ProductRecord } from "@/api/products"
 import { ClientPageLayout } from "@/components/client-page-layout"
 import { ProductCard } from "@/components/product-card"
 import { ProductCardSkeleton } from "@/features/product-catalog/product-card-skeleton"
@@ -11,10 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BRAND_NAME } from "@/lib/brand"
+import { useProducts } from "@/hooks/use-products"
 import { useAuthStore } from "@/stores/use-auth-store"
-import { toastError } from "@/utils/toast"
 import { ArrowRight } from "lucide-react"
 import { LineShadowText } from "@/components/line-shadow-text"
+import azukiLogo from "@/assets/azuki-logo-primary.png"
 // import Integrations from "@/integrations"
 
 const PRODUCT_SKELETON_IDS = ["one", "two", "three", "four"] as const
@@ -23,26 +22,9 @@ export const Component = () => {
   const isSessionPending = useAuthStore(
     (state) => state.status === "unknown" || state.status === "loading"
   )
-  const [products, setProducts] = useState<ProductRecord[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let cancelled = false
-    void getProducts({ page: 1, size: 4 })
-      .then((response) => {
-        if (!cancelled) setProducts(response.records)
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) toastError(getApiErrorMessage(error))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const productsQuery = useProducts({ page: 1, size: 4 })
+  const products = productsQuery.data?.records ?? []
+  const loading = productsQuery.isPending
 
   return (
     <ClientPageLayout>
@@ -55,23 +37,23 @@ export const Component = () => {
         <PanelContent className="flex flex-col items-center justify-center p-0 text-left md:flex-row">
           {isSessionPending || loading ? (
             <>
-              <div className="flex w-full max-w-xl flex-col gap-3 px-6 py-8 md:flex-1 md:px-8 md:py-10">
+              <div className="flex w-full max-w-xl flex-col gap-3 px-6 py-6 md:flex-1 md:px-8 md:py-8">
                 <Skeleton className="h-8 w-4/5" />
                 <Skeleton className="h-5 w-full" />
                 <Skeleton className="h-5 w-3/4" />
               </div>
               <div className="flex w-full items-center justify-center p-4 md:flex-1">
-                <Skeleton className="h-72 w-full max-w-xl md:h-88" />
+                <Skeleton className="h-64 w-full max-w-xl md:h-72" />
               </div>
             </>
           ) : (
             <>
-              <div className="flex w-full max-w-xl flex-col gap-3 px-6 py-8 md:flex-1 md:px-8 md:py-10">
+              <div className="flex w-full max-w-xl flex-col gap-3 px-6 py-6 md:flex-1 md:px-8 md:py-8">
                 <h1 className="text-xl font-bold md:text-3xl">
                   Chào mừng bạn đến với{" "}
                   <LineShadowText
-                    shadowColor="var(--color-foreground)"
-                    className="italic"
+                    shadowColor="var(--color-primary)"
+                    className="text-primary italic"
                   >
                     {BRAND_NAME}
                   </LineShadowText>
@@ -83,15 +65,17 @@ export const Component = () => {
               </div>
               <div className="flex w-full items-center justify-center md:flex-1">
                 <Suspense
-                  fallback={<div className="h-80 w-full max-w-xl md:h-96" />}
+                  fallback={<div className="h-64 w-full max-w-xl md:h-72" />}
                 >
                   <AsciiObject
+                    src={azukiLogo}
                     autoRotate
                     autoRotateSpeed={2}
                     floatIntensity={2.8}
+                    highlight="#91AE6E"
                     scale={3.4}
                     yOffset={-0.2}
-                    className="h-80 w-full max-w-xl md:h-96"
+                    className="h-64 w-full max-w-xl md:h-72"
                   />
                 </Suspense>
               </div>

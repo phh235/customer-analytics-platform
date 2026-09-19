@@ -1,1 +1,7 @@
-export { Component, default } from "@/features/product-catalog/products-page"
+import ProductsPage from "@/features/product-catalog/products-page"
+
+export function Component() {
+  return <ProductsPage />
+}
+
+export default Component

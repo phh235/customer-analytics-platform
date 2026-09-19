@@ -39,7 +39,7 @@ export const AppSidebar = ({
   return (
     <Sidebar collapsible="icon" {...props} variant="inset">
       <SidebarHeader>
-        <div className="flex h-13 items-center justify-center overflow-hidden whitespace-nowrap text-primary [&>svg]:size-7 [&>svg]:shrink-0 group-data-[collapsible=icon]:[&>svg]:size-7">
+        <div className="flex h-13 items-center justify-center overflow-hidden whitespace-nowrap text-foreground [&>img]:size-9 [&>img]:shrink-0 group-data-[collapsible=icon]:[&>img]:size-9">
           <MainLogo />
           <span className="ml-2 grid grid-cols-[1fr] opacity-100 transition-[grid-template-columns,margin,opacity] duration-150 ease-linear group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:grid-cols-[0fr] group-data-[collapsible=icon]:opacity-0">
             <span className="min-w-0 overflow-hidden text-base font-medium md:text-lg">

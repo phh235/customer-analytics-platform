@@ -1,12 +1,7 @@
 import { Link } from "react-router"
 
 import { type ProductRecord } from "@/api/products"
-
-const productPriceFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-})
+import { formatCurrency } from "@/lib/format"
 
 type ProductCardProps = {
   product: ProductRecord
@@ -29,7 +24,7 @@ export function ProductCard({ product }: ProductCardProps) {
             src={product.image_url}
           />
         ) : (
-          <span className="text-4xl font-black uppercase tracking-tight text-foreground/15 transition-transform duration-300 group-hover:scale-105 sm:text-5xl">
+          <span className="text-4xl font-black tracking-tight text-foreground/15 uppercase transition-transform duration-300 group-hover:scale-105 sm:text-5xl">
             {product.category.slice(0, 2)}
           </span>
         )}
@@ -40,7 +35,7 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </h3>
         <span className="text-sm font-semibold md:text-base">
-          {productPriceFormatter.format(Number(product.price))}
+          {formatCurrency(Number(product.price))}
         </span>
       </div>
     </Link>
