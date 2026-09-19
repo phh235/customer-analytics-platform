@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   EditIcon,
   FilterXIcon,
@@ -15,14 +15,15 @@ import {
   useQueryStates,
 } from "nuqs"
 
-import { getApiErrorMessage } from "@/api/errors"
 import {
   createProduct,
   deleteProduct,
   getProducts,
   updateProduct,
+  uploadProductImage,
   type ProductRecord,
 } from "@/api/products"
+import { getApiErrorMessage } from "@/api/errors"
 import { useAuthStore } from "@/stores/use-auth-store"
 import {
   CommonTable,
@@ -60,6 +61,7 @@ const mapProduct = (product: ProductRecord): Product => ({
   name: product.name,
   sku: product.sku ?? "",
   category: product.category,
+  imageUrl: product.image_url,
   price: Number(product.price),
   status: product.status === "ACTIVE" ? "active" : "inactive",
   updatedAt: product.updated_at,
@@ -154,10 +156,10 @@ export const Component = () => {
       })
   }, [category, debouncedSearch, direction, products, sort, status])
 
-  const openProductSheet = (product: Product | null = null) => {
+  const openProductSheet = useCallback((product: Product | null = null) => {
     setEditingProduct(product)
     setSheetOpen(true)
-  }
+  }, [])
 
   const handleSave = async (data: ProductFormData) => {
     try {
@@ -174,7 +176,10 @@ export const Component = () => {
       const savedProduct = editingProduct
         ? await updateProduct(editingProduct.id, payload)
         : await createProduct(payload)
-      const mappedProduct = mapProduct(savedProduct)
+      const productWithImage = data.image
+        ? await uploadProductImage(savedProduct.id, data.image)
+        : savedProduct
+      const mappedProduct = mapProduct(productWithImage)
 
       setProducts((current) =>
         editingProduct
@@ -186,10 +191,9 @@ export const Component = () => {
       toastSuccess(
         editingProduct ? "Đã cập nhật sản phẩm" : "Đã thêm sản phẩm mới"
       )
-      setSheetOpen(false)
-      setEditingProduct(null)
     } catch (error: unknown) {
       toastError(getApiErrorMessage(error))
+      throw error
     }
   }
 
@@ -232,13 +236,16 @@ export const Component = () => {
     }
   }
 
-  const toggleSort = (key: ProductSortKey) => {
-    void setQuery({
-      sort: key,
-      direction: sort === key && direction === "asc" ? "desc" : "asc",
-      page: 1,
-    })
-  }
+  const toggleSort = useCallback(
+    (key: ProductSortKey) => {
+      void setQuery({
+        sort: key,
+        direction: sort === key && direction === "asc" ? "desc" : "asc",
+        page: 1,
+      })
+    },
+    [direction, setQuery, sort]
+  )
 
   const updateSearch = (value: string) => {
     void setQuery(
@@ -258,142 +265,168 @@ export const Component = () => {
 
   const currentPage = Math.max(page, 1)
 
-  const columns: CommonTableColumn<Product>[] = [
-    {
-      id: "productCode",
-      header: "Mã sản phẩm",
-      className: "min-w-28 whitespace-nowrap",
-      cell: (product) => (
-        <span className="text-sm whitespace-nowrap">{product.productCode}</span>
-      ),
-    },
-    {
-      id: "product",
-      header: (
-        <SortButton
-          label="Sản phẩm"
-          sortKey="name"
-          activeKey={sort}
-          direction={direction}
-          onClick={() => toggleSort("name")}
-        />
-      ),
-      className: "min-w-52 whitespace-nowrap",
-      cell: (product) => (
-        <span className="whitespace-nowrap">{product.name}</span>
-      ),
-      skeletonClassName: "h-6 w-4/5",
-    },
-    {
-      id: "sku",
-      header: "SKU",
-      className: "min-w-28 whitespace-nowrap",
-      cell: (product) => (
-        <span className="text-sm whitespace-nowrap">{product.sku}</span>
-      ),
-    },
-    {
-      id: "category",
-      header: (
-        <SortButton
-          label="Danh mục"
-          sortKey="category"
-          activeKey={sort}
-          direction={direction}
-          onClick={() => toggleSort("category")}
-        />
-      ),
-      className: "min-w-40 whitespace-nowrap",
-      cell: (product) => (
-        <span className="whitespace-nowrap">{product.category}</span>
-      ),
-    },
-    {
-      id: "price",
-      header: (
-        <SortButton
-          label="Giá bán"
-          sortKey="price"
-          activeKey={sort}
-          direction={direction}
-          onClick={() => toggleSort("price")}
-        />
-      ),
-      className: "min-w-32 whitespace-nowrap",
-      cell: (product) => (
-        <span className="whitespace-nowrap">
-          {formatCurrency(product.price)}
-        </span>
-      ),
-    },
-    {
-      id: "status",
-      header: "Trạng thái",
-      className: "min-w-28 whitespace-nowrap",
-      cell: (product) => {
-        const isActive = product.status === "active"
-
-        return (
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <Switch
-              checked={isActive}
-              disabled={!canManageProducts}
-              onCheckedChange={(checked) =>
-                setStatusTarget({
-                  id: product.id,
-                  name: product.name,
-                  nextStatus: checked ? "active" : "inactive",
-                })
-              }
-              aria-label={isActive ? "Ẩn" : "Hiển thị"}
+  const columns: CommonTableColumn<Product>[] = useMemo(
+    () => [
+      {
+        id: "image",
+        header: "Ảnh",
+        className: "w-16",
+        cell: (product) =>
+          product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="size-10 rounded-md object-cover"
+              loading="lazy"
             />
-            <StatusBadge status={product.status} entity="product" />
-          </div>
-        )
+          ) : (
+            <div
+              aria-label={`Chưa có ảnh ${product.name}`}
+              className="flex size-10 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground"
+            >
+              {product.name.slice(0, 1).toUpperCase()}
+            </div>
+          ),
       },
-    },
-    {
-      id: "updatedAt",
-      header: "Cập nhật",
-      className: "min-w-28 whitespace-nowrap",
-      cell: (product) => (
-        <span className="whitespace-nowrap">
-          {formatDate(product.updatedAt)}
-        </span>
-      ),
-    },
-    {
-      id: "actions",
-      header: "Thao tác",
-      className: "w-24 text-right",
-      cell: (product) => (
-        <TableActions
-          actions={[
-            {
-              key: "edit",
-              label: "Chỉnh sửa",
-              icon: <EditIcon />,
-              disabled: !canManageProducts,
-              onClick: () => openProductSheet(product),
-            },
-            {
-              key: "delete",
-              label: "Xoá",
-              icon: <Trash2Icon />,
-              disabled: !canManageProducts,
-              variant: "destructive",
-              onClick: () =>
-                setDeleteTarget({
-                  type: "product",
-                  id: product.id,
-                  name: product.name,
-                }),
-            },
-          ]}
-        />
-      ),
-    },
-  ]
+      {
+        id: "productCode",
+        header: "Mã sản phẩm",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (product) => (
+          <span className="text-sm whitespace-nowrap">
+            {product.productCode}
+          </span>
+        ),
+      },
+      {
+        id: "product",
+        header: (
+          <SortButton
+            label="Sản phẩm"
+            sortKey="name"
+            activeKey={sort}
+            direction={direction}
+            onClick={() => toggleSort("name")}
+          />
+        ),
+        className: "min-w-52 whitespace-nowrap",
+        cell: (product) => (
+          <span className="whitespace-nowrap">{product.name}</span>
+        ),
+        skeletonClassName: "h-6 w-4/5",
+      },
+      {
+        id: "sku",
+        header: "SKU",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (product) => (
+          <span className="text-sm whitespace-nowrap">{product.sku}</span>
+        ),
+      },
+      {
+        id: "category",
+        header: (
+          <SortButton
+            label="Danh mục"
+            sortKey="category"
+            activeKey={sort}
+            direction={direction}
+            onClick={() => toggleSort("category")}
+          />
+        ),
+        className: "min-w-40 whitespace-nowrap",
+        cell: (product) => (
+          <span className="whitespace-nowrap">{product.category}</span>
+        ),
+      },
+      {
+        id: "price",
+        header: (
+          <SortButton
+            label="Giá bán"
+            sortKey="price"
+            activeKey={sort}
+            direction={direction}
+            onClick={() => toggleSort("price")}
+          />
+        ),
+        className: "min-w-32 whitespace-nowrap",
+        cell: (product) => (
+          <span className="whitespace-nowrap">
+            {formatCurrency(product.price)}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        header: "Trạng thái",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (product) => {
+          const isActive = product.status === "active"
+
+          return (
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Switch
+                checked={isActive}
+                disabled={!canManageProducts}
+                onCheckedChange={(checked) =>
+                  setStatusTarget({
+                    id: product.id,
+                    name: product.name,
+                    nextStatus: checked ? "active" : "inactive",
+                  })
+                }
+                aria-label={isActive ? "Ẩn" : "Hiển thị"}
+              />
+              <StatusBadge status={product.status} entity="product" />
+            </div>
+          )
+        },
+      },
+      {
+        id: "updatedAt",
+        header: "Cập nhật",
+        className: "min-w-28 whitespace-nowrap",
+        cell: (product) => (
+          <span className="whitespace-nowrap">
+            {formatDate(product.updatedAt)}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Thao tác",
+        className: "w-24 text-right",
+        cell: (product) => (
+          <TableActions
+            actions={[
+              {
+                key: "edit",
+                label: "Chỉnh sửa",
+                icon: <EditIcon />,
+                disabled: !canManageProducts,
+                onClick: () => openProductSheet(product),
+              },
+              {
+                key: "delete",
+                label: "Xoá",
+                icon: <Trash2Icon />,
+                disabled: !canManageProducts,
+                variant: "destructive",
+                onClick: () =>
+                  setDeleteTarget({
+                    type: "product",
+                    id: product.id,
+                    name: product.name,
+                  }),
+              },
+            ]}
+          />
+        ),
+      },
+    ],
+    [canManageProducts, direction, openProductSheet, sort, toggleSort]
+  )
 
   return (
     <div className="mx-auto flex w-full flex-col gap-6">
@@ -474,6 +507,7 @@ export const Component = () => {
       </div>
 
       <ProductFormSheet
+        key={`${editingProduct?.id ?? "new"}-${sheetOpen ? "open" : "closed"}`}
         open={sheetOpen}
         onOpenChange={(open) => {
           setSheetOpen(open)

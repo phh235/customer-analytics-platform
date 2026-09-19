@@ -5,7 +5,10 @@ export const STAFF_ROLES = [
   "ADMIN",
   "ANALYST",
 ] as const satisfies readonly UserRole[]
-export const CLIENT_ROLES = ["CLIENT"] as const satisfies readonly UserRole[]
+export const CLIENT_ROLES = [
+  "CLIENT",
+  "USER",
+] as const satisfies readonly UserRole[]
 
 interface RedirectLocation {
   pathname: string
@@ -34,6 +37,7 @@ export function getHomePathForRole(role: UserRole) {
     case "ANALYST":
       return "/dashboard"
     case "CLIENT":
+    case "USER":
       return "/"
     default:
       return "/login"
@@ -46,9 +50,8 @@ export function canRoleAccessPath(role: UserRole, pathname: string) {
     return role === "ADMIN" || role === "ANALYST"
   }
   if (pathname === "/" || isPathWithin(pathname, "/products")) {
-    return role === "CLIENT"
+    return role === "CLIENT" || role === "USER"
   }
-
   return false
 }
 
