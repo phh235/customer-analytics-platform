@@ -31,7 +31,8 @@ class ErrorCode(Enum):
     TOKEN_EXPIRED = (401, "Session expired, please login again")
     TOKEN_INVALID = (401, "Invalid authentication token")
     INVALID_CREDENTIALS = (401, "Email or password is incorrect")
-
+    INVALID_OTP = (400, "Invalid or expired OTP")
+    INVALID_PASSWORD_RESET_TOKEN = (400, "Invalid or expired password reset token")
     # Authorization
     FORBIDDEN = (403, "Access denied")
     PERMISSION_DENIED = (403, "You do not have permission to perform this action")
@@ -48,6 +49,10 @@ class ErrorCode(Enum):
 
     # Rate limit
     TOO_MANY_REQUESTS = (429, "Too many requests, please slow down")
+    ANALYTICS_QUERY_REJECTED = (
+        422,
+        "Analytics query rejected by safety policy",
+    )
 
     # ── 5xx Server Errors ──────────────────────────────
     INTERNAL_SERVER_ERROR = (500, "Internal server error")

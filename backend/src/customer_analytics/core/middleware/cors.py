@@ -7,6 +7,7 @@ IMPORTANT: allow_credentials=True is required for HTTP-only cookies.
 When using cookies for auth, CORS must be properly configured:
 - allow_credentials=True (allows cookies)
 - allow_origins must NOT be ["*"] in production (browsers reject it)
+- allow_origin_regex may be used for controlled development tunnel domains
 - In production, list specific frontend origins
 """
 
@@ -20,10 +21,11 @@ from customer_analytics.app.config import settings
 
 def build_cors_middleware(app: FastAPI) -> None:
     """Đăng ký CORS middleware nếu có origins cấu hình."""
-    if settings.BACKEND_CORS_ORIGINS:
+    if settings.BACKEND_CORS_ORIGINS or settings.BACKEND_CORS_ORIGIN_REGEX:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=settings.BACKEND_CORS_ORIGINS,
+            allow_origin_regex=settings.BACKEND_CORS_ORIGIN_REGEX,
             allow_credentials=True,  # Required for HTTP-only cookies
             allow_methods=["*"],
             allow_headers=["*"],

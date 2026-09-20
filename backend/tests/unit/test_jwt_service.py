@@ -37,13 +37,13 @@ def test_decode_access_token_valid():
     permissions = ["users:read", "analytics:read"]
     token = create_access_token(
         user_id=user_id,
-        role_code="ANALYST",
+        role_code="USER",
         permissions=permissions,
     )
     payload = decode_access_token(token)
 
     assert payload["sub"] == str(user_id)
-    assert payload["role"] == "ANALYST"
+    assert payload["role"] == "USER"
     assert payload["permissions"] == permissions
     assert payload["type"] == "access"
 

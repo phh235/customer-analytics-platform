@@ -29,12 +29,18 @@ from customer_analytics.app.features.analytics.infrastructure.models.analytics_h
     PurchasePredictionModel,
     SegmentHistoryModel,
 )
+from customer_analytics.app.features.analytics.infrastructure.models.analytics_query_audit import (  # noqa: E501, F401
+    AnalyticsQueryAuditModel,
+)
 from customer_analytics.app.features.analytics.infrastructure.models.model_registry import (  # noqa: E501, F401
     ModelRegistryModel,
 )
 from customer_analytics.app.features.customer.infrastructure.models.customer import (  # noqa: F401
     CustomerAssignmentModel,
     CustomerModel,
+)
+from customer_analytics.app.features.identity.infrastructure.models.password_reset_challenge import (  # noqa: E501, F401
+    PasswordResetChallengeModel,
 )
 from customer_analytics.app.features.identity.infrastructure.models.refresh_token import (  # noqa: E501, F401
     RefreshTokenModel,

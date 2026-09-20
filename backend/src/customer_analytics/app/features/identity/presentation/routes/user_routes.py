@@ -208,12 +208,13 @@ async def update_user(
     unit_of_work: UnitOfWorkDep,
 ) -> UserResponse:
     """Cap nhat tai khoan (ADMIN only)."""
-    update_model = UserUpdateModel(
-        full_name=body.full_name,
-        role_code=body.role_code,
-        status=UserStatus(body.status) if body.status is not None else None,
-        team_id=str(body.team_id) if body.team_id else None,
-    )
+    update_payload = body.model_dump(exclude_unset=True)
+    if "status" in update_payload:
+        update_payload["status"] = UserStatus(update_payload["status"])
+    if "team_id" in update_payload and update_payload["team_id"] is not None:
+        update_payload["team_id"] = str(update_payload["team_id"])
+
+    update_model = UserUpdateModel(**update_payload)
     use_case = UpdateUserUseCaseImpl(unit_of_work)
     result = await use_case((str(user_id), update_model, str(current_user.id_)))
     return UserResponse.model_validate(result)

@@ -6,6 +6,8 @@ Config.py only defines types and validation — no hardcoded defaults.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import field_validator
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,6 +26,21 @@ class Settings(BaseSettings):
     FRONTEND_URL: str
     IMPORT_STORAGE_DIR: str
     MODEL_STORAGE_DIR: str = "storage/models"
+    # ── AI chat ───────────────────────────────────────────────
+    GROQ_API_KEY: str | None = None
+    GROQ_MODEL: str = "openai/gpt-oss-20b"
+    GROQ_TIMEOUT_SECONDS: float = 30.0
+    GROQ_TEMPERATURE: float = 0.7
+    GROQ_MAX_COMPLETION_TOKENS: int = 1024
+    GROQ_REASONING_FORMAT: Literal["hidden", "parsed", "raw"] = "hidden"
+    GROQ_REASONING_EFFORT: Literal["none", "default", "low", "medium", "high"] = "low"
+    # ── Controlled analytics gateway ───────────────────────
+    AI_ANALYTICS_DATABASE_URL: str | None = None
+    AI_ANALYTICS_STATEMENT_TIMEOUT_MS: int = 3000
+    AI_ANALYTICS_MAX_RESULT_ROWS: int = 100
+    AI_ANALYTICS_MAX_SQL_LENGTH: int = 10_000
+    AI_ANALYTICS_MAX_JOINS: int = 5
+    AI_ANALYTICS_MAX_QUERY_COST: float = 100_000.0
 
     # ── Business analytics ────────────────────────────────
     ANALYSIS_TIMEZONE: str = "Asia/Ho_Chi_Minh"
@@ -36,6 +53,7 @@ class Settings(BaseSettings):
 
     # ── CORS ─────────────────────────────────────────────
     BACKEND_CORS_ORIGINS: list[str]
+    BACKEND_CORS_ORIGIN_REGEX: str | None = None
 
     # ── Database ─────────────────────────────────────────
     POSTGRES_HOST: str
@@ -88,11 +106,21 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI: str
 
+    # ── Email ─────────────────────────────────────────────
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_FROM_EMAIL: str | None = None
+    SMTP_FROM_NAME: str = "Customer Analytics"
+    SMTP_USE_TLS: bool = True
+
     # ── Cloudinary ─────────────────────────────────────────
     CLOUDINARY_CLOUD_NAME: str | None = None
     CLOUDINARY_API_KEY: str | None = None
     CLOUDINARY_API_SECRET: str | None = None
     CLOUDINARY_PRODUCT_FOLDER: str = "customer-analytics/products"
+    CLOUDINARY_CUSTOMER_FOLDER: str = "customer-analytics/customers"
 
     @property
     def cloudinary_is_configured(self) -> bool:
@@ -105,17 +133,16 @@ class Settings(BaseSettings):
             )
         )
 
-    # ── Dataset-aligned Potential Score and segmentation ─────
+    # ── Potential Score configuration ─────────────────────
     SCORE_WEIGHT_RECENCY: float = 0.35
     SCORE_WEIGHT_FREQUENCY: float = 0.30
     SCORE_WEIGHT_MONETARY: float = 0.20
     SCORE_WEIGHT_INTERACTION: float = 0.15
-    SCORE_WEIGHT_TREND: float = 0.0
-    SCORING_CONFIGURATION_VERSION: str = "CONFIG_DATASET_V1"
-    SEGMENT_HIGH_VALUE_SCORE: int = 80
-    SEGMENT_LOYAL_SCORE: int = 80
-    SEGMENT_AT_RISK_RECENCY_DAYS: int = 60
-    SEGMENT_NEW_CUSTOMER_DAYS: int = 30
+    SCORE_COMPONENT_MAX: int = 5
+    SCORE_SCALE_MULTIPLIER: float = 20
+    SCORING_CONFIGURATION_VERSION: str = "SCRIPT_DUAN_V4_EXCEL_PARITY"
+    POTENTIAL_HIGH_THRESHOLD: int = 80
+    POTENTIAL_THRESHOLD: int = 60
 
     # ── ML acceptance gates ───────────────────────────────
     ML_MIN_LIFT_TOP10: float = 2.0
@@ -126,15 +153,12 @@ class Settings(BaseSettings):
     @property
     def score_weights(self) -> dict[str, float]:
         """Return configured potential-score weights."""
-        raw = {
+        return {
             "recency": self.SCORE_WEIGHT_RECENCY,
             "frequency": self.SCORE_WEIGHT_FREQUENCY,
             "monetary": self.SCORE_WEIGHT_MONETARY,
             "interaction": self.SCORE_WEIGHT_INTERACTION,
-            "trend": self.SCORE_WEIGHT_TREND,
         }
-        total = sum(raw.values())
-        return {key: value / total for key, value in raw.items()}
 
     # ── Validation ───────────────────────────────────────
 
@@ -156,12 +180,17 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         return v.upper()
 
+    @field_validator("BACKEND_CORS_ORIGINS")
+    @classmethod
+    def normalize_cors_origins(cls, origins: list[str]) -> list[str]:
+        """Normalize configured origins to browser Origin header format."""
+        return [origin.rstrip("/") for origin in origins]
+
     @field_validator(
         "SCORE_WEIGHT_RECENCY",
         "SCORE_WEIGHT_FREQUENCY",
         "SCORE_WEIGHT_MONETARY",
         "SCORE_WEIGHT_INTERACTION",
-        "SCORE_WEIGHT_TREND",
     )
     @classmethod
     def validate_score_weight(cls, v: float) -> float:
