@@ -21,6 +21,9 @@ from customer_analytics.app.features.identity.application.usecases.get_users imp
 from customer_analytics.app.features.identity.application.usecases.login_user import (
     LoginUserUseCaseImpl,
 )
+from customer_analytics.app.features.identity.application.usecases.register_user import (  # noqa: E501
+    RegisterUserUseCaseImpl,
+)
 from customer_analytics.app.features.identity.application.usecases.update_user import (
     UpdateUserUseCaseImpl,
 )
@@ -135,7 +138,7 @@ async def test_create_user_hashes_password_and_assigns_role() -> None:
                 email="new-user@example.com",
                 password="StrongPassword123!",
                 full_name="New User",
-                role_code="ANALYST",
+                role_code="USER",
             ),
         )
     )
@@ -148,15 +151,32 @@ async def test_create_user_hashes_password_and_assigns_role() -> None:
     assert unit_of_work.committed is True
 
 
-def test_create_user_model_accepts_client_role() -> None:
+@pytest.mark.asyncio
+async def test_public_registration_always_assigns_user_role() -> None:
+    repository = FakeUserRepository()
+    unit_of_work = FakeUnitOfWork(repository)
+
+    result = await RegisterUserUseCaseImpl(unit_of_work)(
+        email="public@example.com",
+        password="StrongPassword123!",
+        full_name="Public User",
+    )
+
+    assert result.role_code == "USER"
+    assert repository.created is not None
+    assert repository.created.role_code == "USER"
+    assert unit_of_work.committed is True
+
+
+def test_create_user_model_accepts_user_role() -> None:
     model = UserCreateModel(
         email="customer@example.com",
         password="Customer123!",
         full_name="Customer",
-        role_code="CLIENT",
+        role_code="USER",
     )
 
-    assert model.role_code == "CLIENT"
+    assert model.role_code == "USER"
 
 
 @pytest.mark.asyncio
@@ -229,13 +249,13 @@ async def test_get_users_forwards_filters_and_sorting() -> None:
 
 
 @pytest.mark.asyncio
-async def test_client_role_can_login_without_backoffice_permissions() -> None:
+async def test_user_role_can_login_without_backoffice_permissions() -> None:
     user = UserEntity(
         id_=str(uuid4()),
         email="customer@example.com",
         password_hash=hash_password("Customer123!"),
         full_name="Customer",
-        role_code="CLIENT",
+        role_code="USER",
     )
     repository = FakeLoginUserRepository(user)
     unit_of_work = FakeLoginUnitOfWork(repository)
@@ -243,7 +263,7 @@ async def test_client_role_can_login_without_backoffice_permissions() -> None:
 
     result = await use_case(("customer@example.com", "Customer123!"))
 
-    assert result.role_code == "CLIENT"
+    assert result.role_code == "USER"
     assert result.permissions == []
     assert result.last_login_at is not None
     assert repository.updated is not None

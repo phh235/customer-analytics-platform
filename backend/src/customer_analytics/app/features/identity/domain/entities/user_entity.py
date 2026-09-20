@@ -25,7 +25,7 @@ class UserEntity:
         password_hash: str,
         full_name: str,
         status: str = "ACTIVE",
-        role_code: str = "ANALYST",
+        role_code: str = "USER",
         role_id: str | None = None,
         permissions: list[str] | None = None,
         is_active: bool = True,
@@ -37,6 +37,7 @@ class UserEntity:
         google_id: str | None = None,
         auth_provider: str = "local",
         team_id: str | None = None,
+        customer_id: str | None = None,
     ):
         self.id_ = id_
         self.email = email
@@ -55,6 +56,7 @@ class UserEntity:
         self.google_id = google_id
         self.auth_provider = auth_provider
         self.team_id = team_id
+        self.customer_id = customer_id
 
     def update_entity(
         self,
@@ -158,6 +160,7 @@ class UserEntity:
             "failed_login_count": self.failed_login_count,
             "locked_until": self.locked_until,
             "google_id": self.google_id,
+            "customer_id": self.customer_id,
             "auth_provider": self.auth_provider,
             "team_id": self.team_id,
         }

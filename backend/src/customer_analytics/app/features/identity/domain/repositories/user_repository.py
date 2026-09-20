@@ -42,6 +42,11 @@ class UserRepository(BaseRepository[UserEntity]):
         raise NotImplementedError()
 
     @abstractmethod
+    async def update_password(self, user_id: str, password_hash: str) -> None:
+        """Replace a user's password hash."""
+        raise NotImplementedError()
+
+    @abstractmethod
     async def find_all(
         self,
         skip: int = 0,
