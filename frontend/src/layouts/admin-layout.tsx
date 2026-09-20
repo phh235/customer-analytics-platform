@@ -9,6 +9,7 @@ import {
 import { ThemeToggle } from "@/components/common/theme-toggle"
 import { CommandPalette } from "@/components/command-palette"
 import { Separator } from "@/components/ui/separator"
+import { AiChatWidget } from "@/components/ai-chat-widget"
 
 export const AdminLayout = () => {
   return (
@@ -31,6 +32,7 @@ export const AdminLayout = () => {
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-0">
           <Outlet />
         </div>
+        <AiChatWidget />
       </SidebarInset>
     </SidebarProvider>
   )
