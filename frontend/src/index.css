@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@source "../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -111,6 +112,24 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --expo-out: linear(
+    0 0%,
+    0.1684 2.66%,
+    0.3165 5.49%,
+    0.446 8.52%,
+    0.5581 11.78%,
+    0.6535 15.29%,
+    0.7341 19.11%,
+    0.8011 23.3%,
+    0.8557 27.93%,
+    0.8962 32.68%,
+    0.9283 38.01%,
+    0.9529 44.08%,
+    0.9711 51.14%,
+    0.9833 59.06%,
+    0.9915 68.74%,
+    1 100%
+  );
 }
 
 .dark {
@@ -201,6 +220,61 @@
   input[type="password"]::-ms-reveal,
   input[type="password"]::-ms-clear {
     display: none;
+  }
+
+  ::view-transition-old(root) {
+    animation: 250ms cubic-bezier(0.4, 0, 0.2, 1) both fade-out;
+  }
+
+  ::view-transition-new(root) {
+    animation: 250ms cubic-bezier(0.4, 0, 0.2, 1) both fade-in;
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (min-width: 768px) {
+    ::view-transition-group(root) {
+      animation-timing-function: var(--expo-out);
+    }
+
+    ::view-transition-new(root) {
+      mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PGRlZnM+PGZpbHRlciBpZD0iYmx1ciI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iMiIvPjwvZmlsdGVyPjwvZGVmcz48Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMTgiIGZpbGw9IndoaXRlIiBmaWx0ZXI9InVybCgjYmx1cikiLz48L3N2Zz4=")
+        top left / 0 no-repeat;
+      mask-origin: content-box;
+      animation: scale 1s;
+      animation-fill-mode: both;
+      transform-origin: top left;
+    }
+
+    ::view-transition-old(root),
+    .dark::view-transition-old(root) {
+      z-index: -1;
+      animation: scale 1s;
+      animation-fill-mode: both;
+      transform-origin: top left;
+    }
+
+    @keyframes scale {
+      to {
+        mask-size: 350vmax;
+      }
+    }
   }
 }
 

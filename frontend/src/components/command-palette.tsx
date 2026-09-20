@@ -48,12 +48,12 @@ export function CommandPalette() {
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <Command className="h-auto! rounded-none! bg-transparent p-0">
-          <SquircleSurface className="rounded-[22px] border border-border/80 bg-muted/95 p-1 shadow-xl [--card-clip-radius:12px] dark:bg-[#191919]">
+          <SquircleSurface className="rounded-[22px] border border-border/80 bg-muted/95 p-1 [--card-clip-radius:12px] sm:rounded-[24px] sm:[--card-clip-radius:13px] dark:bg-[#191919]">
             <CommandInput
               placeholder="Tìm kiếm trang..."
               wrapperClassName="p-1.5"
             />
-            <SquircleSurface className="overflow-hidden rounded-[18px] border border-border/60 bg-popover [--card-clip-radius:10px]">
+            <SquircleSurface className="overflow-hidden rounded-[18px] border border-border/60 bg-popover [--card-clip-radius:10px] sm:rounded-[20px] sm:[--card-clip-radius:11px]">
               <CommandList>
                 <CommandEmpty className="text-muted-foreground">
                   Không tìm thấy kết quả.

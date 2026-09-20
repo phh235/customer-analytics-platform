@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
+type DropdownMenuRootProps = React.ComponentProps<typeof DropdownMenu>
+
 export interface AppDropdownItem {
   key: string
   label: React.ReactNode
@@ -33,6 +35,9 @@ export interface AppDropdownProps {
   sideOffset?: number
   contentClassName?: string
   className?: string
+  open?: DropdownMenuRootProps["open"]
+  onOpenChange?: DropdownMenuRootProps["onOpenChange"]
+  onOpenChangeComplete?: DropdownMenuRootProps["onOpenChangeComplete"]
   "aria-label"?: string
 }
 
@@ -46,10 +51,17 @@ export const AppDropdown = ({
   sideOffset = 4,
   contentClassName,
   className,
+  open,
+  onOpenChange,
+  onOpenChangeComplete,
   "aria-label": ariaLabel = "Tùy chọn thao tác",
 }: AppDropdownProps) => {
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      open={open}
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={onOpenChangeComplete}
+    >
       <DropdownMenuTrigger
         render={
           trigger ?? (
@@ -90,7 +102,9 @@ export const AppDropdown = ({
             >
               {item.icon}
               <span className="flex-1">{item.label}</span>
-              {item.endIcon}
+              {item.endIcon ? (
+                <span className="text-primary">{item.endIcon}</span>
+              ) : null}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
