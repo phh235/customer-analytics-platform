@@ -1,0 +1,168 @@
+### Request                                                                                                                      
+
+ ```http
+POST /api/v1/auth/register
+Content-Type: application/json
+ ```
+
+ ```json
+{
+  "email": "user@example.com",
+  "password": "StrongPassword123!",
+  "full_name": "Nguyen Van A"
+}
+ ```
+
+ Client không được gửi:
+
+ ```json
+{
+  "role_code": "ADMIN",
+  "team_id": "...",
+  "permissions": []
+}
+ ```
+
+ ### Response
+
+ ```http
+201 Created
+ ```
+
+ ```json
+{
+  "message": "Đăng ký tài khoản thành công.",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "full_name": "Nguyen Van A",
+    "status": "ACTIVE",
+    "role_code": "USER",
+    "created_at": "2026-03-10T10:00:00Z"
+  }
+}
+ ```
+
+ ### Business rule
+
+ ```text
+Public registration
+    -> role_code = USER
+    -> status = ACTIVE
+    -> team_id = null
+    -> không tự cấp quyền admin/analytics
+ ```
+
+ Role của tài khoản được gán cố định ở backend, không lấy từ request body.
+
+ Flow đăng ký cập nhật
+
+ ```text
+User nhập email, password, full_name
+        |
+        v
+POST /api/v1/auth/register
+        |
+        v
+Validate dữ liệu
+        |
+        v
+Kiểm tra email trùng
+        |
+        v
+Tìm role USER
+        |
+        v
+Hash password
+        |
+        v
+Tạo user với role USER
+        |
+        v
+Trả 201 Created
+        |
+        v
+Frontend chuyển sang màn hình login
+ ```                                                                                                                              
+                                                                                                                                  
+ Endpoint admin hiện tại vẫn giữ nguyên:                                                                                          
+                                                                                                                                  
+ ```http                                                                                                                          
+POST /api/v1/users
+ ```                                                                                                                              
+
+ Endpoint này tiếp tục cho phép admin tạo tài khoản với role/team theo quyền quản trị.
+
+ Flow quên mật khẩu không thay đổi
+
+ ### Gửi OTP
+
+ ```http
+POST /api/v1/auth/password/forgot/request
+ ```
+
+ ```json
+{
+  "email": "user@example.com"
+}
+ ```
+
+ Response luôn generic:
+
+ ```json
+{
+  "message": "Nếu email tồn tại, mã OTP đã được gửi.",
+  "expires_in": 600,
+  "retry_after": 60
+}
+ ```
+
+ ### Verify OTP
+
+ ```http
+POST /api/v1/auth/password/forgot/verify
+ ```
+
+ ```json
+{
+  "email": "user@example.com",
+  "otp": "482913"
+}
+ ```
+
+ Response:
+
+ ```json
+{
+  "reset_token": "rt_7c5d8a6f7f...",
+  "expires_in": 600
+}
+ ```
+
+ ### Reset password
+
+ ```http
+POST /api/v1/auth/password/reset
+ ```
+
+ ```json
+{
+  "reset_token": "rt_7c5d8a6f7f...",
+  "new_password": "NewStrongPassword123!"
+}
+ ```
+
+ Response:
+
+ ```json
+{
+  "message": "Đổi mật khẩu thành công. Vui lòng đăng nhập lại."
+}
+ ```
+
+ Sau reset:
+
+ - Vô hiệu hóa OTP.
+ - Vô hiệu hóa reset token.
+ - Revoke toàn bộ refresh token/session hiện tại.
+ - Không tự động đăng nhập.

@@ -1,0 +1,542 @@
+Ba phần này dùng hai cơ chế khác nhau:                                                                                
+
+ - Potential Score: công thức rule-based từ RFM + Interaction.
+ - Dự đoán mua lại: mô hình ML trả về xác suất 0–1.
+ - Danh sách ưu tiên: kết hợp hai kết quả trên bằng điều kiện OR.
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ 1. Dự đoán mua lại
+
+ Mục đích
+
+ Dự đoán một khách hàng có phát sinh ít nhất một đơn hàng hợp lệ trong khoảng thời gian tới hay không.
+
+ Ví dụ:
+
+ ```text
+Xác suất mua lại: 0.76
+ ```
+
+ UI hiển thị:
+
+ ```text
+76.0%
+ ```
+
+ Đây là xác suất do model ước lượng, không phải Potential Score và không phải kết luận chắc chắn khách hàng sẽ mua.
+
+ Endpoint:
+
+ ```http
+GET /api/v1/analytics/predictions/purchase-repeat
+ ```
+                                                                                                                           
+ Mặc định:                                                                                                                 
+                                                                                                                           
+ ```text                                                                                                                   
+Feature window: 365 ngày
+Prediction horizon: 90 ngày
+ ```                                                                                                                       
+                                                                                                                           
+ ────────────────────────────────────────────────────────────────────────────────                                          
+                                                                                                                           
+ Cách tạo dữ liệu huấn luyện                                                                                               
+                                                                                                                           
+ Với ngày phân tích D:
+
+ ```text
+Feature window: [D - 365 ngày, D)
+Label window:   [D, D + 90 ngày)
+ ```
+
+ Ví dụ:
+
+ ```text
+D = 2026-04-20
+
+Dữ liệu dùng làm feature:
+2025-04-20 đến hết 2026-04-19
+
+Khoảng kiểm tra khách có mua lại:
+2026-04-20 đến hết 2026-07-19
+ ```
+
+ Label được tạo như sau:
+
+ ```text
+label = 1
+nếu khách có ít nhất một đơn hợp lệ trong 90 ngày tương lai
+
+label = 0
+nếu khách không có đơn hợp lệ trong 90 ngày tương lai
+ ```
+
+ Đơn hợp lệ gồm các trạng thái:
+
+ ```text
+PAID
+COMPLETED
+DELIVERED
+PARTIAL_REFUNDED
+ ```
+
+ Khách không có đơn trong feature window bị loại khỏi dữ liệu train vì không tạo được Recency.
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ 8 feature đầu vào model
+
+ Model hiện dùng đúng 8 biến:
+
+ ┌───────────────────┬────────────────────────────────────────────┐                                                        
+ │ Feature           │ Cách tính                                  │                                                        
+ ├───────────────────┼────────────────────────────────────────────┤                                                        
+ │ recency           │ Số ngày từ đơn gần nhất đến ngày phân tích │                                                        
+ ├───────────────────┼────────────────────────────────────────────┤                                                        
+ │ frequency         │ Số đơn hợp lệ trong feature window         │                                                        
+ ├───────────────────┼────────────────────────────────────────────┤                                                        
+ │ monetary          │ Tổng net_amount trong feature window       │                                                        
+ ├───────────────────┼────────────────────────────────────────────┤                                                        
+ │ aov               │ monetary / frequency                       │                                                        
+ ├───────────────────┼────────────────────────────────────────────┤                                                        
+ │ purchase_cycle    │ Khoảng cách trung bình giữa các lần mua    │                                                        
+ ├───────────────────┼────────────────────────────────────────────┤                                                        
+ │ interaction_score │ Tổng tương tác toàn bộ lịch sử             │                                                        
+ ├───────────────────┼────────────────────────────────────────────┤                                                        
+ │ product_diversity │ Số sản phẩm khác nhau đã mua               │                                                        
+ ├───────────────────┼────────────────────────────────────────────┤                                                        
+ │ review_score      │ Điểm review trung bình                     │                                                        
+ └───────────────────┴────────────────────────────────────────────┘                                                        
+                                                                                                                           
+ Các giá trị thiếu được thay bằng 0 khi đưa vào model.                                                                     
+                                                                                                                           
+ Lưu ý:                                                                                                                    
+                                                                                                                           
+ - interaction_score trong model là giá trị raw, không phải InteractionNormalized dùng cho Potential Score.                
+ - frequency của model là số đơn trong feature window, không phải lifetime frequency dùng cho FScore.                      
+                                                                                                                           
+ ────────────────────────────────────────────────────────────────────────────────                                          
+                                                                                                                           
+ Chuẩn hóa feature                                                                                                         
+                                                                                                                           
+ Trước khi train, mỗi feature được standardize:                                                                            
+
+ ```text
+x_normalized = (x - mean) / scale
+ ```
+
+ Trong đó:
+
+ - mean: trung bình của feature trên tập training.
+ - scale: độ lệch chuẩn.
+ - Nếu độ lệch chuẩn bằng 0, hệ thống dùng 1 để tránh chia cho 0.
+
+ Các thông số này được lưu trong file artifact model để dùng lại khi dự đoán.
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ Hai loại model
+
+ ### Logistic Regression
+
+ Công thức:
+
+ ```text                                                                                                                   
+z = intercept
+    + weight1 × feature1
+    + weight2 × feature2
+    + ...
+    + weight8 × feature8
+
+probability = 1 / (1 + e^(-z))
+ ```                                                                                                                       
+                                                                                                                           
+ Kết quả luôn nằm trong khoảng:                                                                                            
+                                                                                                                           
+ ```text                                                                                                                   
+0 đến 1
+ ```                                                                                                                       
+                                                                                                                           
+ Model hiện tại đang deploy trong database là:                                                                             
+                                                                                                                           
+ ```text                                                                                                                   
+Model: Logistic Regression
+Version: purchase-repeat-2026-09-19_2
+Status: DEPLOYED
+ ```                                                                                                                       
+                                                                                                                           
+ ### Random Forest                                                                                                         
+                                                                                                                           
+ Trong code hiện tại đây là ensemble đơn giản gồm nhiều decision stump:                                                    
+                                                                                                                           
+ - 8 feature.                                                                                                              
+ - Mỗi feature có 4 ngưỡng quantile.                                                                                       
+ - Tổng cộng khoảng 32 stump.                                                                                              
+ - Mỗi stump bỏ phiếu 0 hoặc 1.                                                                                            
+ - Xác suất là tỷ lệ số stump bỏ phiếu 1.                                                                                  
+                                                                                                                           
+ ```text                                                                                                                   
+purchase_probability = số phiếu 1 / tổng số stump
+ ```                                                                                                                       
+                                                                                                                           
+ Đây là Random Forest tối giản, deterministic, không phải implementation đầy đủ của thư viện scikit-learn.                 
+                                                                                                                           
+ ────────────────────────────────────────────────────────────────────────────────
+
+ 2. Danh sách ưu tiên
+
+ Endpoint:
+
+ ```http
+GET /api/v1/analytics/priority-list
+ ```
+
+ Danh sách này không có một công thức priority score riêng.
+
+ Một khách hàng được đưa vào danh sách nếu thỏa ít nhất một điều kiện:
+
+ ```text
+Potential Score >= 80
+OR
+Purchase Probability >= 0.5
+ ```
+
+ Các ngưỡng hiện tại:
+
+ ```text
+Potential high threshold: 80
+Probability threshold: 0.5 = 50%
+ ```
+
+ Ví dụ:
+
+ ┌───────────┬─────────────┬───────────────────┬─────────────────────────┐
+ │ Potential │ Probability │ Có vào danh sách? │ Lý do                   │
+ ├───────────┼─────────────┼───────────────────┼─────────────────────────┤
+ │ 85        │ 0.20        │ Có                │ Potential cao           │
+ ├───────────┼─────────────┼───────────────────┼─────────────────────────┤
+ │ 70        │ 0.65        │ Có                │ Xác suất mua lại cao    │
+ ├───────────┼─────────────┼───────────────────┼─────────────────────────┤
+ │ 75        │ 0.40        │ Không             │ Không đạt điều kiện nào │
+ ├───────────┼─────────────┼───────────────────┼─────────────────────────┤
+ │ 90        │ 0.80        │ Có                │ Cả hai điều kiện        │
+ └───────────┴─────────────┴───────────────────┴─────────────────────────┘
+
+ Nguyễn Gia Quân với:
+
+ ```text
+Potential Score = 75.20
+ ```
+
+ sẽ chỉ vào danh sách ưu tiên nếu:
+
+ ```text                                                                                                                   
+purchase_probability >= 0.5
+ ```
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ Các thông tin bổ sung trong danh sách
+
+ Sau khi chọn được khách hàng, hệ thống bổ sung:
+
+ ### Danh mục ưa thích
+
+ Lấy danh mục có tổng số lượng sản phẩm mua cao nhất trong feature window:
+
+ ```text
+ORDER BY SUM(order_items.quantity) DESC
+ ```
+
+ ### Chu kỳ mua
+
+ Nếu các ngày mua là:
+
+ ```text
+Ngày 1, Ngày 20, Ngày 50
+ ```
+
+ thì:
+
+ ```text
+Chu kỳ 1 = 19 ngày
+Chu kỳ 2 = 30 ngày
+
+Purchase cycle = (19 + 30) / 2 = 24.5 ngày
+ ```
+
+ ### Khuyến nghị
+
+ Nếu xác suất mua lại cao:
+
+ ```text
+Ưu tiên ưu đãi cá nhân hóa và nhắc mua lại.
+ ```
+
+ Nếu chỉ Potential Score cao:
+
+ ```text
+Nuôi dưỡng theo danh mục ưa thích và chu kỳ mua.
+ ```
+
+ ### Sắp xếp
+
+ Danh sách được sort theo:
+
+ ```text
+1. Potential Score giảm dần
+2. Purchase Probability giảm dần
+ ```
+
+ Hiện tại không sort theo tích:
+
+ ```text
+Potential Score × Probability
+ ```
+
+ và cũng chưa có priority_score tổng hợp.
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ 3. Quản lý mô hình
+
+ Trang này quản lý vòng đời model:
+
+ ```text
+TRAINED
+   ↓
+EVALUATING
+   ↓
+APPROVED
+   ↓
+DEPLOYED
+ ```
+
+ Các trạng thái khác:
+
+ ```text
+DRAFT
+TRAINING
+RETIRED
+FAILED
+ ```
+
+ Train model
+
+ Form hiện có:
+
+ ┌────────────────────┬───────────────────────────┐
+ │ Tham số            │ Mặc định                  │
+ ├────────────────────┼───────────────────────────┤
+ │ Model type         │ Logistic Regression       │
+ ├────────────────────┼───────────────────────────┤
+ │ Feature window     │ 365 ngày                  │
+ ├────────────────────┼───────────────────────────┤
+ │ Prediction horizon │ 90 ngày                   │
+ ├────────────────────┼───────────────────────────┤
+ │ Analysis date      │ Để trống, backend tự chọn │
+ └────────────────────┴───────────────────────────┘
+
+ Khi bấm Train và evaluate, backend thực hiện:
+
+ 1. Tạo training feature rows.
+ 2. Tạo label mua lại.
+ 3. Train model.
+ 4. Lưu artifact JSON trong MODEL_STORAGE_DIR.
+ 5. Ghi model vào bảng model_registry với trạng thái TRAINED.
+ 6. Tính metrics.
+ 7. Đổi sang APPROVED nếu vượt đủ các gate.
+
+ Train không tự động đưa model vào sử dụng.
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ Các metrics
+
+ ### Accuracy
+
+ Tỷ lệ dự đoán đúng:
+
+ ```text
+Accuracy = (TP + TN) / tổng số mẫu
+ ```
+
+ ### Precision
+
+ Trong các khách model dự đoán sẽ mua, tỷ lệ thực sự mua:
+
+ ```text
+Precision = TP / (TP + FP)
+ ```
+
+ ### Recall
+
+ Trong các khách thực sự mua, model bắt đúng bao nhiêu:
+
+ ```text
+Recall = TP / (TP + FN)
+ ```
+                                                                                                                           
+ ### F1                                                                                                                    
+                                                                                                                           
+ Cân bằng giữa Precision và Recall:                                                                                        
+                                                                                                                           
+ ```text
+F1 = 2 × Precision × Recall
+     / (Precision + Recall)
+ ```
+
+ ### ROC-AUC
+
+ Đo khả năng xếp hạng khách mua cao hơn khách không mua trên toàn bộ các ngưỡng.
+
+ ### PR-AUC
+
+ Đo chất lượng Precision/Recall theo các ngưỡng xác suất. Đây là metric quan trọng khi nhóm khách mua lại là thiểu số.
+
+ ### Precision@Top10
+
+ Lấy nhóm 10% khách có xác suất cao nhất:
+
+ ```text
+Top K = ceil(tổng số khách × 10%)
+ ```
+
+ Sau đó:
+
+ ```text
+Precision@Top10
+= số khách mua thật trong Top K / K
+ ```
+
+ Ví dụ:                                                                                                                    
+
+ ```text
+78 khách training
+Top K = ceil(78 × 10%) = 8 khách
+
+Nếu 6/8 khách thực sự mua:
+Precision@Top10 = 6 / 8 = 0.75
+ ```
+
+ ### Overall conversion
+
+ Tỷ lệ khách có label 1:
+
+ ```text
+Overall conversion
+= số khách label 1 / tổng số khách training
+ ```
+
+ ### Lift@Top10
+
+ So sánh Precision@Top10 với tỷ lệ mua tự nhiên của toàn bộ tập:
+
+ ```text
+Lift@Top10
+= Precision@Top10 / Overall conversion
+ ```
+
+ Với model hiện tại:
+
+ ```text
+Precision@Top10 = 0.75
+Overall conversion = 0.256410
+
+Lift@Top10 = 0.75 / 0.256410
+           ≈ 2.925
+ ```
+
+ Nghĩa là nhóm Top 10% do model chọn có tỷ lệ mua lại cao khoảng 2.925 lần so với chọn ngẫu nhiên.
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ Điều kiện APPROVED
+
+ Model phải đạt đồng thời:
+
+ ```text
+PR-AUC > Baseline PR-AUC
+
+Lift@Top10 >= 2.0
+
+Precision@Top10 >= 2.0 × Overall conversion
+ ```
+
+ Model hiện tại:
+
+ ```text
+PR-AUC             = 0.601220
+Baseline PR-AUC    = 0.256410
+Lift@Top10         = 2.9250
+Precision@Top10    = 0.750000
+ ```
+
+ Kiểm tra:
+
+ ```text
+0.601220 > 0.256410       đạt
+
+2.9250 >= 2.0             đạt
+
+0.750000 >= 2 × 0.256410  đạt
+0.750000 >= 0.512820
+ ```
+
+ Vì vậy model được APPROVED.
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ Deploy model
+
+ Chỉ model APPROVED mới được deploy.
+
+ Khi deploy:
+
+ ```text
+Model APPROVED → DEPLOYED
+Model DEPLOYED cũ → APPROVED
+ ```
+
+ Hệ thống chỉ chạy prediction từ model có trạng thái:
+
+ ```text
+DEPLOYED
+ ```
+
+ Nếu chưa có model deployed hoặc artifact JSON không đọc được, API prediction trả lỗi 503, không tự dùng model chưa được
+ duyệt.
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ Lưu ý về ngày phân tích
+
+ Hiện tại các endpoint prediction và priority vẫn gọi mặc định:
+
+ ```text
+days = 365
+horizon_days = 90
+analysis_date = ngày hiện tại nếu không truyền
+ ```
+
+ Ví dụ muốn so sánh đúng với Excel AnalysisDate = 2026-08-13, nên gọi:
+
+ ```http
+GET /api/v1/analytics/predictions/purchase-repeat
+    ?days=365
+    &horizon_days=90
+    &analysis_date=2026-08-13
+ ```
+
+ và:
+
+ ```http
+GET /api/v1/analytics/priority-list
+    ?days=365
+    &horizon_days=90
+    &analysis_date=2026-08-13
+ ```
+
+ Nếu không truyền analysis_date, kết quả prediction/priority có thể khác kết quả Excel vì feature window và Recency thay
+ đổi theo ngày chốt.                                                                                                       

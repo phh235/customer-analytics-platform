@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 
 import uuid_utils
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from customer_analytics.app.features.analytics.infrastructure.models.analytics_history import (  # noqa: E501, F401
     PurchasePredictionModel,
@@ -85,12 +85,9 @@ PERMISSIONS = [
 ]
 DEMO_TEAM_CODE = "DEMO_TEAM"
 DEMO_USERS = (
-    ("analyst@example.com", "Demo Analyst", "ANALYST", "Analyst123!"),
     ("user@example.com", "Demo User", "USER", "User123!"),
-    ("manager@example.com", "Demo Manager", "MANAGER", "Manager123!"),
-    ("sales@example.com", "Demo Sales", "SALES", "Sales123!"),
-    ("cskh@example.com", "Demo CSKH", "CSKH", "Cskh123!"),
 )
+SUPPORTED_ROLE_CODES = frozenset({"ADMIN", "USER"})
 
 
 async def seed_permissions() -> dict[str, PermissionModel]:
@@ -149,37 +146,6 @@ async def seed_roles(permissions: dict[str, PermissionModel]) -> dict[str, RoleM
         admin_role.permissions = list(permission_map.values())
         roles["ADMIN"] = admin_role
 
-        # ANALYST role — import and analyze data
-        result = await session.execute(
-            select(RoleModel).where(RoleModel.code == "ANALYST")
-        )
-        analyst_role = result.scalar_one_or_none()
-        if not analyst_role:
-            analyst_role = RoleModel(
-                id=uuid_utils.uuid7(),
-                code="ANALYST",
-                name="Analyst",
-                description="Người phân tích dữ liệu",
-            )
-            session.add(analyst_role)
-        analyst_permissions = [
-            permission_map[code]
-            for code in [
-                "customers:read",
-                "orders:read",
-                "products:read",
-                "analytics:read",
-                "analytics:run",
-                "analytics:score",
-                "analytics:predict",
-                "import:create",
-                "import:read",
-                "consolidation:create",
-            ]
-            if code in permission_map
-        ]
-        analyst_role.permissions = analyst_permissions
-        roles["ANALYST"] = analyst_role
 
         # USER role — customer-facing access without backoffice permissions
         result = await session.execute(
@@ -200,52 +166,23 @@ async def seed_roles(permissions: dict[str, PermissionModel]) -> dict[str, RoleM
             else []
         )
         roles["USER"] = user_role
-
-        role_specs = {
-            "MANAGER": (
-                "Manager",
-                "Quản lý dữ liệu theo team",
-                [
-                    "customers:read",
-                    "orders:read",
-                    "products:read",
-                    "analytics:read",
-                    "analytics:run",
-                    "analytics:score",
-                    "analytics:predict",
-                    "customers:export",
-                ],
-            ),
-            "SALES": (
-                "Sales",
-                "Nhân viên kinh doanh theo khách được giao",
-                ["customers:read", "analytics:read"],
-            ),
-            "CSKH": (
-                "CSKH",
-                "Chăm sóc khách hàng theo khách được giao",
-                ["customers:read", "analytics:read"],
-            ),
-        }
-        for role_code, (role_name, description, permission_codes) in role_specs.items():
-            result = await session.execute(
-                select(RoleModel).where(RoleModel.code == role_code)
+        # Migrate legacy role assignments before removing unsupported roles.
+        result = await session.execute(
+            select(RoleModel).where(~RoleModel.code.in_(SUPPORTED_ROLE_CODES))
+        )
+        legacy_roles = result.scalars().all()
+        if legacy_roles:
+            legacy_role_ids = [role.id for role in legacy_roles]
+            await session.execute(
+                update(UserModel)
+                .where(UserModel.role_id.in_(legacy_role_ids))
+                .values(role_id=user_role.id, team_id=None)
             )
-            role = result.scalar_one_or_none()
-            if role is None:
-                role = RoleModel(
-                    id=uuid_utils.uuid7(),
-                    code=role_code,
-                    name=role_name,
-                    description=description,
-                )
-                session.add(role)
-            role.permissions = [
-                permission_map[code]
-                for code in permission_codes
-                if code in permission_map
-            ]
-            roles[role_code] = role
+            await session.flush()
+            for role in legacy_roles:
+                role.permissions = []
+                await session.delete(role)
+            await session.flush()
 
         await session.commit()
     return roles
@@ -254,17 +191,19 @@ async def seed_roles(permissions: dict[str, PermissionModel]) -> dict[str, RoleM
 async def seed_admin_user(roles: dict[str, RoleModel]) -> UserModel | None:
     """Create initial admin user if not exists."""
     async with AsyncSessionFactory() as session:
-        # Check if admin exists
+        admin_role = roles.get("ADMIN")
+        if not admin_role:
+            raise ValueError("ADMIN role not found")
+
         result = await session.execute(
             select(UserModel).where(UserModel.email == "admin@example.com")
         )
         existing = result.scalar_one_or_none()
         if existing:
+            existing.role_id = admin_role.id
+            existing.status = UserStatus.ACTIVE
+            await session.commit()
             return existing
-
-        admin_role = roles.get("ADMIN")
-        if not admin_role:
-            raise ValueError("ADMIN role not found")
 
         user = UserModel(
             id=uuid_utils.uuid7(),
@@ -321,7 +260,7 @@ async def seed_demo_users(roles: dict[str, RoleModel]) -> dict[str, UserModel]:
 
             user.role_id = role.id
             user.status = UserStatus.ACTIVE
-            user.team_id = team.id if role_code == "MANAGER" else None
+            user.team_id = None
             users[role_code] = user
 
         await session.flush()
@@ -330,12 +269,7 @@ async def seed_demo_users(roles: dict[str, RoleModel]) -> dict[str, UserModel]:
                 await session.execute(select(CustomerModel).order_by(CustomerModel.id))
             ).scalars()
         )
-        scoped_users = [
-            users["ANALYST"],
-            users["USER"],
-            users["SALES"],
-            users["CSKH"],
-        ]
+        scoped_users = [users["USER"]]
         for index, customer in enumerate(customers):
             customer.team_id = team.id
             customer.assigned_user_id = scoped_users[index % len(scoped_users)].id
