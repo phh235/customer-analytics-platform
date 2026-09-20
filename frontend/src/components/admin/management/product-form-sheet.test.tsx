@@ -37,6 +37,7 @@ describe("ProductFormSheet", () => {
       price: 1290000,
       status: "active",
       image: null,
+      removeImage: false,
     })
   })
 })
