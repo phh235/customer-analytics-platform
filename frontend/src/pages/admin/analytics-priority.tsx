@@ -50,7 +50,7 @@ export const Component = () => {
           <div className="min-w-0">
             <p className="truncate font-medium">{customer.name}</p>
             <p className="text-xs text-muted-foreground">
-              {customer.customer_code}
+              {customer.customer_code || "-"}
             </p>
           </div>
         </div>

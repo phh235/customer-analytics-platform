@@ -49,7 +49,7 @@ export const Component = () => {
           <div className="min-w-0">
             <p className="truncate font-medium">{prediction.name}</p>
             <p className="text-xs text-muted-foreground">
-              {prediction.customer_code}
+              {prediction.customer_code || "-"}
             </p>
           </div>
         </div>

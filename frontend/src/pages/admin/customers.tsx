@@ -214,7 +214,7 @@ export const Component = () => {
         className: "min-w-28 whitespace-nowrap",
         cell: (customer) => (
           <span className="text-sm whitespace-nowrap">
-            {customer.customerCode}
+            {customer.customerCode || "-"}
           </span>
         ),
       },
@@ -252,7 +252,7 @@ export const Component = () => {
         header: "Email",
         className: "min-w-64 whitespace-nowrap",
         cell: (customer) => (
-          <span className="whitespace-nowrap">{customer.email}</span>
+          <span className="whitespace-nowrap">{customer.email || "-"}</span>
         ),
       },
       {
@@ -260,7 +260,7 @@ export const Component = () => {
         header: "Số điện thoại",
         className: "min-w-36 whitespace-nowrap",
         cell: (customer) => (
-          <span className="whitespace-nowrap">{customer.phone}</span>
+          <span className="whitespace-nowrap">{customer.phone || "-"}</span>
         ),
       },
       {
