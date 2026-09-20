@@ -1,0 +1,972 @@
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/geist-400.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./assets/fonts/geist-500.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./assets/fonts/geist-600.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/geist-mono-400.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./assets/fonts/geist-mono-500.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./assets/fonts/geist-mono-600.ttf") format("truetype");
+}
+
+:root {
+  color-scheme: light;
+  --surface: #ffffff;
+  --paper: #ffffff;
+  --ink: #101010;
+  --muted: #676767;
+  --faint: #9b9b9b;
+  --border: #e4e4e4;
+  --border-strong: #c8c8c8;
+  --accent: #91ae6e;
+  --accent-dark: #668546;
+  --accent-soft: #eef4e7;
+  --black: #050505;
+  --slide-width: min(100vw, calc(100svh * 16 / 9));
+  --slide-height: min(100svh, calc(100vw * 9 / 16));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #111;
+  color: var(--ink);
+  font-family: "Geist", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.deck {
+  display: flex;
+  width: 100vw;
+  height: 100svh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.deck::-webkit-scrollbar {
+  display: none;
+}
+
+.slide-shell {
+  display: grid;
+  flex: 0 0 100vw;
+  width: 100vw;
+  min-height: 100svh;
+  place-items: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.slide {
+  position: relative;
+  display: grid;
+  width: var(--slide-width);
+  height: var(--slide-height);
+  overflow: hidden;
+  background: var(--surface);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: 0.72fr repeat(10, minmax(0, 1fr)) 0.45fr;
+}
+
+.slide::after {
+  position: absolute;
+  right: 4.8%;
+  bottom: 2.8%;
+  color: var(--faint);
+  content: attr(data-page) " / 10";
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(8px, 0.72vw, 12px);
+}
+
+.slide--dark {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.slide--dark::after {
+  color: var(--faint);
+}
+
+.masthead {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.25rem;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  margin: 0 4.8%;
+  border-bottom: 1px solid var(--border);
+}
+
+.masthead::after {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  padding-right: 58px;
+  margin-left: auto;
+  background-image: url("./assets/uit-logo.png");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 46px auto;
+  color: #242424;
+  content: "UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH\A TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN";
+  font-size: clamp(7px, 0.7vw, 11px);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: right;
+  white-space: pre;
+}
+
+.slide--dark .masthead {
+  border-color: var(--border);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: clamp(10px, 0.92vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.brand img {
+  width: clamp(20px, 2vw, 32px);
+  height: clamp(20px, 2vw, 32px);
+  object-fit: contain;
+}
+
+.section-name {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: clamp(9px, 0.82vw, 13px);
+}
+
+.slide--dark .section-name {
+  color: var(--muted);
+}
+
+.content {
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  grid-column: 1 / -1;
+  grid-row: 2 / 12;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 2.2%;
+  padding: 3.2% 4.8% 2.2%;
+}
+
+.eyebrow {
+  margin: 0 0 0.7rem;
+  color: var(--accent-dark);
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(8px, 0.78vw, 12px);
+  font-weight: 500;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.title {
+  max-width: 92%;
+  font-size: clamp(34px, 3.5vw, 60px);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+.slide-title {
+  grid-column: 1 / 12;
+  margin: 0;
+  font-size: clamp(29px, 2.75vw, 47px);
+  font-weight: 600;
+  letter-spacing: -0.038em;
+  line-height: 1.08;
+}
+
+.lede {
+  max-width: 68ch;
+  color: var(--muted);
+  font-size: clamp(16px, 1.58vw, 26px);
+  line-height: 1.45;
+}
+
+.body {
+  color: var(--muted);
+  font-size: clamp(13px, 1.16vw, 19px);
+  line-height: 1.48;
+}
+
+.label {
+  color: var(--muted);
+  font-size: clamp(10px, 0.9vw, 15px);
+}
+
+.mono {
+  font-family: "Geist Mono", monospace;
+}
+
+.accent {
+  color: var(--accent-dark);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.cover-content {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  grid-template-rows: auto 1fr auto;
+}
+
+.cover-course {
+  color: var(--muted);
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(10px, 0.92vw, 15px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.cover-subject {
+  margin-top: 0.65rem;
+  color: var(--ink);
+  font-family: "Geist", Arial, sans-serif;
+  font-size: clamp(15px, 1.4vw, 23px);
+  font-weight: 600;
+  letter-spacing: 0.015em;
+}
+
+.cover-title {
+  align-self: center;
+}
+
+.cover-english {
+  margin-top: 1.8rem;
+  color: var(--accent-dark);
+  font-size: clamp(15px, 1.45vw, 24px);
+}
+
+.cover-meta {
+  display: grid;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  grid-template-columns: 1.4fr 0.8fr;
+  gap: 8%;
+}
+
+.cover-meta-label {
+  margin-bottom: 0.9rem;
+  color: var(--muted);
+  font-size: clamp(9px, 0.8vw, 13px);
+}
+
+.member-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.member-list p {
+  display: grid;
+  max-width: 390px;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  font-size: clamp(11px, 1vw, 16px);
+}
+
+.member-list span {
+  color: var(--muted);
+  font-family: "Geist Mono", monospace;
+}
+
+.advisor {
+  text-align: right;
+}
+
+.advisor strong {
+  font-size: clamp(12px, 1.1vw, 18px);
+}
+
+.advisor .label {
+  margin-top: 1.3rem;
+}
+
+.rule {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+
+.rule--strong {
+  background: var(--border-strong);
+}
+
+.problem-intro,
+.objectives-title,
+.architecture-title,
+.score-title,
+.workflow-title,
+.auth-title,
+.interface-title {
+  align-self: start;
+  grid-column: 1 / -1;
+}
+
+.problem-intro {
+  display: grid;
+  align-content: start;
+  grid-row: 1 / 5;
+  grid-template-columns: 8fr 4fr;
+  gap: 5%;
+}
+
+.problem-intro .lede {
+  margin-top: 1.5rem;
+}
+
+.problem-list {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 6 / 10;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4%;
+}
+
+.problem-item {
+  padding-top: 1rem;
+  border-top: 2px solid var(--border-strong);
+}
+
+.problem-item:first-child {
+  border-color: var(--accent-dark);
+}
+
+.problem-item h3 {
+  margin-bottom: 0.9rem;
+  font-size: clamp(17px, 1.5vw, 25px);
+  font-weight: 600;
+}
+
+.objectives {
+  grid-column: 1 / -1;
+  grid-row: 3 / 9;
+}
+
+.objective-row {
+  display: grid;
+  align-items: start;
+  padding: 1.2% 0;
+  border-bottom: 1px solid var(--border);
+  grid-template-columns: 0.7fr 2fr 7fr;
+}
+
+.objective-number {
+  color: var(--faint);
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(9px, 0.85vw, 14px);
+}
+
+.objective-row:first-child .objective-number {
+  color: var(--accent-dark);
+}
+
+.objective-row strong {
+  font-size: clamp(15px, 1.32vw, 22px);
+}
+
+.audiences {
+  display: grid;
+  grid-column: 1 / 9;
+  grid-row: 9 / 11;
+  grid-template-columns: 1.4fr 2fr 2fr;
+  gap: 4%;
+}
+
+.audience strong {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: clamp(14px, 1.16vw, 19px);
+}
+
+.architecture {
+  display: grid;
+  align-items: center;
+  grid-column: 1 / -1;
+  grid-row: 3 / 11;
+  grid-template-columns: 2.2fr 0.55fr 2.4fr 0.55fr 4fr;
+  gap: 1.4%;
+}
+
+.architecture-node {
+  padding: 8%;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+.architecture-node--core {
+  border-color: var(--black);
+  background: var(--black);
+  color: white;
+}
+
+.architecture-node h3 {
+  margin-bottom: 0.8rem;
+  font-size: clamp(16px, 1.5vw, 25px);
+  font-weight: 600;
+}
+
+.architecture-node .tech {
+  margin-bottom: 1rem;
+  color: var(--accent-dark);
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(10px, 0.9vw, 14px);
+}
+
+.architecture-node .body {
+  font-size: clamp(10px, 0.9vw, 15px);
+}
+
+.architecture-node--core .tech {
+  color: var(--accent);
+}
+
+.architecture-arrow {
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.architecture-arrow::after {
+  display: block;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  margin-left: auto;
+  border-top: 1px solid var(--border-strong);
+  border-right: 1px solid var(--border-strong);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.architecture-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.architecture-stack .architecture-node {
+  display: grid;
+  align-items: baseline;
+  padding: 4.5% 6%;
+  grid-template-columns: 1.2fr 2fr;
+}
+
+.architecture-stack h3 {
+  margin: 0;
+}
+
+.score-components {
+  display: grid;
+  align-items: center;
+  grid-column: 1 / -1;
+  grid-row: 3 / 7;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2.5%;
+}
+
+.score-component {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+}
+
+.score-symbol {
+  color: var(--accent-dark);
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(24px, 2.3vw, 38px);
+  font-weight: 600;
+}
+
+.score-weight {
+  padding-top: 0.25rem;
+  font-size: clamp(12px, 1vw, 16px);
+  font-weight: 600;
+}
+
+.score-component p {
+  grid-column: 1 / -1;
+}
+
+.thresholds {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 7 / 11;
+  padding-top: 2%;
+  border-top: 1px solid var(--border);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3%;
+}
+
+.threshold strong {
+  display: block;
+  margin: 0.45rem 0;
+  font-size: clamp(19px, 1.9vw, 31px);
+}
+
+.workflow {
+  display: grid;
+  align-items: center;
+  grid-column: 1 / -1;
+  grid-row: 4 / 9;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2%;
+}
+
+.workflow-step {
+  min-height: 74%;
+  padding: 10%;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+.workflow-step--focus {
+  border-color: var(--black);
+  background: var(--black);
+  color: white;
+}
+
+.workflow-step .step-number {
+  margin-bottom: 1.6rem;
+  color: var(--accent-dark);
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(9px, 0.78vw, 12px);
+}
+
+.workflow-step--focus .step-number {
+  color: var(--accent);
+}
+
+.workflow-step h3 {
+  margin-bottom: 1rem;
+  font-size: clamp(16px, 1.38vw, 23px);
+}
+
+.workflow-step .body {
+  font-size: clamp(10px, 0.92vw, 15px);
+}
+
+.workflow-summary {
+  align-self: start;
+  grid-column: 3 / 11;
+  grid-row: 10;
+  font-size: clamp(15px, 1.5vw, 24px);
+  font-weight: 600;
+  text-align: center;
+}
+
+.auth-grid,
+.interface-grid {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 3 / 12;
+  grid-template-columns: 7fr 5fr;
+  gap: 5%;
+}
+
+.screenshot {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--paper);
+  object-fit: cover;
+}
+
+.auth-grid .screenshot {
+  align-self: center;
+  aspect-ratio: 16 / 10;
+}
+
+.auth-copy {
+  align-self: center;
+}
+
+.auth-copy h3,
+.interface-copy h3 {
+  margin-bottom: 0.8rem;
+  font-size: clamp(16px, 1.44vw, 24px);
+}
+
+.auth-copy .rule {
+  margin: 1.3rem 0;
+}
+
+.role {
+  margin-top: 2.1rem;
+}
+
+.interface-grid {
+  grid-template-columns: 4fr 8fr;
+}
+
+.interface-copy {
+  display: grid;
+  align-content: center;
+  gap: 2.1rem;
+}
+
+.interface-grid .screenshot {
+  align-self: center;
+  aspect-ratio: 16 / 10;
+}
+
+.interface-pair {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 3 / 12;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.4%;
+}
+
+.interface-pair-primary {
+  display: grid;
+  min-width: 0;
+  gap: 3%;
+}
+
+.interface-pair img {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  object-fit: cover;
+}
+
+.demo-content {
+  grid-column: 1 / -1;
+  grid-row: 2 / 12;
+  align-self: center;
+}
+
+.demo-launch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(18px, 2vw, 32px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.demo-word {
+  display: block;
+  color: var(--ink);
+  font-size: clamp(64px, 11vw, 180px);
+  font-weight: 600;
+  letter-spacing: -0.07em;
+  line-height: 0.86;
+}
+
+.demo-play {
+  display: grid;
+  width: clamp(48px, 5vw, 76px);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--ink);
+  color: white;
+  font-size: clamp(16px, 1.6vw, 24px);
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease;
+}
+
+.demo-hint {
+  position: absolute;
+  bottom: -2rem;
+  left: 0;
+  color: var(--muted);
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(10px, 0.78vw, 13px);
+}
+
+.demo-launch:hover .demo-play,
+.demo-launch:focus-visible .demo-play {
+  transform: scale(1.06);
+  background: var(--accent-dark);
+}
+
+.demo-launch:focus-visible {
+  outline: 2px solid var(--accent-dark);
+  outline-offset: 10px;
+}
+
+.demo-subtitle {
+  margin-top: 2.4rem;
+  color: var(--muted);
+  font-size: clamp(16px, 1.55vw, 25px);
+}
+
+.demo-flow {
+  display: grid;
+  margin-top: 5%;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.5%;
+}
+
+.demo-flow span {
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border-strong);
+  color: var(--muted);
+  font-size: clamp(10px, 0.92vw, 15px);
+}
+
+.demo-flow span:first-child {
+  border-color: var(--accent-dark);
+  color: var(--ink);
+}
+
+.video-dialog {
+  width: min(92vw, 1600px);
+  max-width: none;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 14px;
+  background: #000;
+  box-shadow: 0 30px 100px rgb(0 0 0 / 45%);
+}
+
+.video-dialog::backdrop {
+  background: rgb(0 0 0 / 78%);
+  backdrop-filter: blur(8px);
+}
+
+.video-dialog video {
+  display: block;
+  width: 100%;
+  max-height: 90vh;
+  background: #000;
+  object-fit: contain;
+}
+
+.video-close {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 50%;
+  background: rgb(0 0 0 / 72%);
+  color: white;
+  cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.video-close:hover {
+  background: rgb(0 0 0 / 92%);
+}
+
+.thank-you {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  grid-column: 1 / -1;
+  grid-row: 2 / 12;
+  text-align: center;
+}
+
+.thank-you-logo {
+  width: clamp(72px, 7vw, 112px);
+  margin-bottom: 2.4rem;
+}
+
+.thanks {
+  color: var(--ink);
+  font-size: clamp(48px, 6vw, 96px);
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+}
+
+.thank-you .lede {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.thank-you-meta {
+  margin-top: 4rem;
+  color: var(--muted);
+  font-family: "Geist Mono", monospace;
+  font-size: clamp(10px, 0.9vw, 14px);
+}
+
+.controls {
+  position: fixed;
+  z-index: 20;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid #303030;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.9);
+  color: white;
+  backdrop-filter: blur(12px);
+}
+
+.controls button,
+.slide-counter {
+  min-width: 42px;
+  height: 42px;
+  border: 0;
+  border-right: 1px solid #303030;
+  background: transparent;
+  color: inherit;
+}
+
+.controls button {
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background: #202020;
+}
+
+.slide-counter {
+  display: grid;
+  min-width: 72px;
+  place-items: center;
+  color: #bfbfbf;
+  font-family: "Geist Mono", monospace;
+  font-size: 12px;
+}
+
+.controls > :last-child {
+  border-right: 0;
+}
+
+@media (max-width: 900px) {
+  .problem-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .architecture-node p,
+  .body {
+    line-height: 1.35;
+  }
+}
+
+@media print {
+  @page {
+    size: 13.333in 7.5in;
+    margin: 0;
+  }
+
+  html,
+  body,
+  .deck {
+    width: 13.333in;
+    margin: 0;
+    background: white;
+    overflow: visible;
+  }
+
+  .deck {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  .slide-shell {
+    display: block;
+    width: 13.333in;
+    min-height: 0;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .slide-shell:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  .slide {
+    width: 13.333in;
+    height: 7.5in;
+  }
+
+  .controls {
+    display: none !important;
+  }
+}

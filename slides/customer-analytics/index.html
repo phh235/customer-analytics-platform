@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Customer Analytics Platform · 3CS Store</title>
+    <link rel="icon" type="image/png" href="./assets/3cs-logo.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="deck" aria-label="Customer Analytics Platform presentation">
+      <section class="slide-shell" id="slide-1">
+        <article class="slide" data-page="01">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">Customer Analytics Platform</span>
+          </header>
+          <div class="content">
+            <div class="cover-content">
+              <div class="cover-course">
+                <p>BÁO CÁO ĐỒ ÁN CUỐI KỲ · MÔN IE221</p>
+                <p class="cover-subject">KỸ THUẬT LẬP TRÌNH PYTHON</p>
+              </div>
+              <div class="cover-title">
+                <h1 class="title">
+                  Hệ thống phân khúc khách hàng<br />và dự đoán giá trị mua
+                </h1>
+                <p class="cover-english">Customer Analytics Platform</p>
+              </div>
+              <div class="cover-meta">
+                <div>
+                  <p class="cover-meta-label">Nhóm thực hiện · Nhóm 6</p>
+                  <div class="member-list">
+                    <p><strong>Phan Huy Hoàng</strong><span>25410219</span></p>
+                    <p><strong>Võ Thị Hương Giang</strong><span>25410196</span></p>
+                    <p><strong>Nguyễn Minh Nam</strong><span>25410259</span></p>
+                  </div>
+                </div>
+                <div class="advisor">
+                  <p class="cover-meta-label">Giảng viên hướng dẫn</p>
+                  <p><strong>THS. Nghi Hoàng Khoa</strong></p>
+                  <p class="label">TP. Hồ Chí Minh · 09/2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-2">
+        <article class="slide" data-page="02">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">01 · Tổng quan</span>
+          </header>
+          <div class="content">
+            <div class="problem-intro">
+              <div>
+                <h2 class="slide-title">Bài toán đặt ra</h2>
+                <p class="lede">
+                  Dữ liệu khách hàng, giao dịch và tương tác thường nằm ở nhiều nơi. Doanh
+                  nghiệp khó nhận biết ai có giá trị cao, ai có khả năng mua lại và sản phẩm
+                  nào đang được quan tâm.
+                </p>
+              </div>
+            </div>
+            <div class="problem-list">
+              <div class="problem-item">
+                <h3>Dữ liệu phân tán</h3>
+                <p class="body">
+                  Hồ sơ, đơn hàng và hành vi khó đối chiếu trong một góc nhìn.
+                </p>
+              </div>
+              <div class="problem-item">
+                <h3>Ưu tiên chưa rõ</h3>
+                <p class="body">
+                  Đội ngũ thiếu cơ sở để chọn khách hàng cần chăm sóc trước.
+                </p>
+              </div>
+              <div class="problem-item">
+                <h3>Phản ứng chậm</h3>
+                <p class="body">
+                  Xu hướng sản phẩm và thay đổi hành vi chỉ được phát hiện sau khi đã xảy ra.
+                </p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-3">
+        <article class="slide" data-page="03">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">01 · Tổng quan</span>
+          </header>
+          <div class="content">
+            <h2 class="slide-title objectives-title">Mục tiêu và phạm vi</h2>
+            <div class="objectives">
+              <div class="objective-row">
+                <span class="objective-number">01</span>
+                <strong>Quản lý</strong>
+                <p class="body">Hồ sơ khách hàng, sản phẩm, giao dịch và tài khoản theo quyền.</p>
+              </div>
+              <div class="objective-row">
+                <span class="objective-number">02</span>
+                <strong>Phân tích</strong>
+                <p class="body">Phân khúc hành vi, điểm tiềm năng và xu hướng kinh doanh.</p>
+              </div>
+              <div class="objective-row">
+                <span class="objective-number">03</span>
+                <strong>Dự đoán</strong>
+                <p class="body">Ước lượng khả năng mua lại và tạo danh sách khách hàng ưu tiên.</p>
+              </div>
+              <div class="objective-row">
+                <span class="objective-number">04</span>
+                <strong>Tương tác</strong>
+                <p class="body">Theo dõi lượt xem sản phẩm và hỗ trợ truy vấn bằng 3CS AI.</p>
+              </div>
+            </div>
+            <div class="audiences">
+              <span class="label">Hai không gian sử dụng</span>
+              <div class="audience">
+                <strong>Khách hàng</strong>
+                <p class="label">Xem sản phẩm và tạo tín hiệu quan tâm</p>
+              </div>
+              <div class="audience">
+                <strong>Quản trị viên</strong>
+                <p class="label">Theo dõi dữ liệu và ra quyết định</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-4">
+        <article class="slide" data-page="04">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">02 · Phân tích và thiết kế</span>
+          </header>
+          <div class="content">
+            <div class="architecture-title">
+              <h2 class="slide-title">Kiến trúc tổng thể</h2>
+              <p class="body" style="margin-top: 0.65rem">
+                Các thành phần chính và luồng trao đổi dữ liệu
+              </p>
+            </div>
+            <div class="architecture">
+              <div class="architecture-node">
+                <h3>Giao diện</h3>
+                <p class="tech">React · TypeScript · Vite</p>
+                <p class="body">Client và trang quản trị</p>
+              </div>
+              <div class="architecture-arrow" aria-hidden="true"></div>
+              <div class="architecture-node architecture-node--core">
+                <h3>API và nghiệp vụ</h3>
+                <p class="tech">FastAPI · Python</p>
+                <p class="body" style="color: #cfcfcf">
+                  Xác thực, quyền, kiểm tra dữ liệu và điều phối phân tích
+                </p>
+              </div>
+              <div class="architecture-arrow" aria-hidden="true"></div>
+              <div class="architecture-stack">
+                <div class="architecture-node">
+                  <h3>PostgreSQL</h3>
+                  <p class="body">Khách hàng · giao dịch · phân tích</p>
+                </div>
+                <div class="architecture-node">
+                  <h3>Mô hình ML</h3>
+                  <p class="body">Phân khúc và dự đoán mua lại</p>
+                </div>
+                <div class="architecture-node">
+                  <h3>Dịch vụ ngoài</h3>
+                  <p class="body">Cloudinary · Groq Cloud</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-5">
+        <article class="slide" data-page="05">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">03 · Phân tích dữ liệu</span>
+          </header>
+          <div class="content">
+            <div class="score-title">
+              <h2 class="slide-title">Điểm tiềm năng khách hàng</h2>
+              <p class="body" style="margin-top: 0.65rem">
+                Bốn thành phần được chuẩn hóa tối đa 5 điểm · Tổng điểm tối đa 100
+              </p>
+            </div>
+            <div class="score-components">
+              <div class="score-component">
+                <span class="score-symbol">R</span><span class="score-weight">35%</span>
+                <p class="label">Recency · thời gian từ lần mua gần nhất</p>
+              </div>
+              <div class="score-component">
+                <span class="score-symbol">F</span><span class="score-weight">30%</span>
+                <p class="label">Frequency · tần suất mua</p>
+              </div>
+              <div class="score-component">
+                <span class="score-symbol">M</span><span class="score-weight">20%</span>
+                <p class="label">Monetary · giá trị chi tiêu</p>
+              </div>
+              <div class="score-component">
+                <span class="score-symbol">I</span><span class="score-weight">15%</span>
+                <p class="label">Interaction · mức độ tương tác</p>
+              </div>
+            </div>
+            <div class="thresholds">
+              <div class="threshold">
+                <span class="label">Cao</span><strong>≥ 80</strong>
+                <p class="label">Nhóm ưu tiên</p>
+              </div>
+              <div class="threshold">
+                <span class="label">Tiềm năng</span><strong>60–79,99</strong>
+                <p class="label">Tiếp tục theo dõi</p>
+              </div>
+              <div class="threshold">
+                <span class="label">Bình thường</span><strong>&lt; 60</strong>
+                <p class="label">Chưa đạt ngưỡng</p>
+              </div>
+              <div class="threshold">
+                <span class="label">Không đủ dữ liệu</span><strong>—</strong>
+                <p class="label">Thiếu dữ liệu R/F/M</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-6">
+        <article class="slide" data-page="06">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">03 · Phân tích dữ liệu</span>
+          </header>
+          <div class="content">
+            <h2 class="slide-title workflow-title">Luồng nghiệp vụ phân tích</h2>
+            <div class="workflow">
+              <div class="workflow-step">
+                <p class="step-number">01</p>
+                <h3>Khách hàng</h3>
+                <p class="body">Xem sản phẩm và phát sinh giao dịch</p>
+              </div>
+              <div class="workflow-step">
+                <p class="step-number">02</p>
+                <h3>Thu thập</h3>
+                <p class="body">Hồ sơ, đơn hàng và lượt tương tác</p>
+              </div>
+              <div class="workflow-step workflow-step--focus">
+                <p class="step-number">03</p>
+                <h3>Phân tích</h3>
+                <p class="body" style="color: #cfcfcf">RFM, phân khúc và điểm tiềm năng</p>
+              </div>
+              <div class="workflow-step">
+                <p class="step-number">04</p>
+                <h3>Dự đoán</h3>
+                <p class="body">Khả năng mua lại và sản phẩm quan tâm</p>
+              </div>
+              <div class="workflow-step">
+                <p class="step-number">05</p>
+                <h3>Hành động</h3>
+                <p class="body">Danh sách ưu tiên và chăm sóc phù hợp</p>
+              </div>
+            </div>
+            <p class="workflow-summary">
+              Dữ liệu từ trải nghiệm mua sắm quay lại phục vụ quyết định quản trị
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-7">
+        <article class="slide" data-page="07">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">04 · Giao diện và phân quyền</span>
+          </header>
+          <div class="content">
+            <h2 class="slide-title auth-title">Đăng nhập và phân quyền</h2>
+            <div class="auth-grid">
+              <img class="screenshot" src="./assets/login.png" alt="Màn hình đăng nhập" />
+              <div class="auth-copy">
+                <h3>Hai không gian sau xác thực</h3>
+                <div class="rule"></div>
+                <div class="role">
+                  <h3>Khách hàng</h3>
+                  <p class="body">
+                    Xem danh mục và chi tiết sản phẩm. Mỗi lượt quan tâm tạo thêm dữ liệu
+                    hành vi.
+                  </p>
+                </div>
+                <div class="role">
+                  <h3>Quản trị viên</h3>
+                  <p class="body">
+                    Quản lý dữ liệu, tài khoản, mô hình và toàn bộ báo cáo phân tích.
+                  </p>
+                </div>
+                <p class="eyebrow" style="margin-top: 2.1rem">
+                  JWT · REFRESH SESSION · PERMISSION CHECKS
+                </p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-8">
+        <article class="slide" data-page="08">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">04 · Giao diện và phân quyền</span>
+          </header>
+          <div class="content">
+            <h2 class="slide-title interface-title">Giao diện tiêu biểu</h2>
+            <div class="interface-pair">
+              <div class="interface-pair-primary">
+                <img class="screenshot" src="./assets/client-home.png" alt="Trang chủ khách hàng" />
+                <p class="label">Client · danh mục và sản phẩm nổi bật</p>
+              </div>
+              <div class="interface-pair-primary">
+                <img class="screenshot" src="./assets/dashboard.png" alt="Dashboard quản trị" />
+                <p class="label">Admin · KPI, biểu đồ và bộ lọc phân tích</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-9">
+        <article class="slide" data-page="09">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">05 · Demo hệ thống</span>
+          </header>
+          <div class="content">
+            <div class="demo-content">
+              <button
+                class="demo-launch"
+                type="button"
+                data-video-open
+                aria-label="Phát video demo hệ thống"
+              >
+                <span class="demo-word">DEMO</span>
+                <span class="demo-play" aria-hidden="true">▶</span>
+                <span class="demo-hint">Nhấn để phát video · 04:26</span>
+              </button>
+              <p class="demo-subtitle">
+                Luồng khách hàng đến quản trị và phân tích dữ liệu
+              </p>
+              <div class="demo-flow">
+                <span>Trang chủ client</span>
+                <span>Danh sách sản phẩm</span>
+                <span>Chi tiết sản phẩm</span>
+                <span>Đăng nhập admin</span>
+                <span>Dashboard và phân tích</span>
+                <span>Trợ lý 3CS AI</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="slide-shell" id="slide-10">
+        <article class="slide" data-page="10">
+          <header class="masthead">
+            <div class="brand">
+              <img src="./assets/3cs-logo.png" alt="" />
+              <span>3CS STORE</span>
+            </div>
+            <span class="section-name">06 · Kết luận</span>
+          </header>
+          <div class="content">
+            <div class="thank-you">
+              <img class="thank-you-logo" src="./assets/uit-logo.png" alt="Logo UIT" />
+              <h2 class="thanks">Cảm ơn thầy</h2>
+              <p class="lede">Nhóm xin lắng nghe câu hỏi và góp ý.</p>
+              <p class="thank-you-meta">PHAN HUY HOÀNG · 25410219</p>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <dialog class="video-dialog" data-video-dialog aria-label="Video demo hệ thống">
+      <button class="video-close" type="button" data-video-close aria-label="Đóng video">
+        ×
+      </button>
+      <video
+        data-demo-video
+        src="./assets/demo.mp4?v=original"
+        controls
+        preload="metadata"
+        playsinline
+      ></video>
+    </dialog>
+
+    <nav class="controls" aria-label="Điều khiển slide">
+      <button type="button" data-prev aria-label="Slide trước">←</button>
+      <span class="slide-counter" data-current-slide>1 / 10</span>
+      <button type="button" data-next aria-label="Slide tiếp theo">→</button>
+      <button type="button" data-fullscreen aria-label="Toàn màn hình">⛶</button>
+      <button type="button" data-print aria-label="In hoặc xuất PDF">⎙</button>
+    </nav>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
