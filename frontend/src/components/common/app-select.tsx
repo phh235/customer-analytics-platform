@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
 export interface SelectOption<Value extends string = string> {
   value: Value
@@ -75,7 +76,12 @@ export const AppSelect = <Value extends string = string>({
           {selectedOption?.label}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent className={contentClassName}>
+      <SelectContent
+        className={cn(
+          "w-max max-w-[calc(100vw-2rem)] min-w-(--anchor-width)",
+          contentClassName
+        )}
+      >
         <SelectGroup>
           {options.map((option) => (
             <SelectItem

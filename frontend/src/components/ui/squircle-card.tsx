@@ -25,7 +25,7 @@ export const SquircleSurface = ({
   return (
     <div
       className={cn(
-        "relative flex min-w-0 flex-col rounded-[26px] bg-card text-card-foreground [--card-clip-handle:2.25px] [--card-clip-radius:14px] [clip-path:var(--card-clip-path)] [corner-shape:squircle] not-dark:bg-clip-padding before:pointer-events-none before:absolute before:inset-0 before:[clip-path:var(--card-clip-path)] sm:rounded-[50px] sm:[--card-clip-handle:3px] sm:[--card-clip-radius:20px]",
+        "relative flex min-w-0 flex-col rounded-[26px] bg-card text-card-foreground [--card-clip-handle:2.25px] [--card-clip-radius:14px] [clip-path:var(--card-clip-path)] [corner-shape:squircle] not-dark:bg-clip-padding before:pointer-events-none before:absolute before:inset-0 before:[clip-path:var(--card-clip-path)] sm:rounded-[32px] sm:[--card-clip-handle:2.5px] sm:[--card-clip-radius:16px]",
         className
       )}
       style={
@@ -52,7 +52,7 @@ export function SquircleCard({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card min-w-0 gap-0 overflow-hidden rounded-[22px] border border-border/80 bg-[#f6f6f6] p-1 text-sm text-card-foreground shadow-sm [--card-clip-handle:2.25px] [--card-clip-radius:14px] [--card-spacing:--spacing(4)] data-[size=sm]:[--card-spacing:--spacing(3)] dark:border-border/60 dark:bg-[#191919] [&>[data-slot=card-header]]:py-2.5",
+        "group/card min-w-0 gap-0 overflow-hidden rounded-[22px] border border-border/80 bg-[#f6f6f6] p-1 text-sm text-card-foreground [--card-clip-handle:2.25px] [--card-clip-radius:14px] [--card-spacing:--spacing(4)] data-[size=sm]:[--card-spacing:--spacing(3)] sm:rounded-[28px] sm:[--card-clip-handle:2.5px] sm:[--card-clip-radius:15px] dark:border-border/60 dark:bg-[#191919] [&>[data-slot=card-header]]:py-2.5",
         className
       )}
       {...props}
@@ -68,7 +68,7 @@ export function SquircleCardBody({
     <SquircleSurface
       data-slot="squircle-card-body"
       className={cn(
-        "min-h-0 flex-1 gap-(--card-spacing) overflow-hidden rounded-[18px] border border-border/60 bg-white py-(--card-spacing) shadow-xs [--card-clip-handle:2.25px] [--card-clip-radius:11px] dark:bg-[#212121]",
+        "min-h-0 flex-1 gap-(--card-spacing) overflow-hidden rounded-[18px] border border-border/60 bg-white py-(--card-spacing) [--card-clip-handle:2.25px] [--card-clip-radius:11px] sm:rounded-[24px] sm:[--card-clip-handle:2.5px] sm:[--card-clip-radius:13px] dark:bg-[#212121]",
         className
       )}
       {...props}

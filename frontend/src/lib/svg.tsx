@@ -1,6 +1,6 @@
 import type { ImgHTMLAttributes, SVGProps } from "react"
 
-import azukiLogo from "@/assets/azuki-logo-primary.png"
+import storeLogo from "@/assets/3cs-logo-primary.png"
 
 export function Brightness(props: SVGProps<SVGSVGElement>) {
   return (
@@ -33,7 +33,7 @@ export function MainLogo({
 }: ImgHTMLAttributes<HTMLImageElement>) {
   return (
     <img
-      src={azukiLogo}
+      src={storeLogo}
       alt={alt}
       draggable={draggable}
       width="50"
