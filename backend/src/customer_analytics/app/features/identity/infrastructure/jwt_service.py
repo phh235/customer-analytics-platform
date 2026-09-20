@@ -85,7 +85,7 @@ def create_access_token(
 
     Args:
         user_id: User's UUID.
-        role_code: User's role code (e.g., ADMIN, CLIENT).
+        role_code: User's role code (ADMIN or USER).
         permissions: List of permission codes.
 
     Returns:

@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, EmailStr, Field
+
+UserRoleCode = Literal["ADMIN", "USER"]
 
 # ── Request schemas ────────────────────────────────────────
 
@@ -63,6 +65,68 @@ class RefreshTokenRequest(BaseModel):
     }
 
 
+class PublicRegisterRequest(BaseModel):
+    """Public registration request with a fixed USER role."""
+
+    email: EmailStr = Field(
+        description="Email address",
+        examples=["user@example.com"],
+    )
+    password: str = Field(
+        min_length=8,
+        max_length=128,
+        description="Password (min 8 characters)",
+        examples=["StrongPassword123!"],
+    )
+    full_name: str = Field(
+        min_length=1,
+        max_length=100,
+        description="Full name",
+        examples=["Nguyen Van A"],
+    )
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Request a password reset OTP."""
+
+    email: EmailStr = Field(
+        description="Account email address",
+        examples=["user@example.com"],
+    )
+
+
+class VerifyPasswordResetRequest(BaseModel):
+    """Verify a password reset OTP."""
+
+    email: EmailStr = Field(
+        description="Account email address",
+        examples=["user@example.com"],
+    )
+    otp: str = Field(
+        min_length=6,
+        max_length=6,
+        pattern=r"^[0-9]{6}$",
+        description="Six-digit OTP",
+        examples=["482913"],
+    )
+
+
+class ResetPasswordRequest(BaseModel):
+    """Set a new password using a verified reset token."""
+
+    reset_token: str = Field(
+        min_length=20,
+        max_length=255,
+        description="One-time password reset token",
+    )
+    new_password: str = Field(
+        min_length=8,
+        max_length=128,
+        description="New password (min 8 characters)",
+        examples=["NewStrongPassword123!"],
+    )
+
+
 class RegisterRequest(BaseModel):
     """Register new user (admin only)."""
 
@@ -85,11 +149,10 @@ class RegisterRequest(BaseModel):
         description="Full name",
         examples=["Nguyen Van A"],
     )
-    role_code: str = Field(
-        default="ANALYST",
-        max_length=50,
-        description="Role code (ADMIN, ANALYST, or MANAGER)",
-        examples=["ANALYST"],
+    role_code: UserRoleCode = Field(
+        default="USER",
+        description="Role code (ADMIN or USER)",
+        examples=["USER"],
     )
     team_id: uuid.UUID | None = Field(default=None, description="Team ID")
 
@@ -100,7 +163,7 @@ class RegisterRequest(BaseModel):
                     "email": "newuser@example.com",
                     "password": "StrongPassword123!",
                     "full_name": "Nguyen Van A",
-                    "role_code": "ANALYST",
+                    "role_code": "USER",
                 }
             ]
         }
@@ -117,10 +180,9 @@ class UpdateUserRequest(BaseModel):
         description="Full name",
         examples=["Nguyen Van A Updated"],
     )
-    role_code: str | None = Field(
+    role_code: UserRoleCode | None = Field(
         default=None,
-        max_length=50,
-        description="Role code (ADMIN, ANALYST, or MANAGER)",
+        description="Role code (ADMIN or USER)",
         examples=["ADMIN"],
     )
     status: str | None = Field(
@@ -187,19 +249,36 @@ class UserResponse(BaseModel):
                     "email": "user@example.com",
                     "full_name": "Nguyen Van A",
                     "status": "ACTIVE",
-                    "role_code": "ANALYST",
-                    "permissions": [
-                        "customers:read",
-                        "customers:export",
-                        "analytics:read",
-                        "analytics:predict",
-                    ],
+                    "role_code": "USER",
+                    "permissions": ["products:read"],
                     "created_at": "2024-01-01T00:00:00Z",
                     "last_login_at": "2024-01-15T10:30:00Z",
                 }
             ]
         },
     }
+
+
+class RegisterResponse(BaseModel):
+    """Response after public registration."""
+
+    message: str
+    user: UserResponse
+
+
+class ForgotPasswordResponse(BaseModel):
+    """Generic response for a password reset request."""
+
+    message: str
+    expires_in: int
+    retry_after: int
+
+
+class VerifyPasswordResetResponse(BaseModel):
+    """Short-lived token returned after a valid OTP."""
+
+    reset_token: str
+    expires_in: int
 
 
 class TokenResponse(BaseModel):
@@ -270,13 +349,8 @@ class PaginatedUsersResponse(BaseModel):
                             "email": "user@example.com",
                             "full_name": "Nguyen Van A",
                             "status": "ACTIVE",
-                            "role_code": "ANALYST",
-                            "permissions": [
-                                "customers:read",
-                                "customers:export",
-                                "analytics:read",
-                                "analytics:predict",
-                            ],
+                            "role_code": "USER",
+                            "permissions": ["products:read"],
                             "created_at": "2024-01-01T00:00:00Z",
                             "last_login_at": "2024-01-15T10:30:00Z",
                         }
