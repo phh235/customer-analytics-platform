@@ -125,7 +125,7 @@ export const Component = () => {
           <div className="min-w-0">
             <p className="truncate font-medium">{customer.customerName}</p>
             <p className="text-xs text-muted-foreground">
-              {customer.customerCode}
+              {customer.customerCode || "-"}
             </p>
           </div>
         </div>
