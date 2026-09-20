@@ -1,11 +1,9 @@
 import {
-  ArrowLeftRightIcon,
+  BriefcaseBusinessIcon,
   ChartNoAxesCombinedIcon,
   LayoutDashboardIcon,
   PackageIcon,
   SettingsIcon,
-  UsersIcon,
-  UserCogIcon,
 } from "lucide-react"
 import type { UserRole } from "@/types/user"
 
@@ -29,12 +27,27 @@ export const navMain: NavigationItem[] = [
     icon: <LayoutDashboardIcon />,
   },
   {
-    title: "Sản phẩm và danh mục",
+    title: "Vận hành",
+    url: "/dashboard/customers",
+    icon: <BriefcaseBusinessIcon />,
+    items: [
+      {
+        title: "Khách hàng",
+        url: "/dashboard/customers",
+      },
+      {
+        title: "Giao dịch",
+        url: "/dashboard/transactions",
+      },
+    ],
+  },
+  {
+    title: "Sản phẩm",
     url: "/dashboard/products",
     icon: <PackageIcon />,
     items: [
       {
-        title: "Quản lý sản phẩm",
+        title: "Danh sách sản phẩm",
         url: "/dashboard/products",
       },
       {
@@ -42,22 +55,6 @@ export const navMain: NavigationItem[] = [
         url: "/dashboard/categories",
       },
     ],
-  },
-  {
-    title: "Khách hàng",
-    url: "/dashboard/customers",
-    icon: <UsersIcon />,
-  },
-  {
-    title: "Quản lý tài khoản",
-    url: "/dashboard/users",
-    icon: <UserCogIcon />,
-    requiredRoles: ["ADMIN"],
-  },
-  {
-    title: "Giao dịch",
-    url: "/dashboard/transactions",
-    icon: <ArrowLeftRightIcon />,
   },
   {
     title: "Phân tích",
@@ -88,6 +85,11 @@ export const navMain: NavigationItem[] = [
     url: "/dashboard/system",
     icon: <SettingsIcon />,
     items: [
+      {
+        title: "Quản lý tài khoản",
+        url: "/dashboard/users",
+        requiredRoles: ["ADMIN"],
+      },
       {
         title: "Nhập dữ liệu",
         url: "/dashboard/system/import",

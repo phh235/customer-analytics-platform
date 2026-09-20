@@ -60,6 +60,7 @@ export const NavMain = ({
         {items.map((item) => {
           const isParentActive =
             location.pathname === item.url ||
+            (item.items && location.pathname.startsWith(`${item.url}/`)) ||
             item.items?.some((subItem) => location.pathname === subItem.url)
 
           if (!item.items || item.items.length === 0) {
