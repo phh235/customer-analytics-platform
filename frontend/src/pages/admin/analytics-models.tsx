@@ -61,7 +61,7 @@ export const Component = () => {
   >("LOGISTIC_REGRESSION")
   const [featureWindowDays, setFeatureWindowDays] = useState(365)
   const [predictionHorizonDays, setPredictionHorizonDays] = useState(90)
-  const [analysisDate, setAnalysisDate] = useState(today)
+  const [analysisDate, setAnalysisDate] = useState("")
   const trainMutation = useMutation({
     mutationFn: (payload: Parameters<typeof trainModel>[0]) =>
       trainModel(payload),
@@ -91,7 +91,7 @@ export const Component = () => {
       model_type: modelType,
       feature_window_days: featureWindowDays,
       prediction_horizon_days: predictionHorizonDays,
-      analysis_date: analysisDate || undefined,
+      ...(analysisDate ? { analysis_date: analysisDate } : {}),
     })
   }
 
@@ -221,7 +221,9 @@ export const Component = () => {
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="analysis-date">Ngày phân tích</FieldLabel>
+                <FieldLabel htmlFor="analysis-date">
+                  Ngày phân tích (tuỳ chọn)
+                </FieldLabel>
                 <Input
                   id="analysis-date"
                   className="scheme-light dark:scheme-dark"

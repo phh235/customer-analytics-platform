@@ -52,6 +52,9 @@ describe("Quản lý mô hình", () => {
         })
       )
     )
+    expect(vi.mocked(trainModel).mock.calls[0]?.[0]).not.toHaveProperty(
+      "analysis_date"
+    )
     expect(deployModel).not.toHaveBeenCalled()
   })
 })
