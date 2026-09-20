@@ -90,10 +90,6 @@ export const navMain: NavigationItem[] = [
         url: "/dashboard/users",
         requiredRoles: ["ADMIN"],
       },
-      {
-        title: "Nhập dữ liệu",
-        url: "/dashboard/system/import",
-      },
     ],
   },
 ]
