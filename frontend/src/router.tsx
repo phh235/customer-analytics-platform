@@ -148,6 +148,10 @@ export const router = createBrowserRouter([
                     path: "priority",
                     lazy: () => import("@/pages/admin/analytics-priority"),
                   },
+                  {
+                    path: "products/:productId",
+                    lazy: () => import("@/pages/admin/product-analytics"),
+                  },
                 ],
               },
               {
