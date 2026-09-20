@@ -114,7 +114,8 @@ export function UserTable({
         className: "w-24 text-right",
         cell: (user) => {
           const isCurrentUser = user.id === currentUserId
-          const isActionDisabled = isCurrentUser || user.status === "DISABLED"
+          const isDisableActionDisabled =
+            isCurrentUser || user.status === "DISABLED"
 
           return (
             <TableActions
@@ -123,7 +124,7 @@ export function UserTable({
                   key: "edit",
                   label: "Chỉnh sửa",
                   icon: <EditIcon />,
-                  disabled: isActionDisabled,
+                  disabled: isCurrentUser,
                   onClick: () => onEdit(user),
                 },
                 {
@@ -131,7 +132,7 @@ export function UserTable({
                   label: "Vô hiệu hóa",
                   icon: <Trash2Icon />,
                   variant: "destructive",
-                  disabled: isActionDisabled,
+                  disabled: isDisableActionDisabled,
                   onClick: () => onDelete(user),
                 },
               ]}

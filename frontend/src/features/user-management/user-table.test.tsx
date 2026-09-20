@@ -18,8 +18,14 @@ const createUser = (overrides: Partial<User> = {}): User => ({
 })
 
 describe("UserTable", () => {
-  it("cho phép thao tác với người dùng hợp lệ và khóa tài khoản không được sửa", async () => {
+  it("cho phép sửa tài khoản đã vô hiệu hóa nhưng không vô hiệu hóa lần nữa", async () => {
     const editableUser = createUser()
+    const disabledUser = createUser({
+      id: "user-disabled",
+      email: "disabled@example.com",
+      full_name: "Tài khoản đã vô hiệu hóa",
+      status: "DISABLED",
+    })
     const currentUser = createUser({
       id: "user-current",
       email: "current@example.com",
@@ -36,13 +42,13 @@ describe("UserTable", () => {
 
     render(
       <UserTable
-        users={[editableUser, currentUser, adminUser]}
+        users={[editableUser, disabledUser, currentUser, adminUser]}
         pagination={{
           current: 1,
           size: 10,
-          total: 3,
+          total: 4,
           pages: 1,
-          records: [editableUser, currentUser, adminUser],
+          records: [editableUser, disabledUser, currentUser, adminUser],
         }}
         page={1}
         pageSize={10}
@@ -77,6 +83,20 @@ describe("UserTable", () => {
     expect(
       await screen.findByRole("menuitem", { name: "Chỉnh sửa" })
     ).toHaveAttribute("data-disabled")
+    expect(
+      screen.getByRole("menuitem", { name: "Vô hiệu hóa" })
+    ).toHaveAttribute("data-disabled")
+
+    await user.keyboard("{Escape}")
+    const disabledRow = within(
+      screen.getByRole("row", { name: new RegExp(disabledUser.full_name) })
+    )
+    await user.click(
+      disabledRow.getByRole("button", { name: "Tùy chọn thao tác" })
+    )
+    expect(
+      await screen.findByRole("menuitem", { name: "Chỉnh sửa" })
+    ).not.toHaveAttribute("data-disabled")
     expect(
       screen.getByRole("menuitem", { name: "Vô hiệu hóa" })
     ).toHaveAttribute("data-disabled")

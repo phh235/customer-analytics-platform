@@ -54,8 +54,8 @@ export function UserManagementPage() {
         </p>
       </header>
       <div className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-col gap-2 px-3 xl:flex-row">
-          <InputGroup className="xl:max-w-xs">
+        <div className="grid grid-cols-1 gap-2 px-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[20rem_repeat(3,max-content)_1fr]">
+          <InputGroup>
             <InputGroupAddon>
               <SearchIcon />
             </InputGroupAddon>
@@ -71,7 +71,7 @@ export function UserManagementPage() {
           </InputGroup>
           <AppSelect
             aria-label="Lọc theo vai trò"
-            className="w-full xl:w-44"
+            className="w-full xl:w-fit"
             disabled={userManagement.loading}
             value={userManagement.roleFilter}
             onChange={userManagement.updateRoleFilter}
@@ -79,7 +79,7 @@ export function UserManagementPage() {
           />
           <AppSelect
             aria-label="Lọc theo trạng thái"
-            className="w-full xl:w-48"
+            className="w-full xl:w-fit"
             disabled={userManagement.loading}
             value={userManagement.statusFilter}
             onChange={userManagement.updateStatusFilter}
@@ -87,30 +87,33 @@ export function UserManagementPage() {
           />
           <AppSelect
             aria-label="Sắp xếp tài khoản"
-            className="w-full xl:w-48"
+            className="w-full xl:w-fit"
             disabled={userManagement.loading}
             value={userManagement.sort}
             onChange={userManagement.updateSort}
             options={SORT_OPTIONS}
           />
-          {userManagement.hasActiveFilters ? (
+          <div className="flex min-w-0 gap-2 sm:col-span-2 lg:col-span-1 xl:col-span-1 xl:justify-end">
+            {userManagement.hasActiveFilters ? (
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={userManagement.loading}
+                onClick={userManagement.resetFilters}
+                className="min-w-0 flex-1 whitespace-nowrap xl:flex-none"
+              >
+                Xoá bộ lọc
+              </Button>
+            ) : null}
             <Button
-              type="button"
-              variant="ghost"
               disabled={userManagement.loading}
-              onClick={userManagement.resetFilters}
+              onClick={() => userManagement.openUserSheet()}
+              className="min-w-0 flex-1 whitespace-nowrap xl:flex-none"
             >
-              Xoá bộ lọc
+              <PlusIcon data-icon="inline-start" />
+              Thêm tài khoản
             </Button>
-          ) : null}
-          <Button
-            disabled={userManagement.loading}
-            onClick={() => userManagement.openUserSheet()}
-            className="xl:ml-auto"
-          >
-            <PlusIcon data-icon="inline-start" />
-            Thêm tài khoản
-          </Button>
+          </div>
         </div>
 
         <UserTable

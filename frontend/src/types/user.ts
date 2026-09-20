@@ -17,7 +17,7 @@ export const isUserRole = (value: unknown): value is UserRole =>
   value === "CLIENT" || USER_ROLES.some((role) => role === value)
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
-  ADMIN: "Quản trị viên",
+  ADMIN: "Quản trị viên hệ thống",
   MANAGER: "Quản lý",
   ANALYST: "Phân tích viên",
   SALES: "Nhân viên kinh doanh",
