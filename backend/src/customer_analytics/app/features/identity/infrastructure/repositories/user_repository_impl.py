@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload, selectinload
 
@@ -40,7 +40,7 @@ class UserRepositoryImpl(UserRepository):
             if role_code is not None
             else model.role.code
             if model.role
-            else "ANALYST"
+            else "USER"
         )
         return UserEntity(
             id_=str(model.id),
@@ -63,6 +63,7 @@ class UserRepositoryImpl(UserRepository):
             google_id=model.google_id,
             auth_provider=model.auth_provider,
             team_id=str(model.team_id) if model.team_id else None,
+            customer_id=str(model.customer_id) if model.customer_id else None,
         )
 
     def _to_model(self, entity: UserEntity) -> UserModel:
@@ -83,10 +84,12 @@ class UserRepositoryImpl(UserRepository):
             status=status,
             role_id=uuid.UUID(entity.role_id) if entity.role_id else None,
             failed_login_count=entity.failed_login_count,
-            locked_until=entity.locked_until,
             google_id=entity.google_id,
             auth_provider=entity.auth_provider,
             team_id=uuid.UUID(entity.team_id) if entity.team_id else None,
+            customer_id=(
+                uuid.UUID(entity.customer_id) if entity.customer_id else None
+            ),
         )
 
     async def create(self, entity: UserEntity) -> UserEntity:
@@ -180,6 +183,17 @@ class UserRepositoryImpl(UserRepository):
         )
         row = result.scalar_one_or_none()
         return row
+
+    async def update_password(self, user_id: str, password_hash: str) -> None:
+        """Update a user's password hash."""
+        await self._session.execute(
+            update(UserModel)
+            .where(UserModel.id == uuid.UUID(user_id))
+            .values(
+                password_hash=password_hash, failed_login_count=0, locked_until=None
+            )
+        )
+        await self._session.flush()
 
     async def find_all(
         self,
@@ -335,15 +349,16 @@ class UserRepositoryImpl(UserRepository):
         if model is None:
             raise ValueError(f"User with ID {entity.id_} not found")
 
-        # Update model fields
+        # Update model fields.
         model.email = entity.email
         model.full_name = entity.full_name
+        model.role_id = uuid.UUID(entity.role_id) if entity.role_id else None
+        model.team_id = uuid.UUID(entity.team_id) if entity.team_id else None
         model.failed_login_count = entity.failed_login_count
         model.locked_until = entity.locked_until
         model.last_login_at = entity.last_login_at
         model.google_id = entity.google_id
         model.auth_provider = entity.auth_provider
-
         # Update status
         from customer_analytics.app.features.identity.domain.enums import UserStatus
 
