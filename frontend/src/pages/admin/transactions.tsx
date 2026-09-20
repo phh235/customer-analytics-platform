@@ -14,6 +14,7 @@ import {
   type CommonTableColumn,
 } from "@/components/common/common-table"
 import { TableSearch } from "@/components/common/table-search"
+import { UserAvatar } from "@/components/common/user-avatar"
 import { OrderStatusBadge } from "@/components/admin/management/status-badge"
 import { useCustomers } from "@/hooks/use-customers"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -76,13 +77,27 @@ export const Component = () => {
       header: "Khách hàng",
       cell: (order) => {
         const customer = customers[order.customer_id]
+        const customerName = customer?.name ?? "Chưa xác định tên"
         return (
-          <div className="min-w-40">
-            <div className="font-medium">
-              {customer?.name ?? "Chưa xác định tên"}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {customer?.customer_code ?? order.customer_id}
+          <div className="flex min-w-48 items-center gap-3">
+            {customer?.image_url ? (
+              <img
+                src={customer.image_url}
+                alt={customerName}
+                className="size-8 shrink-0 rounded-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <UserAvatar
+                email={customer?.email ?? undefined}
+                name={customerName}
+              />
+            )}
+            <div className="min-w-0">
+              <div className="truncate font-medium">{customerName}</div>
+              <div className="text-xs text-muted-foreground">
+                {customer?.customer_code ?? order.customer_id}
+              </div>
             </div>
           </div>
         )

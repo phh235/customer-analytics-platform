@@ -33,14 +33,17 @@ const normalizePaginatedResponse = <T>(
 
 export interface SegmentRecord {
   customer_id: string
+  customer_code: string
   name: string
   segment_type: string
+  potential_score: number
   reason: string
   calculated_at: string
 }
 
 export interface PurchasePredictionRecord {
   customer_id: string
+  customer_code: string
   name: string
   prediction_date: string
   prediction_horizon_days: number
@@ -112,6 +115,7 @@ export async function getAnalyticsDashboard(days = 365) {
 
 export interface PriorityCustomerRecord {
   customer_id: string
+  customer_code: string
   name: string
   potential_score: number
   potential_level: string

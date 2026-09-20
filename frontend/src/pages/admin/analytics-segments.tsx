@@ -8,6 +8,7 @@ import {
 
 import type { SegmentRecord } from "@/api/analytics"
 import { SegmentBadge } from "@/components/admin/management/analytics-status-badge"
+import { PotentialScoreValue } from "@/components/admin/management/potential-score-value"
 import {
   CommonTable,
   type CommonTableColumn,
@@ -46,7 +47,12 @@ export const Component = () => {
       cell: (segment) => (
         <div className="flex items-center gap-3">
           <UserAvatar name={segment.name} />
-          <span>{segment.name}</span>
+          <div className="min-w-0">
+            <p className="truncate font-medium">{segment.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {segment.customer_code}
+            </p>
+          </div>
         </div>
       ),
     },
@@ -54,6 +60,14 @@ export const Component = () => {
       id: "segment_type",
       header: "Phân khúc",
       cell: (segment) => <SegmentBadge segment={segment.segment_type} />,
+    },
+    {
+      id: "potential_score",
+      header: "Điểm tiềm năng",
+      className: "min-w-36",
+      cell: (segment) => (
+        <PotentialScoreValue value={Number(segment.potential_score)} />
+      ),
     },
     {
       id: "reason",

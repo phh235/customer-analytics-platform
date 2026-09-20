@@ -46,7 +46,12 @@ export const Component = () => {
       cell: (prediction) => (
         <div className="flex items-center gap-3">
           <UserAvatar name={prediction.name} />
-          <span>{prediction.name}</span>
+          <div className="min-w-0">
+            <p className="truncate font-medium">{prediction.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {prediction.customer_code}
+            </p>
+          </div>
         </div>
       ),
     },

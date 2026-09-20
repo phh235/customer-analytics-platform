@@ -44,7 +44,7 @@ describe("Customer table actions", () => {
   beforeEach(() => {
     vi.mocked(getCustomers).mockResolvedValue({
       current: 1,
-      size: 100,
+      size: 10,
       total: 1,
       pages: 1,
       records: [customer],
@@ -78,6 +78,11 @@ describe("Customer table actions", () => {
         { timeout: 5000 }
       )
     )
+    expect(getCustomers).toHaveBeenCalledWith({
+      page: 1,
+      size: 10,
+      search: undefined,
+    })
     expect(
       row.queryByRole("button", { name: "Chỉnh sửa" })
     ).not.toBeInTheDocument()

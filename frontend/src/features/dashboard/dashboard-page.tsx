@@ -1,9 +1,4 @@
-import {
-  CalendarDaysIcon,
-  DownloadIcon,
-  FilterXIcon,
-  RefreshCwIcon,
-} from "lucide-react"
+import { DownloadIcon, FilterXIcon, RefreshCwIcon } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import { exportDashboardCsv } from "@/api/dashboard"
 import { getApiErrorMessage } from "@/api/errors"
@@ -21,13 +16,16 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboard } from "@/hooks/use-dashboard"
-import { formatDashboardDate } from "@/lib/dashboard"
+import {
+  formatDashboardDate,
+  getDashboardPotentialLabel,
+  getDashboardSegmentLabel,
+} from "@/lib/dashboard"
 import { useAuthStore } from "@/stores/use-auth-store"
 import { hasPermission } from "@/lib/authorization"
 import { toastError, toastSuccess } from "@/utils/toast"
 import {
   CategoryChart,
-  OpportunityMatrixChart,
   PotentialChart,
   PredictionChart,
   RevenueChart,
@@ -35,6 +33,7 @@ import {
 } from "@/features/dashboard/dashboard-charts"
 import { MetricCards } from "@/features/dashboard/metric-cards"
 import { PriorityCustomers } from "@/features/dashboard/priority-customers"
+import { TrendingProducts } from "@/features/dashboard/trending-products"
 
 export function DashboardPage() {
   const { filters, setFilters, query, optionsQuery } = useDashboard()
@@ -83,7 +82,6 @@ export function DashboardPage() {
               Xoá bộ lọc
             </Button>
           )}
-          <CalendarDaysIcon className="size-4 text-muted-foreground" />
           <AppSelect
             aria-label="Khoảng thời gian"
             className="w-44"
@@ -126,7 +124,7 @@ export function DashboardPage() {
               { value: "all", label: "Tất cả phân khúc" },
               ...(options?.segments.map((option) => ({
                 value: option.id,
-                label: option.name,
+                label: getDashboardSegmentLabel(option.id, option.name),
               })) ?? []),
             ]}
             disabled={optionsQuery.isPending || optionsQuery.isError}
@@ -149,7 +147,7 @@ export function DashboardPage() {
               { value: "all", label: "Tất cả mức tiềm năng" },
               ...(options?.potential_levels.map((option) => ({
                 value: option.id,
-                label: option.name,
+                label: getDashboardPotentialLabel(option.id, option.name),
               })) ?? []),
             ]}
             disabled={optionsQuery.isPending || optionsQuery.isError}
@@ -291,7 +289,7 @@ export function DashboardPage() {
                 <CategoryChart data={data} />
                 <PredictionChart data={data} />
               </div>
-              <OpportunityMatrixChart data={data} />
+              <TrendingProducts />
               <PriorityCustomers
                 key={JSON.stringify(filters)}
                 data={data}

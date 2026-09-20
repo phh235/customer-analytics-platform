@@ -35,6 +35,7 @@ export interface DashboardBucket {
 
 export interface DashboardPriorityCustomer {
   id: string
+  customer_code?: string | null
   name: string
   segment: DashboardSegment
   potential_score: number
