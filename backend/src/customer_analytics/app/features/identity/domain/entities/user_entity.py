@@ -10,7 +10,7 @@ from customer_analytics.app.shared.errors import ErrorCode
 from customer_analytics.app.shared.exceptions import AppException
 
 if TYPE_CHECKING:
-    from customer_analytics.app.features.identity.application.dto.user_command_model import (  # noqa: E501
+    from customer_analytics.app.features.identity.application.dto.user_command_model import (
         UserUpdateModel,
     )
 
@@ -39,6 +39,7 @@ class UserEntity:
         team_id: str | None = None,
         customer_id: str | None = None,
     ):
+        # Entity giữ trạng thái đăng nhập và thông tin liên kết của người dùng.
         self.id_ = id_
         self.email = email
         self.password_hash = password_hash
@@ -80,11 +81,13 @@ class UserEntity:
                 message=f"User is already {new_status.lower()}",
             )
 
+        # Tạo bản sao để thay đổi không làm biến đổi entity cũ.
         entity = copy.deepcopy(self)
         entity.status = new_status
         entity.is_active = new_status == "ACTIVE"
 
         if new_status == "ACTIVE":
+            # Khi mở lại tài khoản, xóa số lần sai và thời gian khóa.
             entity.failed_login_count = 0
             entity.locked_until = None
 
@@ -107,6 +110,7 @@ class UserEntity:
         updated_entity = copy.deepcopy(self)
         updated_entity.failed_login_count += 1
 
+        # Sai từ 5 lần thì khóa tài khoản trong 15 phút.
         if updated_entity.failed_login_count >= 5:
             updated_entity.status = "LOCKED"
             updated_entity.locked_until = datetime.now(UTC) + timedelta(minutes=15)
@@ -116,6 +120,7 @@ class UserEntity:
     def record_successful_login(self) -> UserEntity:
         """Record a successful login."""
         updated_entity = copy.deepcopy(self)
+        # Đăng nhập thành công thì xóa trạng thái khóa và cập nhật thời gian.
         updated_entity.failed_login_count = 0
         updated_entity.locked_until = None
         updated_entity.last_login_at = datetime.now(UTC)

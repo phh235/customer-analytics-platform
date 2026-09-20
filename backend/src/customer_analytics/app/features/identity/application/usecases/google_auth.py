@@ -7,7 +7,7 @@ from abc import abstractmethod
 from customer_analytics.app.features.identity.domain.entities.user_entity import (
     UserEntity,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 from customer_analytics.app.shared.errors import ErrorCode
@@ -46,7 +46,7 @@ class GoogleAuthUseCaseImpl(GoogleAuthUseCase):
         full_name = google_user.get("name", "")
         email_verified = google_user.get("email_verified", False)
 
-        # Validate required fields
+        # Kiểm tra các trường bắt buộc và email đã được Google xác thực.
         if not google_id:
             raise AppException(
                 error_code=ErrorCode.INVALID_CREDENTIALS,
@@ -59,25 +59,22 @@ class GoogleAuthUseCaseImpl(GoogleAuthUseCase):
                 message="Invalid Google token: missing email",
             )
 
-        # Check email verification
         if not email_verified:
             raise AppException(
                 error_code=ErrorCode.INVALID_CREDENTIALS,
                 message="Google email not verified. Please verify your email first.",
             )
 
-        # 1. Find by google_id
+        # Nếu đã có tài khoản Google thì cập nhật lần đăng nhập cuối.
         user = await self.unit_of_work.repository.find_by_google_id(google_id)
         if user:
-            # Update last login
             user = user.record_successful_login()
             await self.unit_of_work.repository.update(user)
             return user
 
-        # 2. Find by email (link existing account)
+        # Nếu email đã tồn tại, liên kết tài khoản đó với Google.
         user = await self.unit_of_work.repository.find_by_email(email)
         if user:
-            # Link Google account
             user = user.update(
                 google_id=google_id,
                 auth_provider="google",
@@ -86,12 +83,12 @@ class GoogleAuthUseCaseImpl(GoogleAuthUseCase):
             await self.unit_of_work.repository.update(user)
             return user
 
-        # 3. Create new user
-        from customer_analytics.app.features.identity.infrastructure.password_hasher import (  # noqa: E501
+        # Nếu chưa có tài khoản, tạo tài khoản USER mới.
+        from customer_analytics.app.features.identity.infrastructure.password_hasher import (
             hash_password,
         )
 
-        # New OAuth users have the standard customer-facing USER role.
+        # Người dùng đăng ký qua Google luôn nhận role USER mặc định.
         role_id = await self.unit_of_work.repository.find_role_id_by_code("USER")
         if role_id is None:
             raise AppException(

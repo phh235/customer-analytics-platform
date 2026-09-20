@@ -10,7 +10,7 @@ from customer_analytics.app.features.identity.application.dto.user_query_model i
     UserListReadModel,
     UserReadModel,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 from customer_analytics.core.use_cases.use_case import BaseUseCase

@@ -10,7 +10,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from customer_analytics.app.config import settings
-from customer_analytics.app.features.analytics.infrastructure.models.model_registry import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.models.model_registry import (
     ModelLifecycleStatus,
     ModelRegistryModel,
 )

@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from customer_analytics.app.features.customer.domain.entities.customer_entity import (
     CustomerEntity,
 )
-from customer_analytics.app.features.customer.domain.repositories.customer_repository import (  # noqa: E501
+from customer_analytics.app.features.customer.domain.repositories.customer_repository import (
     CustomerRepository,
 )
 from customer_analytics.app.features.customer.infrastructure.models.customer import (
@@ -111,7 +111,6 @@ class CustomerRepositoryImpl(CustomerRepository):
         """Generate the next customer-facing reference code."""
         result = await self._session.execute(select(CustomerModel.customer_code))
         return next_reference_code("KH", list(result.scalars().all()))
-
 
     async def create(self, entity: CustomerEntity) -> CustomerEntity:
         """Create a new customer."""

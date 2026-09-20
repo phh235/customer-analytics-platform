@@ -4,16 +4,16 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from customer_analytics.app.features.customer.application.dto.customer_command_model import (  # noqa: E501
+from customer_analytics.app.features.customer.application.dto.customer_command_model import (
     CustomerCreateModel,
 )
-from customer_analytics.app.features.customer.application.dto.customer_query_model import (  # noqa: E501
+from customer_analytics.app.features.customer.application.dto.customer_query_model import (
     CustomerReadModel,
 )
 from customer_analytics.app.features.customer.domain.entities.customer_entity import (
     CustomerEntity,
 )
-from customer_analytics.app.features.customer.domain.repositories.customer_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.customer.domain.repositories.customer_unit_of_work import (
     CustomerUnitOfWork,
 )
 from customer_analytics.app.shared.errors import ErrorCode
@@ -40,7 +40,7 @@ class CreateCustomerUseCaseImpl(CreateCustomerUseCase):
     async def __call__(self, args: tuple[CustomerCreateModel]) -> CustomerReadModel:
         (data,) = args
 
-        # Check if email already exists
+        # Kiểm tra trùng email trước khi tạo khách hàng.
         if data.email:
             existing = await self.unit_of_work.repository.find_by_email(data.email)
             if existing is not None:
@@ -49,7 +49,7 @@ class CreateCustomerUseCaseImpl(CreateCustomerUseCase):
                     message=f"Email '{data.email}' đã được sử dụng.",
                 )
 
-        # Check if phone already exists
+        # Kiểm tra trùng số điện thoại nếu người dùng cung cấp.
         if data.phone:
             existing = await self.unit_of_work.repository.find_by_phone(data.phone)
             if existing is not None:
@@ -58,9 +58,9 @@ class CreateCustomerUseCaseImpl(CreateCustomerUseCase):
                     message=f"Phone '{data.phone}' đã được sử dụng.",
                 )
 
+        # Sinh mã khách hàng rồi tạo entity từ dữ liệu đã kiểm tra.
         customer_code = await self.unit_of_work.repository.next_customer_code()
 
-        # Create entity
         customer = CustomerEntity(
             id_=None,
             customer_code=customer_code,

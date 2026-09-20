@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from customer_analytics.app.features.product.application.dto.product_command_model import (  # noqa: E501
+from customer_analytics.app.features.product.application.dto.product_command_model import (
     ProductCreateModel,
 )
-from customer_analytics.app.features.product.application.dto.product_query_model import (  # noqa: E501
+from customer_analytics.app.features.product.application.dto.product_query_model import (
     ProductReadModel,
 )
 from customer_analytics.app.features.product.domain.entities.product_entity import (
@@ -35,17 +35,16 @@ class CreateProductUseCaseImpl(CreateProductUseCase):
     async def __call__(self, args: tuple[ProductCreateModel]) -> ProductReadModel:
         (data,) = args
 
-        # Check if product name already exists
+        # Không cho phép trùng tên sản phẩm.
         existing = await self.repository.find_by_name(data.name)
         if existing is not None:
             raise AppException(
                 error_code=ErrorCode.RESOURCE_EXISTS,
                 message=f"Product '{data.name}' đã tồn tại.",
             )
+        # Sinh mã và tạo entity sản phẩm từ dữ liệu hợp lệ.
         product_code = await self.repository.next_product_code()
 
-
-        # Create entity
         product = ProductEntity(
             id_=None,
             product_code=product_code,

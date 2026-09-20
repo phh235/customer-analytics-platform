@@ -5,10 +5,10 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
-from customer_analytics.app.features.identity.infrastructure.repositories.user_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.repositories.user_repository_impl import (
     UserRepositoryImpl,
 )
 

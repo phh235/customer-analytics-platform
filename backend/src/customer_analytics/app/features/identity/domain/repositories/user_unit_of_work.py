@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from customer_analytics.app.features.identity.domain.repositories.user_repository import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_repository import (
     UserRepository,
 )
 from customer_analytics.core.unit_of_work.unit_of_work import BaseUnitOfWork

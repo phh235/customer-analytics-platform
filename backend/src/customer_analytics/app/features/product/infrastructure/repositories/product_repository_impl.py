@@ -91,6 +91,7 @@ class ProductRepositoryImpl:
         result = await self._session.execute(stmt)
         models = result.scalars().all()
         return [self._to_entity(m) for m in models]
+
     async def find_page(
         self,
         skip: int = 0,
@@ -109,7 +110,6 @@ class ProductRepositoryImpl:
         if not rows:
             return [], await self.count(category=category)
         return [self._to_entity(row[0]) for row in rows], int(rows[0][1])
-
 
     async def count(self, category: str | None = None) -> int:
         """Count products without loading full rows into memory."""
@@ -134,6 +134,7 @@ class ProductRepositoryImpl:
         )
         result = await self._session.execute(stmt)
         return [self._to_entity(model) for model in result.scalars().all()]
+
     async def update(self, entity: ProductEntity) -> ProductEntity:
         if entity.id_ is None:
             raise ValueError("Cannot update product without ID")

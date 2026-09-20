@@ -10,10 +10,11 @@ from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select, text
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from customer_analytics.app.config import settings
-from customer_analytics.app.features.analytics.application.services.purchase_model import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.services.purchase_model import (
     predict_purchase_probability,
 )
 from customer_analytics.app.features.analytics.domain.analysis_window import (
@@ -37,11 +38,12 @@ from customer_analytics.app.features.analytics.domain.enums import (
 from customer_analytics.app.features.analytics.domain.repositories import (
     AnalyticsRepository,
 )
-from customer_analytics.app.features.analytics.infrastructure.models.analytics_history import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.models.analytics_history import (
+    CurrentPotentialScoreModel,
     PurchasePredictionModel,
     SegmentHistoryModel,
 )
-from customer_analytics.app.features.analytics.infrastructure.models.model_registry import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.models.model_registry import (
     ModelLifecycleStatus,
     ModelRegistryModel,
 )
@@ -169,6 +171,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
             potential_level = self._potential_level(score)
             segment_type, reason = self._determine_segment(rfm, score)
             segment = SegmentEntity(
+                customer_code=rfm.customer_code,
                 customer_id=rfm.customer_id,
                 segment_type=segment_type,
                 reason=reason,
@@ -182,6 +185,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
                 ),
             )
             segment.name = getattr(rfm, "name", None)
+            segment.customer_code = rfm.customer_code
             segments.append(segment)
 
         return segments
@@ -240,12 +244,15 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
 
             potential_score = PotentialScoreEntity(
                 customer_id=rfm.customer_id,
+                customer_code=rfm.customer_code,
+                analysis_date=rfm.analysis_date,
                 score=score,
                 level=level,
                 components=components,
                 calculated_at=calculated_at,
             )
             potential_score.name = getattr(rfm, "name", None)
+            potential_score.customer_code = rfm.customer_code
             scores.append(potential_score)
 
         scores.sort(
@@ -269,6 +276,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
             f"""
             SELECT
                 c.id::text AS customer_id,
+                c.customer_code,
                 c.name,
                 c.email,
                 c.phone,
@@ -397,6 +405,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
 
         return {
             "customer_id": customer["customer_id"],
+            "customer_code": customer.get("customer_code"),
             "name": customer["name"],
             "email": customer["email"],
             "phone": customer["phone"],
@@ -445,6 +454,12 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
         query = text(
             f"""
             SELECT
+                (
+                    SELECT c.customer_code
+                    FROM customers c
+                    WHERE c.id = CAST(:customer_id AS uuid)
+                      {scope_sql}
+                ) AS customer_code,
                 COUNT(DISTINCT o.id)::int AS frequency,
                 COALESCE(SUM(o.net_amount), 0) AS monetary,
                 MAX(o.order_date) AS last_purchase_date,
@@ -534,6 +549,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
         monetary = Decimal(str(row["monetary"] or 0))
         return {
             "customer_id": customer_id,
+            "customer_code": row.get("customer_code"),
             "recency_days": (
                 (window.to_utc - row["last_purchase_date"]).total_seconds() / 86400
                 if row["last_purchase_date"]
@@ -890,6 +906,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
         priority_customers = [
             {
                 "id": score.customer_id,
+                "customer_code": getattr(score, "customer_code", None),
                 "name": getattr(score, "name", "Unknown Customer"),
                 "segment": (
                     segment_by_customer[score.customer_id].segment_type.value
@@ -905,6 +922,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
         opportunity_customers = [
             {
                 "id": score.customer_id,
+                "customer_code": getattr(score, "customer_code", None),
                 "name": getattr(score, "name", "Unknown Customer"),
                 "segment": (
                     segment_by_customer[score.customer_id].segment_type.value
@@ -1657,6 +1675,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
             predictions.append(
                 {
                     "customer_id": row["customer_id"],
+                    "customer_code": row.get("customer_code"),
                     "name": row["name"],
                     "prediction_date": now,
                     "prediction_horizon_days": horizon_days,
@@ -1740,6 +1759,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
             feature_rows.append(
                 {
                     "customer_id": row["customer_id"],
+                    "customer_code": row.get("customer_code"),
                     "name": row["name"],
                     "label": labels.get(row["customer_id"], 0),
                     "recency": row["recency_days"],
@@ -1791,7 +1811,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
     ) -> list[dict[str, Any]]:
         """Fetch persisted segment snapshots, newest first."""
         stmt = (
-            select(SegmentHistoryModel)
+            select(SegmentHistoryModel, CustomerModel.customer_code)
             .join(
                 CustomerModel,
                 CustomerModel.id == SegmentHistoryModel.customer_id,
@@ -1811,13 +1831,52 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
         return [
             {
                 "customer_id": str(row.customer_id),
+                "customer_code": customer_code,
                 "segment_type": row.segment_type,
                 "reason": row.reason,
                 "calculated_at": row.calculated_at,
                 "recorded_at": row.created_at,
             }
-            for row in result.scalars().all()
+            for row, customer_code in result.all()
         ]
+
+    async def save_current_potential_scores(
+        self, scores: list[PotentialScoreEntity], days: int
+    ) -> None:
+        """Replace the canonical potential-score snapshot for all customers."""
+        if not scores:
+            return
+        values = [
+            {
+                "customer_id": uuid.UUID(score.customer_id),
+                "potential_score": score.score,
+                "potential_level": score.level.value,
+                "analysis_date": score.analysis_date,
+                "feature_window_days": days,
+                "calculated_at": score.calculated_at,
+                "scoring_configuration_version": (
+                    settings.SCORING_CONFIGURATION_VERSION
+                ),
+            }
+            for score in scores
+        ]
+        statement = insert(CurrentPotentialScoreModel).values(values)
+        await self._session.execute(
+            statement.on_conflict_do_update(
+                index_elements=[CurrentPotentialScoreModel.customer_id],
+                set_={
+                    "potential_score": statement.excluded.potential_score,
+                    "potential_level": statement.excluded.potential_level,
+                    "analysis_date": statement.excluded.analysis_date,
+                    "feature_window_days": statement.excluded.feature_window_days,
+                    "calculated_at": statement.excluded.calculated_at,
+                    "scoring_configuration_version": (
+                        statement.excluded.scoring_configuration_version
+                    ),
+                },
+            )
+        )
+        await self._session.flush()
 
     async def save_segment_history(self, segments: list[SegmentEntity]) -> None:
         """Persist a segmentation snapshot without replacing prior history."""
@@ -1879,6 +1938,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
             f"""
             SELECT
                 c.id::text AS customer_id,
+                c.customer_code,
                 c.name,
                 EXTRACT(
                     EPOCH FROM (:to_utc - MAX(o.order_date))
@@ -1936,7 +1996,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
              AND o.order_date < :to_utc
             WHERE 1 = 1
               {scope_sql}
-            GROUP BY c.id, c.name
+            GROUP BY c.id, c.name, c.customer_code
             ORDER BY c.name ASC
             """
         )
@@ -2031,6 +2091,7 @@ class AnalyticsRepositoryImpl(AnalyticsRepository):
                 analysis_date=resolved_date,
             )
             entity.name = row["name"]
+            entity.customer_code = row.get("customer_code")
             entities.append(entity)
 
         entities.sort(

@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-from customer_analytics.app.features.analytics.application.usecases.calculate_potential_score import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.usecases.calculate_potential_score import (
     CalculatePotentialScoreUseCase,
 )
-from customer_analytics.app.features.analytics.application.usecases.calculate_rfm import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.usecases.calculate_rfm import (
     CalculateRfmUseCase,
 )
-from customer_analytics.app.features.analytics.application.usecases.get_customer_360 import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.usecases.get_customer_360 import (
     GetCustomer360UseCase,
 )
-from customer_analytics.app.features.analytics.application.usecases.get_dashboard_overview import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.usecases.get_dashboard_overview import (
     GetDashboardOptionsUseCase,
     GetDashboardOverviewUseCase,
 )
-from customer_analytics.app.features.analytics.application.usecases.segment_customers import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.usecases.segment_customers import (
     SegmentCustomersUseCase,
 )
 

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from customer_analytics.app.features.customer.domain.repositories.customer_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.customer.domain.repositories.customer_unit_of_work import (
     CustomerUnitOfWork,
 )
-from customer_analytics.app.features.customer.infrastructure.repositories.customer_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.customer.infrastructure.repositories.customer_repository_impl import (
     CustomerRepositoryImpl,
 )
 from customer_analytics.app.features.identity.domain.entities.user_entity import (

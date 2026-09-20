@@ -8,10 +8,10 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query
 
-from customer_analytics.app.features.analytics.infrastructure.repositories.product_interest_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.repositories.product_interest_repository_impl import (
     ProductInterestRepositoryImpl,
 )
-from customer_analytics.app.features.analytics.presentation.schema.product_interest_schemas import (  # noqa: E501
+from customer_analytics.app.features.analytics.presentation.schema.product_interest_schemas import (
     ProductInterestSummaryResponse,
     ProductUniqueViewersResponse,
     ProductViewerResponse,
@@ -69,6 +69,7 @@ def _resolve_window(
             "from_date must be earlier than or equal to to_date",
         )
     return start, end
+
 
 def _product_summary_response(
     summary: dict[str, Any], from_date: date, to_date: date

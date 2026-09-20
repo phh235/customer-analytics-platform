@@ -29,7 +29,7 @@ from customer_analytics.app.features.order.application.usecases.get_orders impor
 from customer_analytics.app.features.order.application.usecases.update_order import (
     UpdateOrderUseCaseImpl,
 )
-from customer_analytics.app.features.order.infrastructure.repositories.order_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.order.infrastructure.repositories.order_repository_impl import (
     OrderRepositoryImpl,
 )
 from customer_analytics.app.features.order.presentation.schema.order import (
@@ -178,7 +178,7 @@ async def create_order(
     repository: Annotated[OrderRepositoryImpl, Depends(_get_order_repository)],
 ) -> OrderResponse:
     """Tạo đơn hàng mới."""
-    from customer_analytics.app.features.order.application.dto.order_command_model import (  # noqa: E501
+    from customer_analytics.app.features.order.application.dto.order_command_model import (
         OrderCreateModel,
         OrderItemCreateModel,
     )
@@ -229,7 +229,7 @@ async def update_order(
     repository: Annotated[OrderRepositoryImpl, Depends(_get_order_repository)],
 ) -> OrderResponse:
     """Cập nhật đơn hàng."""
-    from customer_analytics.app.features.order.application.dto.order_command_model import (  # noqa: E501
+    from customer_analytics.app.features.order.application.dto.order_command_model import (
         OrderUpdateModel,
     )
 

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Numeric, String, Uuid
+from sqlalchemy import JSON, Date, DateTime, ForeignKey, Numeric, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from customer_analytics.core.database import Base
@@ -42,6 +42,30 @@ class SegmentHistoryModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     calculated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
+    )
+
+
+class CurrentPotentialScoreModel(Base):
+    """Latest potential score snapshot used by APIs and analytics chat."""
+
+    __tablename__ = "customer_potential_scores_current"
+
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("customers.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    potential_score: Mapped[Decimal | None] = mapped_column(
+        Numeric(6, 2), nullable=True
+    )
+    potential_level: Mapped[str] = mapped_column(String(30), nullable=False)
+    analysis_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    feature_window_days: Mapped[int] = mapped_column(nullable=False)
+    calculated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    scoring_configuration_version: Mapped[str] = mapped_column(
+        String(100), nullable=False
     )
 
 

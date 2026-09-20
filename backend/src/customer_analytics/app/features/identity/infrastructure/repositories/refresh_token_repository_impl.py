@@ -8,10 +8,10 @@ from datetime import UTC, datetime
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from customer_analytics.app.features.identity.domain.repositories.refresh_token_repository import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.refresh_token_repository import (
     RefreshTokenRepository,
 )
-from customer_analytics.app.features.identity.infrastructure.models.refresh_token import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.models.refresh_token import (
     RefreshTokenModel,
 )
 

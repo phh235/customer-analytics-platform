@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from customer_analytics.app.features.identity.application.dto.user_command_model import (  # noqa: E501
+from customer_analytics.app.features.identity.application.dto.user_command_model import (
     UserUpdateModel,
 )
 from customer_analytics.app.features.identity.application.dto.user_query_model import (
     UserReadModel,
 )
 from customer_analytics.app.features.identity.domain.enums import UserStatus
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 from customer_analytics.app.shared.errors import ErrorCode

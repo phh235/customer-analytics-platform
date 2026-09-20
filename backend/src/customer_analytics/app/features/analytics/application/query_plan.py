@@ -18,7 +18,7 @@ from customer_analytics.app.features.analytics.domain.semantic_layer import (
 from customer_analytics.app.shared.errors import ErrorCode
 from customer_analytics.app.shared.exceptions import AppException
 
-PlanMode = Literal["aggregate", "rows"]
+PlanMode = Literal["aggregate", "rows", "unsupported"]
 
 
 class AnalyticsQueryPlan(BaseModel):
@@ -33,6 +33,8 @@ class AnalyticsQueryPlan(BaseModel):
     date_to: date | None = None
     status: str | None = Field(default=None, max_length=32)
     group_by: list[str] = Field(default_factory=list, max_length=5)
+    order_by: str | None = Field(default=None, max_length=100)
+    order_direction: Literal["asc", "desc"] = "desc"
     time_bucket: str | None = Field(default=None, max_length=16)
     filters: dict[str, str] = Field(default_factory=dict, max_length=10)
     limit: int = Field(default=100, ge=1, le=100)
@@ -54,12 +56,15 @@ def compile_query(plan: AnalyticsQueryPlan, *, admin_mode: bool) -> str:
     """Compile a validated semantic plan into deterministic PostgreSQL SQL."""
     if plan.sql is not None:
         return plan.sql
+    if plan.mode == "unsupported":
+        _reject("I do not have a supported data source for this question.")
     if plan.mode == "aggregate":
         return _compile_aggregate(plan)
     return _compile_rows(plan, admin_mode=admin_mode)
 
 
 def _compile_aggregate(plan: AnalyticsQueryPlan) -> str:
+    """Compile an aggregate plan against one approved semantic view."""
     metric = plan.metric
     if metric is None or metric not in ANALYTICS_METRIC_EXPRESSIONS:
         _reject(f"Unsupported analytics metric '{metric}'.")
@@ -81,29 +86,33 @@ def _compile_aggregate(plan: AnalyticsQueryPlan) -> str:
 
     for dimension in plan.group_by:
         details = ANALYTICS_DIMENSIONS.get(dimension)
-        if details is None or details["source"] != source:
+        if details is None or not _dimension_matches_source(details, source):
             _reject(f"Dimension '{dimension}' is not valid for {source}.")
         assert details is not None
         _require_column(source_columns, details["expression"])
         select_parts.append(f"{details['expression']} AS {dimension}")
         group_expressions.append(details["expression"])
 
-    where_parts = [_status_clause(plan.status)]
+    status = _resolve_status(plan)
+    where_parts: list[str] = []
+    if "status" in source_columns:
+        where_parts.append(_status_clause(status))
+    elif status is not None:
+        _reject(f"Filter 'status' is not valid for {source}.")
     if plan.date_from or plan.date_to:
         _require_column(source_columns, plan.date_field)
     if plan.date_from:
-        where_parts.append(
-            f"{plan.date_field} >= DATE '{plan.date_from.isoformat()}'"
-        )
+        where_parts.append(f"{plan.date_field} >= DATE '{plan.date_from.isoformat()}'")
     if plan.date_to:
         where_parts.append(f"{plan.date_field} < DATE '{plan.date_to.isoformat()}'")
     for name, value in plan.filters.items():
+        if name == "status":
+            continue
         details = ANALYTICS_DIMENSIONS.get(name)
-        if details is None or details["source"] != source:
+        if details is None or not _dimension_matches_source(details, source):
             _reject(f"Filter '{name}' is not valid for {source}.")
         assert details is not None
         where_parts.append(f"{details['expression']} = {_literal(value)}")
-
     query = [
         "SELECT",
         "    " + ",\n    ".join(select_parts),
@@ -112,11 +121,22 @@ def _compile_aggregate(plan: AnalyticsQueryPlan) -> str:
     ]
     if group_expressions:
         query.append("GROUP BY " + ", ".join(group_expressions))
+    order_by = plan.order_by
+    if order_by is None and metric == "view_count" and "product_name" in plan.group_by:
+        order_by = metric
+    if order_by is not None:
+        allowed_order_fields = {metric, *plan.group_by}
+        if plan.time_bucket is not None:
+            allowed_order_fields.add("period")
+        if order_by not in allowed_order_fields:
+            _reject(f"Order field '{order_by}' is not valid for this query.")
+        query.append(f"ORDER BY {order_by} {plan.order_direction.upper()}")
     query.append(f"LIMIT {plan.limit}")
     return "\n".join(query)
 
 
 def _compile_rows(plan: AnalyticsQueryPlan, *, admin_mode: bool) -> str:
+    """Compile a row listing against one approved source."""
     source = plan.source or ""
     if source.startswith("public."):
         source = source.removeprefix("public.")
@@ -142,10 +162,13 @@ def _compile_rows(plan: AnalyticsQueryPlan, *, admin_mode: bool) -> str:
         select_sql = ", ".join(columns)
 
     where_parts: list[str] = []
-    if plan.status is not None:
+    status = _resolve_status(plan)
+    if status is not None:
         _require_column(allowed_columns, "status")
-        where_parts.append(_status_clause(plan.status))
+        where_parts.append(_status_clause(status))
     for name, value in plan.filters.items():
+        if name == "status":
+            continue
         _require_column(allowed_columns, name)
         where_parts.append(f"{name} = {_literal(value)}")
     if plan.date_from or plan.date_to:
@@ -155,15 +178,35 @@ def _compile_rows(plan: AnalyticsQueryPlan, *, admin_mode: bool) -> str:
                 f"{plan.date_field} >= DATE '{plan.date_from.isoformat()}'"
             )
         if plan.date_to:
-            where_parts.append(
-                f"{plan.date_field} < DATE '{plan.date_to.isoformat()}'"
-            )
+            where_parts.append(f"{plan.date_field} < DATE '{plan.date_to.isoformat()}'")
 
     query = [f"SELECT {select_sql}", f"FROM {qualified_source}"]
     if where_parts:
         query.append("WHERE " + "\n  AND ".join(where_parts))
+    if plan.order_by is not None:
+        _require_column(allowed_columns, plan.order_by)
+        query.append(f"ORDER BY {plan.order_by} {plan.order_direction.upper()}")
     query.append(f"LIMIT {plan.limit}")
     return "\n".join(query)
+
+
+def _resolve_status(plan: AnalyticsQueryPlan) -> str | None:
+    """Accept status from either the dedicated field or generic filters."""
+    filter_status = plan.filters.get("status")
+    if (
+        plan.status is not None
+        and filter_status is not None
+        and plan.status != filter_status
+    ):
+        _reject("Conflicting status filters are not allowed.")
+    return plan.status if plan.status is not None else filter_status
+
+
+def _dimension_matches_source(details: dict[str, str], source: str) -> bool:
+    """Allow product dimensions on sales and product-view sources."""
+    return details["source"] == source or (
+        details["source"] == "product_sales" and source == "product_views"
+    )
 
 
 def _status_clause(status: str | None) -> str:

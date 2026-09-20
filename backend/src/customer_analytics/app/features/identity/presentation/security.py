@@ -19,7 +19,7 @@ from customer_analytics.app.features.identity.domain.entities.user_entity import
 from customer_analytics.app.features.identity.infrastructure.jwt_service import (
     decode_access_token,
 )
-from customer_analytics.app.features.identity.infrastructure.repositories.user_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.repositories.user_repository_impl import (
     UserRepositoryImpl,
 )
 from customer_analytics.app.shared.errors import ErrorCode
@@ -49,6 +49,7 @@ async def get_current_user(
         AppException: 401 if token is invalid or user not found.
     """
     try:
+        # Giải mã access token để lấy ID người dùng.
         payload = decode_access_token(token)
         user_id = payload.get("sub")
         if not user_id:
@@ -56,7 +57,6 @@ async def get_current_user(
                 error_code=ErrorCode.TOKEN_INVALID,
                 message="Invalid token: missing subject",
             )
-
         user = await user_repo.find_by_id(user_id)
         if not user:
             raise AppException(
@@ -64,6 +64,7 @@ async def get_current_user(
                 message=f"User '{user_id}' not found",
             )
 
+        # Chỉ tài khoản đang ACTIVE mới được tiếp tục truy cập.
         if user.status != "ACTIVE":
             error_code = (
                 ErrorCode.USER_LOCKED
@@ -72,8 +73,7 @@ async def get_current_user(
             )
             raise AppException(error_code=error_code)
 
-        # Resolve authorization from the database so role/permission changes
-        # take effect without waiting for the access token to expire.
+        # Tải lại quyền từ database để quyền mới có hiệu lực ngay.
         user.permissions = await user_repo.get_user_permissions(user.id_)
 
         return user
@@ -96,6 +96,7 @@ def require_permission(permission: str) -> Callable[..., object]:
     async def _check_permission(
         current_user: Annotated[UserEntity, Depends(get_current_user)],
     ) -> UserEntity:
+        # Từ chối nếu người dùng không có permission cần thiết.
         if permission not in current_user.permissions:
             raise AppException(
                 error_code=ErrorCode.PERMISSION_DENIED,

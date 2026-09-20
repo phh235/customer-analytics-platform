@@ -75,8 +75,8 @@ select = [
 [tool.ruff.lint.per-file-ignores]
 # FastAPI route declarations intentionally construct dependency metadata in
 # function signatures; B008 is a false positive for Depends/File/permissions.
+"src/customer_analytics/app/features/**/*.py" = ["E501"]
 "src/customer_analytics/app/features/**/presentation/routes/*.py" = ["B008"]
-"src/customer_analytics/app/features/import_data/**/*.py" = ["E501"]
 "tests/**" = ["B"]
 [tool.ruff.format]
 quote-style = "double"

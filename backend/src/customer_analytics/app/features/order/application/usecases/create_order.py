@@ -39,12 +39,12 @@ class CreateOrderUseCaseImpl(CreateOrderUseCase):
     async def __call__(self, args: tuple[OrderCreateModel]) -> OrderReadModel:
         (data,) = args
 
-        # Generate order number
+        # Tạo mã đơn hàng duy nhất theo ngày hiện tại.
         order_number = (
             f"ORD-{datetime.now(UTC).strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
         )
 
-        # Calculate total amount
+        # Tính tổng tiền từ các dòng hàng.
         total_amount = Decimal("0")
         order_items = []
 
@@ -54,20 +54,21 @@ class CreateOrderUseCaseImpl(CreateOrderUseCase):
             order_items.append(
                 OrderItemEntity(
                     id_=None,
-                    order_id="",  # Will be set after order creation
+                    order_id="",  # Sẽ được gắn sau khi tạo order.
                     product_id=item_data.product_id,
                     quantity=item_data.quantity,
                     unit_price=item_data.unit_price,
                     subtotal=subtotal,
                 )
             )
+        # Không cho phép số tiền hoàn lớn hơn tổng đơn.
         if data.refund_amount > total_amount:
             raise AppException(
                 error_code=ErrorCode.VALIDATION_ERROR,
                 message="refund_amount cannot exceed total_amount.",
             )
 
-        # Create order entity
+        # Tạo entity order sau khi đã tính và kiểm tra dữ liệu.
         order = OrderEntity(
             id_=None,
             customer_id=data.customer_id,

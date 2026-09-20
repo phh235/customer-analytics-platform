@@ -173,7 +173,9 @@ class DatasetWorkbookImporter:
             raise ValueError("employee_id và employee_name là bắt buộc")
         model = await self._one(EmployeeModel, employee_code=code)
         if model is None:
-            model = EmployeeModel(id=self._stable_id(code, "employee"), employee_code=code)
+            model = EmployeeModel(
+                id=self._stable_id(code, "employee"), employee_code=code
+            )
             self.session.add(model)
         model.name = name
         model.department = clean_text(row["department"])
@@ -191,7 +193,9 @@ class DatasetWorkbookImporter:
             raise ValueError("campaign_id và campaign_name là bắt buộc")
         model = await self._one(CampaignModel, campaign_code=code)
         if model is None:
-            model = CampaignModel(id=self._stable_id(code, "campaign"), campaign_code=code)
+            model = CampaignModel(
+                id=self._stable_id(code, "campaign"), campaign_code=code
+            )
             self.session.add(model)
         model.name = name
         model.campaign_type = clean_text(row["campaign_type"])
@@ -224,7 +228,9 @@ class DatasetWorkbookImporter:
             raise ValueError("geolocation_zip_code_prefix là bắt buộc")
         model = await self._one(GeolocationModel, zip_code=code)
         if model is None:
-            model = GeolocationModel(id=self._stable_id(code, "geolocation"), zip_code=code)
+            model = GeolocationModel(
+                id=self._stable_id(code, "geolocation"), zip_code=code
+            )
             self.session.add(model)
         model.latitude = decimal_value(row["geolocation_lat"])
         model.longitude = decimal_value(row["geolocation_lng"])
@@ -245,9 +251,11 @@ class DatasetWorkbookImporter:
             )
             self.session.add(model)
         model.name = clean_text(row["Description"]) or source_id
-        model.category = clean_text(row["ProductCategory"]) or clean_text(
-            row["product_category_name"]
-        ) or "UNSPECIFIED"
+        model.category = (
+            clean_text(row["ProductCategory"])
+            or clean_text(row["product_category_name"])
+            or "UNSPECIFIED"
+        )
         model.source_category_code = clean_text(row["product_category_name"])
         model.description = clean_text(row["Description"])
         model.price = decimal_value(row["ListPrice"])
@@ -266,7 +274,9 @@ class DatasetWorkbookImporter:
         code = clean_text(row["customer_unique_id"])
         name = clean_text(row["CustomerName"])
         if not source_id or not code or not name:
-            raise ValueError("customer_id, customer_unique_id và CustomerName là bắt buộc")
+            raise ValueError(
+                "customer_id, customer_unique_id và CustomerName là bắt buộc"
+            )
         model = await self._one(CustomerModel, source_customer_id=source_id)
         if model is None:
             model = CustomerModel(
@@ -324,8 +334,12 @@ class DatasetWorkbookImporter:
             raise ValueError("order_purchase_timestamp là bắt buộc")
         model.approved_at = datetime_value(row["order_approved_at"])
         model.delivered_carrier_at = datetime_value(row["order_delivered_carrier_date"])
-        model.delivered_customer_at = datetime_value(row["order_delivered_customer_date"])
-        model.estimated_delivery_at = datetime_value(row["order_estimated_delivery_date"])
+        model.delivered_customer_at = datetime_value(
+            row["order_delivered_customer_date"]
+        )
+        model.estimated_delivery_at = datetime_value(
+            row["order_estimated_delivery_date"]
+        )
         model.owner_id = owner.id if owner else None
         model.subtotal = decimal_value(row["OrderSubtotal"])
         model.freight_total = decimal_value(row["FreightTotal"])
@@ -448,13 +462,17 @@ class DatasetWorkbookImporter:
         if customer is None or product is None:
             raise ValueError("Interaction phải tham chiếu customer và product hợp lệ")
         campaign_ref = clean_text(row["campaign_id"])
-        campaign = None if campaign_ref == "1583" else self._campaigns.get(campaign_ref or "")
+        campaign = (
+            None if campaign_ref == "1583" else self._campaigns.get(campaign_ref or "")
+        )
         if campaign is None and campaign_ref and campaign_ref != "1583":
             campaign = await self._one(CampaignModel, campaign_code=campaign_ref)
         model = await self._one(CustomerInteractionModel, interaction_code=code)
         if model is None:
             model = CustomerInteractionModel(
-                id=self._stable_id(code or f"{customer_ref}:{product_ref}", "interaction"),
+                id=self._stable_id(
+                    code or f"{customer_ref}:{product_ref}", "interaction"
+                ),
                 interaction_code=code,
                 customer_id=customer.id,
                 product_id=product.id,
@@ -508,7 +526,9 @@ class DatasetWorkbookImporter:
         model.status = (clean_text(row["status"]) or "PENDING").upper()
         model.analysis_date = analysis_date
         model.total_records = int_value(row["record_count"])
-        model.success_records = model.total_records if model.status == "COMPLETED" else 0
+        model.success_records = (
+            model.total_records if model.status == "COMPLETED" else 0
+        )
         model.failed_records = 0
         model.configuration_version_id = config.id
         model.error_message = clean_text(row["notes"])
@@ -524,7 +544,9 @@ class DatasetWorkbookImporter:
             customer = await self._one(CustomerModel, customer_code=customer_ref)
         if customer is None:
             raise ValueError(f"Không tìm thấy CustomerID={customer_ref!r}")
-        run = await self._latest_run_for_date(datetime_value(row["AnalysisDate"], date_only=True))
+        run = await self._latest_run_for_date(
+            datetime_value(row["AnalysisDate"], date_only=True)
+        )
         if run is None:
             raise ValueError("Không tìm thấy ModelRun tương ứng với AnalysisDate")
         valid_orders = await self._customer_orders(customer.id)
@@ -541,7 +563,9 @@ class DatasetWorkbookImporter:
         average_cycle = Decimal(str(mean(cycles))) if cycles else None
         review_scores = await self._review_scores(customer.id)
         avg_review = (
-            sum(review_scores, Decimal("0")) / len(review_scores) if review_scores else None
+            sum(review_scores, Decimal("0")) / len(review_scores)
+            if review_scores
+            else None
         )
         interaction_score = decimal_value(row["InteractionScore"])
         potential_score = self._safe_decimal(row["PotentialScore"])
@@ -597,9 +621,13 @@ class DatasetWorkbookImporter:
             CustomerPotentialScoreHistoryModel,
             SegmentHistoryModel,
         ):
-            await self.session.execute(delete(model).where(model.analysis_run_id == run_id))
+            await self.session.execute(
+                delete(model).where(model.analysis_run_id == run_id)
+            )
 
-    async def _latest_run_for_date(self, analysis_date: date | None) -> AnalysisRunModel | None:
+    async def _latest_run_for_date(
+        self, analysis_date: date | None
+    ) -> AnalysisRunModel | None:
         if analysis_date is None:
             return None
         result = await self.session.execute(

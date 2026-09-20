@@ -7,7 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
 
-from customer_analytics.app.features.identity.application.dto.user_command_model import (  # noqa: E501
+from customer_analytics.app.features.identity.application.dto.user_command_model import (
     UserCreateModel,
     UserUpdateModel,
 )
@@ -34,7 +34,7 @@ from customer_analytics.app.features.identity.domain.entities.user_entity import
     UserEntity,
 )
 from customer_analytics.app.features.identity.domain.enums import UserStatus
-from customer_analytics.app.features.identity.infrastructure.repositories.user_unit_of_work_impl import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.repositories.user_unit_of_work_impl import (
     UserUnitOfWorkImpl,
 )
 from customer_analytics.app.features.identity.presentation.dependencies import (

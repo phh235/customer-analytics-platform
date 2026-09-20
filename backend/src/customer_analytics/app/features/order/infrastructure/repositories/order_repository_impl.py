@@ -20,7 +20,7 @@ from customer_analytics.app.features.order.domain.entities.order_entity import (
     OrderEntity,
     OrderItemEntity,
 )
-from customer_analytics.app.features.order.domain.repositories.order_repository import (  # noqa: E501
+from customer_analytics.app.features.order.domain.repositories.order_repository import (
     OrderRepository,
 )
 from customer_analytics.app.features.order.infrastructure.models.order import (

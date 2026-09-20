@@ -9,7 +9,7 @@ from customer_analytics.app.features.identity.application.password_reset_tokens 
     generate_reset_token,
     hash_reset_secret,
 )
-from customer_analytics.app.features.identity.domain.repositories.password_reset_repository import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.password_reset_repository import (
     PasswordResetRepository,
 )
 

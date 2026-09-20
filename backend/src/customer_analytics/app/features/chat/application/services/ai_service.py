@@ -24,6 +24,7 @@ class AIService:
 
     @staticmethod
     def _messages(message: str) -> list[ChatMessage]:
+        # Generic chat chỉ gửi system prompt và câu hỏi cho provider.
         return [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": message},
@@ -31,9 +32,11 @@ class AIService:
 
     async def chat(self, message: str) -> str:
         """Generate one complete assistant response."""
+        # Trả về toàn bộ câu trả lời trong một lần.
         return await self._provider.complete(self._messages(message))
 
     async def stream_chat(self, message: str) -> AsyncIterator[str]:
         """Stream assistant response deltas."""
+        # Stream từng phần để giao diện hiển thị sớm hơn.
         async for delta in self._provider.stream(self._messages(message)):
             yield delta

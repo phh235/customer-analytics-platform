@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from customer_analytics.app.features.identity.domain.entities.user_entity import (
     UserEntity,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 from customer_analytics.app.features.identity.infrastructure.password_hasher import (
@@ -39,13 +39,13 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
     async def __call__(self, args: tuple[str, str]) -> UserEntity:
         email, password = args
 
-        # 1. Find user by email with permissions (single query)
+        # Tìm người dùng và tải quyền trong cùng một truy vấn.
         result = await self.unit_of_work.repository.find_by_email_with_permissions(
             email
         )
         if result is None:
-            # Generic message to not leak email existence
-            # Run dummy verify to keep timing constant
+            # Không tiết lộ email có tồn tại hay không.
+            # Xác thực mật khẩu giả để thời gian xử lý tương đương.
             verify_password(password, hash_password("dummy"))
             raise AppException(
                 error_code=ErrorCode.INVALID_CREDENTIALS,
@@ -54,7 +54,7 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
 
         user, permissions = result
 
-        # 2. Check if user is a Google-only account
+        # Tài khoản chỉ liên kết với Google không được đăng nhập bằng mật khẩu.
         if user.auth_provider == "google":
             raise AppException(
                 error_code=ErrorCode.INVALID_CREDENTIALS,
@@ -64,14 +64,14 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
                 ),
             )
 
-        # 3. Check if account is disabled
+        # Tài khoản đã bị vô hiệu hóa thì không được đăng nhập.
         if user.status == "DISABLED":
             raise AppException(
                 error_code=ErrorCode.USER_DISABLED,
                 message="Tài khoản đã bị vô hiệu hóa.",
             )
 
-        # 3. Check if account is locked
+        # Nếu tài khoản bị khóa, chỉ cho đăng nhập sau khi hết thời gian khóa.
         if user.status == "LOCKED":
             if user.locked_until and user.locked_until > datetime.now(UTC):
                 locked_until_str = user.locked_until.isoformat()
@@ -80,27 +80,26 @@ class LoginUserUseCaseImpl(LoginUserUseCase):
                     error_code=ErrorCode.USER_LOCKED,
                     message=msg,
                 )
-            # Lock expired, unlock the account
+            # Hết thời gian khóa thì mở lại tài khoản.
             user = user.enable()
 
-        # 4. Verify password
+        # Kiểm tra mật khẩu và ghi nhận lần đăng nhập thất bại.
         if not verify_password(password, user.password_hash):
-            # Record failed attempt
             updated_user = user.record_failed_login()
             await self.unit_of_work.repository.update(updated_user)
-            # Commit immediately for failed login (security audit)
+            # Lưu ngay để không mất thông tin phục vụ bảo mật.
             await self.unit_of_work.commit()
-            # Generic message to not leak info
+            # Luôn trả cùng một thông báo để không lộ thông tin tài khoản.
             raise AppException(
                 error_code=ErrorCode.INVALID_CREDENTIALS,
                 message="Email hoặc mật khẩu không chính xác.",
             )
 
-        # 5. Record successful login and persist the audit timestamp.
+        # Ghi nhận đăng nhập thành công và cập nhật thời điểm đăng nhập.
         updated_user = user.record_successful_login()
         await self.unit_of_work.repository.update(updated_user)
         await self.unit_of_work.commit()
-        # 6. Attach permissions (already loaded from query)
+        # Gắn danh sách quyền đã tải từ truy vấn đăng nhập.
         updated_user.permissions = permissions
 
         return updated_user

@@ -11,7 +11,7 @@ from sqlalchemy.orm import noload, selectinload
 from customer_analytics.app.features.identity.domain.entities.user_entity import (
     UserEntity,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_repository import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_repository import (
     UserRepository,
 )
 from customer_analytics.app.features.identity.infrastructure.models.user import (
@@ -32,6 +32,7 @@ class UserRepositoryImpl(UserRepository):
         self, model: UserModel, role_code: str | None = None
     ) -> UserEntity:
         """Convert database model to domain entity."""
+        # Nạp role khi truy vấn trước đó chưa tải quan hệ này.
         if role_code is None and "role" not in model.__dict__:
             await self._session.refresh(model, ["role"])
 
@@ -70,6 +71,7 @@ class UserRepositoryImpl(UserRepository):
         """Convert domain entity to database model."""
         from customer_analytics.app.features.identity.domain.enums import UserStatus
 
+        # Chuyển chuỗi trạng thái trong entity sang enum của SQLAlchemy.
         status = (
             UserStatus(entity.status)
             if entity.status in [s.value for s in UserStatus]
@@ -87,9 +89,7 @@ class UserRepositoryImpl(UserRepository):
             google_id=entity.google_id,
             auth_provider=entity.auth_provider,
             team_id=uuid.UUID(entity.team_id) if entity.team_id else None,
-            customer_id=(
-                uuid.UUID(entity.customer_id) if entity.customer_id else None
-            ),
+            customer_id=(uuid.UUID(entity.customer_id) if entity.customer_id else None),
         )
 
     async def create(self, entity: UserEntity) -> UserEntity:
@@ -97,7 +97,7 @@ class UserRepositoryImpl(UserRepository):
         model = self._to_model(entity)
         self._session.add(model)
         await self._session.flush()
-        # Refresh model to load server-generated values (id, created_at, etc.)
+        # Refresh để lấy ID và các giá trị do database tự sinh.
         await self._session.refresh(model)
         return await self._to_entity(model)
 
@@ -142,8 +142,7 @@ class UserRepositoryImpl(UserRepository):
         Optimised for login flow — avoids N+1 by joining all needed data.
         Returns (UserEntity, permissions) or None.
         """
-        # Keep users with roles that intentionally have no permissions (for
-        # example, customer-facing USER accounts).
+        # Dùng outer join để user không có permission vẫn đăng nhập được.
         stmt = (
             select(
                 UserModel,
@@ -167,7 +166,7 @@ class UserRepositoryImpl(UserRepository):
         if not rows:
             return None
 
-        # First row has the user model (with role loaded via selectinload).
+        # Lấy model từ dòng đầu tiên; các dòng còn lại chứa permission.
         model = rows[0][0]
         permissions = [
             row.permission_code for row in rows if row.permission_code is not None

@@ -13,20 +13,20 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from customer_analytics.app.config import settings
-from customer_analytics.app.features.analytics.application.controlled_analytics_agent import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.controlled_analytics_agent import (
     ControlledAnalyticsAgent,
     ControlledAnalyticsResult,
 )
-from customer_analytics.app.features.analytics.infrastructure.controlled_analytics.audit_repository import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.controlled_analytics.audit_repository import (
     AnalyticsAuditRepository,
 )
-from customer_analytics.app.features.analytics.infrastructure.controlled_analytics.database import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.controlled_analytics.database import (
     analytics_session_context,
 )
-from customer_analytics.app.features.analytics.infrastructure.controlled_analytics.query_executor import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.controlled_analytics.query_executor import (
     AnalyticsQueryExecutor,
 )
-from customer_analytics.app.features.analytics.infrastructure.controlled_analytics.sql_safety import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.controlled_analytics.sql_safety import (
     SQLSafetyGateway,
 )
 from customer_analytics.app.features.chat.application.services.ai_service import (

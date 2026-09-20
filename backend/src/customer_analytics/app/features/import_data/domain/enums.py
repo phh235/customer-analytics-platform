@@ -26,6 +26,7 @@ class ImportType(StrEnum):
     INTERACTION = "INTERACTION"
     DATASET = "DATASET"
 
+
 class ErrorSeverity(StrEnum):
     """Error severity level."""
 

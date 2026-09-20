@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-from customer_analytics.app.features.identity.domain.entities.password_reset_challenge import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.entities.password_reset_challenge import (
     PasswordResetChallenge,
 )
 

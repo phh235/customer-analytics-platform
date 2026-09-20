@@ -41,6 +41,7 @@ class ImportErrorDetailResponse(BaseModel):
     raw_value: Any = Field(None, description="Raw source value")
     original_value: Any = Field(None, description="Backward-compatible source value")
 
+
 class ImportJobResponse(BaseModel):
     """Import job info in response."""
 

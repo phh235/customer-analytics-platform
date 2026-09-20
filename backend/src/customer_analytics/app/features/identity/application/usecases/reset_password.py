@@ -8,13 +8,13 @@ from datetime import UTC, datetime
 from customer_analytics.app.features.identity.application.password_reset_tokens import (
     hash_reset_secret,
 )
-from customer_analytics.app.features.identity.domain.repositories.password_reset_repository import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.password_reset_repository import (
     PasswordResetRepository,
 )
-from customer_analytics.app.features.identity.domain.repositories.refresh_token_repository import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.refresh_token_repository import (
     RefreshTokenRepository,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 from customer_analytics.app.features.identity.infrastructure.password_hasher import (

@@ -11,7 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from customer_analytics.app.config import settings
-from customer_analytics.app.features.analytics.domain.repositories.product_interest_repository import (  # noqa: E501
+from customer_analytics.app.features.analytics.domain.repositories.product_interest_repository import (
     ProductInterestRepository,
 )
 from customer_analytics.app.features.identity.domain.entities.user_entity import (
@@ -280,9 +280,7 @@ class ProductInterestRepositoryImpl(ProductInterestRepository):
         records.sort(
             key=lambda item: (
                 item["growth_percent"] is None,
-                item["growth_percent"]
-                if item["growth_percent"] is not None
-                else 0,
+                item["growth_percent"] if item["growth_percent"] is not None else 0,
                 item["current_period_views"],
             ),
             reverse=True,
