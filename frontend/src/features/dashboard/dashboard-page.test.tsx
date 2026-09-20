@@ -25,6 +25,9 @@ vi.mock("@/features/dashboard/dashboard-charts", () => ({
   PredictionChart: () => <div>Biểu đồ xác suất ML</div>,
   OpportunityMatrixChart: () => <div>Ma trận cơ hội khách hàng</div>,
 }))
+vi.mock("@/features/dashboard/trending-products", () => ({
+  TrendingProducts: () => <div>Sản phẩm xu hướng</div>,
+}))
 vi.mock("@/api/dashboard", () => ({
   getDashboardOverview: vi.fn(),
   getDashboardOptions: vi.fn(),

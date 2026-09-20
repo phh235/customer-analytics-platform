@@ -48,7 +48,6 @@ import { customerQueryKeys, useCustomers } from "@/hooks/use-customers"
 import { hasPermission } from "@/lib/authorization"
 import type { Customer, CustomerFormData } from "@/lib/admin-management"
 import { formatDate } from "@/lib/date"
-import { normalizeText } from "@/lib/format"
 import { useAuthStore } from "@/stores/use-auth-store"
 import { toastError, toastSuccess } from "@/utils/toast"
 const mapCustomer = (customer: CustomerRecord): Customer => ({
@@ -95,7 +94,12 @@ export const Component = () => {
   const canUpdateCustomer = hasPermission(currentUser, "customers:update")
   const canDeleteCustomer = hasPermission(currentUser, "customers:delete")
   const canManageCustomers = canUpdateCustomer || canDeleteCustomer
-  const customersQuery = useCustomers({ page: 1, size: 100 })
+  const currentPage = Math.max(page, 1)
+  const customersQuery = useCustomers({
+    page: currentPage,
+    size: CUSTOMER_PAGE_SIZE,
+    search: debouncedSearch.trim() || undefined,
+  })
   const customers = useMemo(
     () => (customersQuery.data?.records ?? []).map(mapCustomer),
     [customersQuery.data?.records]
@@ -103,18 +107,10 @@ export const Component = () => {
   const loading = customersQuery.isPending
 
   const filteredCustomers = useMemo(() => {
-    const query = normalizeText(debouncedSearch.trim())
-
     return customers
       .filter((customer) => {
-        const matchesSearch =
-          !query ||
-          [customer.name, customer.email, customer.phone].some((value) =>
-            normalizeText(value).includes(query)
-          )
         const matchesStatus = status === "all" || customer.status === status
-
-        return matchesSearch && matchesStatus
+        return matchesStatus
       })
       .sort((first, second) => {
         const sortMultiplier = direction === "asc" ? 1 : -1
@@ -127,7 +123,7 @@ export const Component = () => {
 
         return comparison * sortMultiplier
       })
-  }, [customers, debouncedSearch, direction, sort, status])
+  }, [customers, direction, sort, status])
 
   const openCustomerSheet = useCallback((customer: Customer | null = null) => {
     setEditingCustomer(customer)
@@ -209,8 +205,6 @@ export const Component = () => {
   const resetFilters = () => {
     void setQuery({ search: "", status: "all", page: 1 })
   }
-
-  const currentPage = Math.max(page, 1)
 
   const columns: CommonTableColumn<Customer>[] = useMemo(
     () => [
@@ -402,8 +396,10 @@ export const Component = () => {
             />
           }
           pagination={{
-            page: currentPage,
+            page: customersQuery.data?.current ?? currentPage,
             pageSize: CUSTOMER_PAGE_SIZE,
+            total: customersQuery.data?.total ?? 0,
+            totalPages: customersQuery.data?.pages ?? 1,
             onPageChange: (nextPage) => void setQuery({ page: nextPage }),
           }}
         />

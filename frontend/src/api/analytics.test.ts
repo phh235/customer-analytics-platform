@@ -7,8 +7,10 @@ vi.mock("@/api/client", () => ({ default: { get: vi.fn() } }))
 
 const segment = (id: string): SegmentRecord => ({
   customer_id: id,
+  customer_code: `KH${id.padStart(3, "0")}`,
   name: `Khách ${id}`,
   segment_type: "HIGH_VALUE",
+  potential_score: 86.8,
   reason: "Potential score is at least 80.",
   calculated_at: "2026-09-19T15:18:53Z",
 })

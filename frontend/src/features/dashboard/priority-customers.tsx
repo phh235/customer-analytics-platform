@@ -3,6 +3,7 @@ import {
   type CommonTableColumn,
 } from "@/components/common/common-table"
 import { SegmentBadge } from "@/components/admin/management/analytics-status-badge"
+import { PotentialScoreValue } from "@/components/admin/management/potential-score-value"
 import { ProbabilityValue } from "@/components/admin/management/probability-value"
 import { UserAvatar } from "@/components/common/user-avatar"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +22,8 @@ import type {
 } from "@/types/dashboard"
 
 const getColumns = (
-  employeeNames: Record<string, string>
+  employeeNames: Record<string, string>,
+  highThreshold: number
 ): CommonTableColumn<DashboardPriorityCustomer>[] => [
   {
     id: "customer",
@@ -30,7 +32,14 @@ const getColumns = (
     cell: (customer) => (
       <div className="flex items-center gap-3">
         <UserAvatar name={customer.name} />
-        <span>{customer.name}</span>
+        <div className="min-w-0">
+          <p className="truncate font-medium">{customer.name}</p>
+          {customer.customer_code ? (
+            <p className="text-xs text-muted-foreground">
+              {customer.customer_code}
+            </p>
+          ) : null}
+        </div>
       </div>
     ),
   },
@@ -48,10 +57,10 @@ const getColumns = (
     id: "potential",
     header: "Điểm tiềm năng",
     cell: (customer) => (
-      <span className="font-medium tabular-nums">
-        {customer.potential_score}
-        <span className="font-normal text-muted-foreground"> / 100</span>
-      </span>
+      <PotentialScoreValue
+        value={customer.potential_score}
+        highThreshold={highThreshold}
+      />
     ),
   },
   {
@@ -87,7 +96,7 @@ export function PriorityCustomers({
   const employeeNames = Object.fromEntries(
     employees.map((employee) => [employee.id, employee.name])
   )
-  const columns = getColumns(employeeNames)
+  const columns = getColumns(employeeNames, data.potential.thresholds.high)
 
   return (
     <section aria-labelledby="priority-title" className="min-w-0">
@@ -105,7 +114,7 @@ export function PriorityCustomers({
             </Badge>
           </CardAction>
         </CardHeader>
-        <SquircleCardBody className="pt-3 pb-0">
+        <SquircleCardBody className="py-0">
           <CommonTable
             data={data.priority_customers}
             columns={columns}

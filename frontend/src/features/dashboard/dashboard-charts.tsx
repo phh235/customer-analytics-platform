@@ -47,6 +47,7 @@ import {
   formatDashboardMoney,
   formatDashboardNumber,
   formatShortDate,
+  getDashboardSegmentLabel,
 } from "@/lib/dashboard"
 import type {
   DashboardOpportunityCustomer,
@@ -74,13 +75,16 @@ const segmentColors = [
   "var(--muted-foreground)",
   "var(--border)",
 ]
-const categoryColors: Record<string, string> = {
-  phone: "var(--chart-1)",
-  laptop: "var(--chart-2)",
-  accessories: "var(--chart-3)",
-  home: "var(--chart-4)",
-  audio: "var(--chart-5)",
-}
+const categoryColors = [
+  "#689d4b",
+  "#576a8f",
+  "#d9a45b",
+  "#d96868",
+  "#a6b1e1",
+  "#7c6aa6",
+  "#4f9d8f",
+  "#c47f62",
+]
 
 function NoChartData({
   description = "Chưa có giao dịch hợp lệ trong khoảng thời gian đã chọn.",
@@ -237,8 +241,12 @@ export function RevenueChart({ data }: { data: DashboardOverview }) {
 }
 
 export function SegmentChart({ data }: { data: DashboardOverview }) {
+  const segments = data.segments.map((item) => ({
+    ...item,
+    label: getDashboardSegmentLabel(item.key, item.label),
+  }))
   const config = Object.fromEntries(
-    data.segments.map((item, index) => [
+    segments.map((item, index) => [
       item.key,
       { label: item.label, color: segmentColors[index] },
     ])
@@ -265,7 +273,7 @@ export function SegmentChart({ data }: { data: DashboardOverview }) {
                 content={<ChartTooltipContent nameKey="key" hideLabel />}
               />
               <Pie
-                data={data.segments.filter((item) => item.count > 0)}
+                data={segments.filter((item) => item.count > 0)}
                 dataKey="count"
                 nameKey="key"
                 innerRadius="65%"
@@ -274,7 +282,7 @@ export function SegmentChart({ data }: { data: DashboardOverview }) {
                 strokeWidth={2}
                 isAnimationActive={false}
               >
-                {data.segments
+                {segments
                   .filter((item) => item.count > 0)
                   .map((item) => (
                     <Cell key={item.key} fill={`var(--color-${item.key})`} />
@@ -310,7 +318,7 @@ export function SegmentChart({ data }: { data: DashboardOverview }) {
             </PieChart>
           </ChartContainer>
           <ul className="grid min-w-0 gap-3">
-            {data.segments.map((item, index) => (
+            {segments.map((item, index) => (
               <li
                 key={item.key}
                 className="flex items-center justify-between gap-2 text-xs"
@@ -482,10 +490,10 @@ export function CategoryChart({ data }: { data: DashboardOverview }) {
                   maxBarSize={24}
                   isAnimationActive={false}
                 >
-                  {data.categories.map((category) => (
+                  {data.categories.map((category, index) => (
                     <Cell
                       key={category.id}
-                      fill={categoryColors[category.id] ?? "var(--chart-1)"}
+                      fill={categoryColors[index % categoryColors.length]}
                     />
                   ))}
                 </Bar>

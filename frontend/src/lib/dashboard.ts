@@ -1,4 +1,8 @@
-import type { DashboardFilters, DashboardSegment } from "@/types/dashboard"
+import type {
+  DashboardFilters,
+  DashboardSegment,
+  PotentialLevel,
+} from "@/types/dashboard"
 
 export const DEMO_ANALYSIS_DATE = "2026-09-19"
 export const DEFAULT_DASHBOARD_FILTERS: DashboardFilters = {
@@ -20,6 +24,19 @@ export const DASHBOARD_SEGMENTS: Record<DashboardSegment, string> = {
   NORMAL: "Thông thường",
   INSUFFICIENT_DATA: "Chưa đủ dữ liệu",
 }
+export const DASHBOARD_POTENTIAL_LEVELS: Record<PotentialLevel, string> = {
+  HIGH: "Tiềm năng cao",
+  POTENTIAL: "Tiềm năng",
+  NORMAL: "Thông thường",
+  INSUFFICIENT_DATA: "Chưa đủ dữ liệu",
+}
+
+export const getDashboardSegmentLabel = (value: string, fallback = value) =>
+  DASHBOARD_SEGMENTS[value as DashboardSegment] ?? fallback
+
+export const getDashboardPotentialLabel = (value: string, fallback = value) =>
+  DASHBOARD_POTENTIAL_LEVELS[value as PotentialLevel] ?? fallback
+
 export const DASHBOARD_CATEGORIES = [
   { value: "phone", label: "Điện thoại" },
   { value: "laptop", label: "Laptop" },

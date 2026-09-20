@@ -8,6 +8,7 @@ import {
 
 import type { PriorityCustomerRecord } from "@/api/analytics"
 import { PotentialLevelBadge } from "@/components/admin/management/analytics-status-badge"
+import { PotentialScoreValue } from "@/components/admin/management/potential-score-value"
 import { ProbabilityValue } from "@/components/admin/management/probability-value"
 import {
   CommonTable,
@@ -46,7 +47,12 @@ export const Component = () => {
       cell: (customer) => (
         <div className="flex items-center gap-3">
           <UserAvatar name={customer.name} />
-          <span>{customer.name}</span>
+          <div className="min-w-0">
+            <p className="truncate font-medium">{customer.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {customer.customer_code}
+            </p>
+          </div>
         </div>
       ),
     },
@@ -55,7 +61,7 @@ export const Component = () => {
       header: "Điểm tiềm năng",
       cell: (customer) => (
         <span>
-          {customer.potential_score.toFixed(1)} / 100
+          <PotentialScoreValue value={customer.potential_score} />
           <PotentialLevelBadge
             className="ml-2"
             level={customer.potential_level}
