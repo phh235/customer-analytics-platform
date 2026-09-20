@@ -13,16 +13,16 @@ import { useProducts } from "@/hooks/use-products"
 import { useAuthStore } from "@/stores/use-auth-store"
 import { ArrowRight } from "lucide-react"
 import { LineShadowText } from "@/components/line-shadow-text"
-import azukiLogo from "@/assets/azuki-logo-primary.png"
+import storeLogo from "@/assets/3cs-logo-primary.png"
 // import Integrations from "@/integrations"
 
-const PRODUCT_SKELETON_IDS = ["one", "two", "three", "four"] as const
+const PRODUCT_SKELETON_COUNT = 8
 const AsciiObject = lazy(() => import("@/components/ascii-object"))
 export const Component = () => {
   const isSessionPending = useAuthStore(
     (state) => state.status === "unknown" || state.status === "loading"
   )
-  const productsQuery = useProducts({ page: 1, size: 4 })
+  const productsQuery = useProducts({ page: 1, size: 8 })
   const products = productsQuery.data?.records ?? []
   const loading = productsQuery.isPending
 
@@ -68,12 +68,12 @@ export const Component = () => {
                   fallback={<div className="h-64 w-full max-w-xl md:h-72" />}
                 >
                   <AsciiObject
-                    src={azukiLogo}
-                    autoRotate
-                    autoRotateSpeed={2}
+                    src={storeLogo}
+                    autoRotate={false}
                     floatIntensity={2.8}
                     highlight="#91AE6E"
-                    scale={3.4}
+                    rotationIntensity={0.8}
+                    scale={4.2}
                     yOffset={-0.2}
                     className="h-64 w-full max-w-xl md:h-72"
                   />
@@ -107,9 +107,11 @@ export const Component = () => {
       <Panel className="screen-border-top-none">
         <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 lg:grid-cols-4">
           {isSessionPending || loading
-            ? PRODUCT_SKELETON_IDS.map((id) => <ProductCardSkeleton key={id} />)
+            ? Array.from({ length: PRODUCT_SKELETON_COUNT }, (_, index) => (
+                <ProductCardSkeleton key={index} />
+              ))
             : products
-                .slice(0, 4)
+                .slice(0, 8)
                 .map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

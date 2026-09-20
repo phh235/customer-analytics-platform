@@ -1,6 +1,12 @@
 import { useMemo } from "react"
 import { FilterXIcon, SearchIcon } from "lucide-react"
-import { debounce, defaultRateLimit, parseAsString, useQueryStates } from "nuqs"
+import {
+  debounce,
+  defaultRateLimit,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from "nuqs"
 
 import { ClientPageLayout } from "@/components/client-page-layout"
 import { ProductCard } from "@/components/product-card"
@@ -21,13 +27,23 @@ import {
 } from "@/components/ui/input-group"
 import { Panel, PanelContent, Separator } from "@/components/ui/panel"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useProducts } from "@/hooks/use-products"
+import { PRODUCT_CATEGORIES } from "@/lib/products"
 import { useAuthStore } from "@/stores/use-auth-store"
 
 const clientProductQueryParsers = {
   search: parseAsString.withDefault(""),
   category: parseAsString.withDefault("all"),
+  page: parseAsInteger.withDefault(1),
 }
 const clientProductQueryOptions = { urlKeys: { search: "q" } }
 const PRODUCT_SKELETON_IDS = [
@@ -39,55 +55,45 @@ const PRODUCT_SKELETON_IDS = [
   "six",
   "seven",
   "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
 ] as const
+const PRODUCT_PAGE_SIZE = 12
 
 export const Component = () => {
   const isSessionPending = useAuthStore(
     (state) => state.status === "unknown" || state.status === "loading"
   )
-  const [{ search, category }, setQuery] = useQueryStates(
+  const [{ search, category, page }, setQuery] = useQueryStates(
     clientProductQueryParsers,
     clientProductQueryOptions
   )
   const debouncedSearch = useDebounce(search, 300)
-  const productsQuery = useProducts({ page: 1, size: 100 })
+  const currentPage = Math.max(page, 1)
+  const productsQuery = useProducts({
+    page: currentPage,
+    size: PRODUCT_PAGE_SIZE,
+    search: debouncedSearch || undefined,
+    category: category === "all" ? undefined : category,
+  })
   const products = useMemo(
     () => productsQuery.data?.records ?? [],
     [productsQuery.data?.records]
   )
   const loading = productsQuery.isPending
 
-  const categories = useMemo(
-    () =>
-      Array.from(new Set(products.map((product) => product.category))).sort(
-        (first, second) => first.localeCompare(second, "vi")
-      ),
-    [products]
-  )
-
-  const filteredProducts = useMemo(() => {
-    const query = debouncedSearch.trim().toLocaleLowerCase("vi")
-
-    return products.filter((product) => {
-      const matchesSearch =
-        !query ||
-        [product.name, product.category].some((value) =>
-          value.toLocaleLowerCase("vi").includes(query)
-        )
-      const matchesCategory =
-        category === "all" || product.category === category
-
-      return matchesSearch && matchesCategory
-    })
-  }, [category, debouncedSearch, products])
+  const categories = PRODUCT_CATEGORIES
+  const totalPages = productsQuery.data?.pages ?? 1
 
   const resetFilters = () => {
-    void setQuery({ search: "", category: "all" })
+    void setQuery({ search: "", category: "all", page: 1 })
   }
 
   const updateSearch = (value: string) => {
     void setQuery(
-      { search: value },
+      { search: value, page: 1 },
       { limitUrlUpdates: value ? debounce(300) : defaultRateLimit }
     )
   }
@@ -144,7 +150,7 @@ export const Component = () => {
                 ]}
                 value={category}
                 onChange={(value) =>
-                  void setQuery({ category: value || "all" })
+                  void setQuery({ category: value || "all", page: 1 })
                 }
                 className="w-full sm:w-56"
                 aria-label="Lọc theo danh mục"
@@ -167,9 +173,9 @@ export const Component = () => {
               <ProductCardSkeleton key={id} />
             ))}
           </div>
-        ) : filteredProducts.length > 0 ? (
+        ) : products.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 lg:grid-cols-4">
-            {filteredProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
@@ -186,6 +192,68 @@ export const Component = () => {
             </EmptyHeader>
           </Empty>
         )}
+        {!loading && totalPages > 1 ? (
+          <div className="screen-border-top p-3">
+            <Pagination aria-label="Phân trang sản phẩm">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    text="Trước"
+                    aria-disabled={currentPage <= 1}
+                    className={
+                      currentPage <= 1
+                        ? "pointer-events-none opacity-50"
+                        : undefined
+                    }
+                    onClick={(event) => {
+                      event.preventDefault()
+                      if (currentPage > 1) {
+                        void setQuery({ page: currentPage - 1 })
+                      }
+                    }}
+                  />
+                </PaginationItem>
+                {Array.from(
+                  { length: totalPages },
+                  (_, index) => index + 1
+                ).map((pageNumber) => (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      href="#"
+                      isActive={pageNumber === currentPage}
+                      aria-label={`Trang ${pageNumber}`}
+                      onClick={(event) => {
+                        event.preventDefault()
+                        void setQuery({ page: pageNumber })
+                      }}
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    text="Sau"
+                    aria-disabled={currentPage >= totalPages}
+                    className={
+                      currentPage >= totalPages
+                        ? "pointer-events-none opacity-50"
+                        : undefined
+                    }
+                    onClick={(event) => {
+                      event.preventDefault()
+                      if (currentPage < totalPages) {
+                        void setQuery({ page: currentPage + 1 })
+                      }
+                    }}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        ) : null}
       </Panel>
 
       <Separator />

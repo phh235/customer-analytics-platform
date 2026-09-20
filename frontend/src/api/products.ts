@@ -40,10 +40,14 @@ export async function getProducts(
     page?: number
     size?: number
     category?: string
+    search?: string
   } = {}
 ) {
   const { data } = await apiClient.get<PaginatedProductsResponse>("/products", {
-    params,
+    params: {
+      ...params,
+      search: params.search?.trim() || undefined,
+    },
   })
   return data
 }

@@ -3,10 +3,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   EditIcon,
   FilterXIcon,
+  ChartNoAxesCombinedIcon,
   PlusIcon,
   SearchIcon,
   Trash2Icon,
 } from "lucide-react"
+import { useNavigate } from "react-router"
 import {
   debounce,
   defaultRateLimit,
@@ -55,7 +57,8 @@ import {
   type ProductStatus,
 } from "@/lib/admin-management"
 import { formatDate } from "@/lib/date"
-import { formatCurrency, normalizeText } from "@/lib/format"
+import { formatCurrency } from "@/lib/format"
+import { PRODUCT_CATEGORIES } from "@/lib/products"
 import { toastError, toastSuccess } from "@/utils/toast"
 const mapProduct = (product: ProductRecord): Product => ({
   id: product.id,
@@ -87,6 +90,7 @@ const productQueryParsers = {
 const productQueryOptions = { urlKeys: { search: "q" } }
 
 export const Component = () => {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [{ search, category, status, sort, direction, page }, setQuery] =
     useQueryStates(productQueryParsers, productQueryOptions)
@@ -103,7 +107,13 @@ export const Component = () => {
   const canCreateProduct = hasPermission(currentUser, "products:create")
   const canUpdateProduct = hasPermission(currentUser, "products:update")
   const canDeleteProduct = hasPermission(currentUser, "products:delete")
-  const productsQuery = useProducts({ page: 1, size: 100 })
+  const currentPage = Math.max(page, 1)
+  const productsQuery = useProducts({
+    page: currentPage,
+    size: PRODUCT_PAGE_SIZE,
+    search: debouncedSearch || undefined,
+    category: category === "all" ? undefined : category,
+  })
   const products = useMemo(
     () => (productsQuery.data?.records ?? []).map(mapProduct),
     [productsQuery.data?.records]
@@ -112,27 +122,20 @@ export const Component = () => {
 
   const categories = useMemo(
     () =>
-      Array.from(new Set(products.map((product) => product.category))).sort(
-        (first, second) => first.localeCompare(second, "vi")
-      ),
+      Array.from(
+        new Set([
+          ...PRODUCT_CATEGORIES,
+          ...products.map((product) => product.category),
+        ])
+      ).sort((first, second) => first.localeCompare(second, "vi")),
     [products]
   )
 
-  const filteredProducts = useMemo(() => {
-    const query = normalizeText(debouncedSearch.trim())
-
+  const displayedProducts = useMemo(() => {
     return products
       .filter((product) => {
-        const matchesSearch =
-          !query ||
-          [product.name, product.sku, product.category].some((value) =>
-            normalizeText(value).includes(query)
-          )
-        const matchesCategory =
-          category === "all" || product.category === category
         const matchesStatus = status === "all" || product.status === status
-
-        return matchesSearch && matchesCategory && matchesStatus
+        return matchesStatus
       })
       .sort((first, second) => {
         const sortMultiplier = direction === "asc" ? 1 : -1
@@ -145,7 +148,7 @@ export const Component = () => {
 
         return comparison * sortMultiplier
       })
-  }, [category, debouncedSearch, direction, products, sort, status])
+  }, [direction, products, sort, status])
 
   const openProductSheet = useCallback((product: Product | null = null) => {
     setEditingProduct(product)
@@ -169,6 +172,7 @@ export const Component = () => {
           data.status === "active"
             ? ("ACTIVE" as const)
             : ("INACTIVE" as const),
+        image_url: data.removeImage ? null : undefined,
       }
       const savedProduct = product
         ? await updateProduct(product.id, payload)
@@ -256,8 +260,6 @@ export const Component = () => {
       page: 1,
     })
   }
-
-  const currentPage = Math.max(page, 1)
 
   const columns: CommonTableColumn<Product>[] = useMemo(
     () => [
@@ -395,6 +397,13 @@ export const Component = () => {
           <TableActions
             actions={[
               {
+                key: "analytics",
+                label: "Xem phân tích",
+                icon: <ChartNoAxesCombinedIcon />,
+                onClick: () =>
+                  navigate(`/dashboard/analytics/products/${product.id}`),
+              },
+              {
                 key: "edit",
                 label: "Chỉnh sửa",
                 icon: <EditIcon />,
@@ -423,6 +432,7 @@ export const Component = () => {
       canDeleteProduct,
       canUpdateProduct,
       direction,
+      navigate,
       openProductSheet,
       sort,
       toggleSort,
@@ -492,7 +502,7 @@ export const Component = () => {
           )}
         </div>
         <CommonTable
-          data={filteredProducts}
+          data={displayedProducts}
           columns={columns}
           loading={loading}
           itemLabel="sản phẩm"
@@ -506,6 +516,8 @@ export const Component = () => {
           pagination={{
             page: currentPage,
             pageSize: PRODUCT_PAGE_SIZE,
+            total: productsQuery.data?.total ?? 0,
+            totalPages: productsQuery.data?.pages ?? 1,
             onPageChange: (nextPage) => void setQuery({ page: nextPage }),
           }}
         />

@@ -104,6 +104,7 @@ export interface ProductFormData {
   price: number
   status: ProductStatus
   image: File | null
+  removeImage: boolean
 }
 
 export interface CustomerFormData {
