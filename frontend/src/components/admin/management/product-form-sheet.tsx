@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
 import { ImageFileField } from "@/components/admin/management/image-file-field"
@@ -45,6 +45,7 @@ const productFormSchema = z.object({
     ),
   status: z.enum(["active", "inactive"]),
   image: z.instanceof(File).nullable(),
+  remove_image: z.boolean(),
 })
 
 type ProductFormValues = z.infer<typeof productFormSchema>
@@ -59,6 +60,7 @@ const getDefaultValues = (
   price: product ? formatPriceInput(product.price) : "",
   status: product?.status ?? "active",
   image: null,
+  remove_image: false,
 })
 
 export function ProductFormSheet({
@@ -78,6 +80,10 @@ export function ProductFormSheet({
     defaultValues: getDefaultValues(product, categories),
     resolver: zodResolver(productFormSchema),
   })
+  const removeImage = useWatch({
+    control: form.control,
+    name: "remove_image",
+  })
 
   useEffect(() => {
     if (open) form.reset(getDefaultValues(product, categories))
@@ -91,6 +97,7 @@ export function ProductFormSheet({
       price: Number(values.price.replace(/,/g, "")),
       status: values.status,
       image: values.image,
+      removeImage: values.remove_image,
     })
     onOpenChange(false)
   }
@@ -208,7 +215,15 @@ export function ProductFormSheet({
                   previewAlt={product?.name ?? "Sản phẩm"}
                   previewClassName="w-full rounded-lg"
                   selectedFile={field.value}
-                  onFileChange={field.onChange}
+                  onFileChange={(file) => {
+                    field.onChange(file)
+                    if (file) form.setValue("remove_image", false)
+                  }}
+                  onRemoveExisting={() => {
+                    field.onChange(null)
+                    form.setValue("remove_image", true)
+                  }}
+                  hideExistingPreview={removeImage}
                   disabled={isSubmitting}
                 />
               )}

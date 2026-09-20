@@ -5,13 +5,22 @@ import { useQueryErrorToast } from "@/hooks/use-query-error-toast"
 
 export const productQueryKeys = {
   all: ["products"] as const,
-  list: (params: { page?: number; size?: number; category?: string }) =>
-    ["products", "list", params] as const,
+  list: (params: {
+    page?: number
+    size?: number
+    category?: string
+    search?: string
+  }) => ["products", "list", params] as const,
   detail: (productId: string) => ["products", "detail", productId] as const,
 }
 
 export function productsQueryOptions(
-  params: { page?: number; size?: number; category?: string } = {}
+  params: {
+    page?: number
+    size?: number
+    category?: string
+    search?: string
+  } = {}
 ) {
   return queryOptions({
     queryKey: productQueryKeys.list(params),
@@ -20,7 +29,12 @@ export function productsQueryOptions(
 }
 
 export function useProducts(
-  params: { page?: number; size?: number; category?: string } = {},
+  params: {
+    page?: number
+    size?: number
+    category?: string
+    search?: string
+  } = {},
   fallback = "Không thể tải danh sách sản phẩm."
 ) {
   const query = useQuery(productsQueryOptions(params))
