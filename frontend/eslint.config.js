@@ -23,6 +23,7 @@ export default defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     ignores: [
       "src/components/ui/**",
+      "src/components/ai-elements/**",
       "src/components/common/common-table.tsx",
       "src/components/common/app-select.tsx",
       "**/*.test.tsx",
@@ -62,7 +63,10 @@ export default defineConfig([
     },
   },
   {
-    files: ["src/components/ui/**/*.{ts,tsx}"],
+    files: [
+      "src/components/ui/**/*.{ts,tsx}",
+      "src/components/ai-elements/**/*.{ts,tsx}",
+    ],
     rules: {
       "no-useless-assignment": "off",
       "react-hooks/immutability": "off",
