@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-UserRoleFilter = Literal["ADMIN", "ANALYST", "CLIENT"]
+UserRoleFilter = Literal["ADMIN", "USER"]
 UserStatusFilter = Literal["ACTIVE", "DISABLED", "LOCKED"]
 UserSortField = Literal["created_at", "full_name", "last_login_at"]
 SortOrder = Literal["asc", "desc"]
@@ -34,6 +34,7 @@ class UserReadModel(BaseModel):
     full_name: str = Field(..., description="Full name")
     status: str = Field(..., description="Account status")
     role_code: str = Field(..., description="Role code")
+    team_id: uuid.UUID | None = Field(None, description="Team ID")
     permissions: list[str] = Field(default_factory=list, description="User permissions")
     created_at: datetime = Field(..., description="Creation timestamp")
     last_login_at: datetime | None = Field(None, description="Last login timestamp")
@@ -49,6 +50,7 @@ class UserReadModel(BaseModel):
             full_name=entity.full_name,
             status=entity.status,
             role_code=entity.role_code,
+            team_id=uuid.UUID(entity.team_id) if entity.team_id else None,
             permissions=permissions or [],
             created_at=entity.created_at,
             last_login_at=entity.last_login_at,

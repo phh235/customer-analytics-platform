@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   FilterXIcon,
   EditIcon,
@@ -15,6 +15,14 @@ import {
   useQueryStates,
 } from "nuqs"
 
+import {
+  createCustomer,
+  deleteCustomer,
+  getCustomers,
+  updateCustomer,
+  uploadCustomerImage,
+  type CustomerRecord,
+} from "@/api/customers"
 import {
   CommonTable,
   type CommonTableColumn,
@@ -33,16 +41,28 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import { getApiErrorMessage } from "@/api/errors"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
-  createId,
   formatDate,
   normalize,
-  SAMPLE_CUSTOMERS,
   type Customer,
   type CustomerFormData,
 } from "@/lib/admin-management"
-import { toastSuccess } from "@/utils/toast"
+import { useAuthStore } from "@/stores/use-auth-store"
+import { toastError, toastSuccess } from "@/utils/toast"
+const mapCustomer = (customer: CustomerRecord): Customer => ({
+  id: customer.id,
+  customerCode: customer.customer_code,
+  name: customer.name,
+  imageUrl: customer.image_url,
+  email: customer.email ?? "",
+  phone: customer.phone ?? "",
+  orders: customer.total_orders,
+  totalSpent: Number(customer.total_spent),
+  status: customer.status === "INACTIVE" ? "inactive" : "active",
+  joinedAt: customer.customer_since ?? customer.created_at,
+})
 
 const CUSTOMER_SORT_KEYS = ["name", "orders", "totalSpent", "joinedAt"] as const
 const SORT_DIRECTIONS = ["asc", "desc"] as const
@@ -61,7 +81,7 @@ const customerQueryParsers = {
 const customerQueryOptions = { urlKeys: { search: "q" } }
 
 export const Component = () => {
-  const [customers, setCustomers] = useState(SAMPLE_CUSTOMERS)
+  const [customers, setCustomers] = useState<Customer[]>([])
   const [{ search, status, sort, direction, page }, setQuery] = useQueryStates(
     customerQueryParsers,
     customerQueryOptions
@@ -71,10 +91,25 @@ export const Component = () => {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const currentUser = useAuthStore((state) => state.user)
+  const canManageCustomers = currentUser?.role_code === "ADMIN"
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 650)
-    return () => window.clearTimeout(timer)
+    let cancelled = false
+    void getCustomers({ page: 1, size: 100 })
+      .then((response) => {
+        if (!cancelled) setCustomers(response.records.map(mapCustomer))
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) toastError(getApiErrorMessage(error))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const filteredCustomers = useMemo(() => {
@@ -104,56 +139,69 @@ export const Component = () => {
       })
   }, [customers, debouncedSearch, direction, sort, status])
 
-  const openCustomerSheet = (customer: Customer | null = null) => {
+  const openCustomerSheet = useCallback((customer: Customer | null = null) => {
     setEditingCustomer(customer)
     setSheetOpen(true)
-  }
+  }, [])
 
-  const handleSave = (data: CustomerFormData) => {
-    if (editingCustomer) {
+  const handleSave = async (data: CustomerFormData) => {
+    try {
+      const payload = {
+        name: data.name,
+        email: data.email || null,
+        phone: data.phone || null,
+        status:
+          data.status === "active" ? ("ACTIVE" as const) : ("INACTIVE" as const),
+      }
+      const savedCustomer = editingCustomer
+        ? await updateCustomer(editingCustomer.id, payload)
+        : await createCustomer(payload)
+      const customerWithImage = data.image
+        ? await uploadCustomerImage(savedCustomer.id, data.image)
+        : savedCustomer
+      const mappedCustomer = mapCustomer(customerWithImage)
+
       setCustomers((current) =>
-        current.map((customer) =>
-          customer.id === editingCustomer.id
-            ? { ...customer, ...data }
-            : customer
-        )
+        editingCustomer
+          ? current.map((customer) =>
+              customer.id === editingCustomer.id ? mappedCustomer : customer
+            )
+          : [mappedCustomer, ...current]
       )
-      toastSuccess("Đã cập nhật khách hàng")
-    } else {
-      setCustomers((current) => [
-        {
-          id: createId("KH"),
-          ...data,
-          orders: 0,
-          totalSpent: 0,
-          joinedAt: new Date().toISOString(),
-        },
-        ...current,
-      ])
-      toastSuccess("Đã thêm khách hàng mới")
+      toastSuccess(
+        editingCustomer ? "Đã cập nhật khách hàng" : "Đã thêm khách hàng mới"
+      )
+    } catch (error: unknown) {
+      toastError(getApiErrorMessage(error))
+      throw error
     }
-
-    setSheetOpen(false)
-    setEditingCustomer(null)
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return
 
-    setCustomers((current) =>
-      current.filter((customer) => customer.id !== deleteTarget.id)
-    )
-    toastSuccess("Đã xoá khách hàng")
-    setDeleteTarget(null)
+    try {
+      await deleteCustomer(deleteTarget.id)
+      setCustomers((current) =>
+        current.filter((customer) => customer.id !== deleteTarget.id)
+      )
+      toastSuccess("Đã xoá khách hàng")
+      setDeleteTarget(null)
+    } catch (error: unknown) {
+      toastError(getApiErrorMessage(error))
+    }
   }
 
-  const toggleSort = (key: CustomerSortKey) => {
-    void setQuery({
-      sort: key,
-      direction: sort === key && direction === "asc" ? "desc" : "asc",
-      page: 1,
-    })
-  }
+  const toggleSort = useCallback(
+    (key: CustomerSortKey) => {
+      void setQuery({
+        sort: key,
+        direction: sort === key && direction === "asc" ? "desc" : "asc",
+        page: 1,
+      })
+    },
+    [direction, setQuery, sort]
+  )
 
   const updateSearch = (value: string) => {
     void setQuery(
@@ -171,11 +219,13 @@ export const Component = () => {
   const columns: CommonTableColumn<Customer>[] = useMemo(
     () => [
       {
-        id: "id",
+        id: "customerCode",
         header: "Mã khách hàng",
         className: "min-w-28 whitespace-nowrap",
         cell: (customer) => (
-          <span className="text-sm whitespace-nowrap">{customer.id}</span>
+          <span className="text-sm whitespace-nowrap">
+            {customer.customerCode}
+          </span>
         ),
       },
       {
@@ -192,7 +242,16 @@ export const Component = () => {
         className: "min-w-52 whitespace-nowrap",
         cell: (customer) => (
           <div className="flex min-w-48 items-center gap-3 whitespace-nowrap">
-            <UserAvatar email={customer.email} />
+            {customer.imageUrl ? (
+              <img
+                src={customer.imageUrl}
+                alt={customer.name}
+                className="size-8 shrink-0 rounded-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <UserAvatar email={customer.email} />
+            )}
             <span className="truncate">{customer.name}</span>
           </div>
         ),
@@ -244,37 +303,38 @@ export const Component = () => {
         id: "actions",
         header: "Thao tác",
         className: "w-28 text-right",
-        cell: (customer) => (
-          <div className="flex justify-end gap-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon-sm"
-              aria-label={`Chỉnh sửa ${customer.name}`}
-              onClick={() => openCustomerSheet(customer)}
-            >
-              <EditIcon />
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon-sm"
-              aria-label={`Xoá ${customer.name}`}
-              onClick={() =>
-                setDeleteTarget({
-                  type: "customer",
-                  id: customer.id,
-                  name: customer.name,
-                })
-              }
-            >
-              <Trash2Icon />
-            </Button>
-          </div>
-        ),
+        cell: (customer) =>
+          canManageCustomers ? (
+            <div className="flex justify-end gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                aria-label={`Chỉnh sửa ${customer.name}`}
+                onClick={() => openCustomerSheet(customer)}
+              >
+                <EditIcon />
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon-sm"
+                aria-label={`Xoá ${customer.name}`}
+                onClick={() =>
+                  setDeleteTarget({
+                    type: "customer",
+                    id: customer.id,
+                    name: customer.name,
+                  })
+                }
+              >
+                <Trash2Icon />
+              </Button>
+            </div>
+          ) : null,
       },
     ],
-    [direction, openCustomerSheet, sort, toggleSort]
+    [canManageCustomers, direction, openCustomerSheet, sort, toggleSort]
   )
 
   return (
@@ -316,10 +376,12 @@ export const Component = () => {
                 Xoá lọc
               </Button>
             )}
-            <Button onClick={() => openCustomerSheet()} className="ml-auto">
-              <PlusIcon />
-              Thêm khách hàng
-            </Button>
+            {canManageCustomers && (
+              <Button onClick={() => openCustomerSheet()} className="ml-auto">
+                <PlusIcon />
+                Thêm khách hàng
+              </Button>
+            )}
           </div>
         </div>
         <CommonTable
@@ -347,6 +409,7 @@ export const Component = () => {
       </div>
 
       <CustomerFormSheet
+        key={`${editingCustomer?.id ?? "new"}-${sheetOpen ? "open" : "closed"}`}
         open={sheetOpen}
         onOpenChange={(open) => {
           setSheetOpen(open)

@@ -118,6 +118,39 @@ export const router = createBrowserRouter([
                 lazy: () => import("@/pages/admin/customers"),
               },
               {
+                path: "transactions",
+                lazy: () => import("@/pages/admin/transactions"),
+              },
+              {
+                path: "analytics",
+                children: [
+                  {
+                    index: true,
+                    lazy: () => import("@/pages/admin/dashboard"),
+                  },
+                  {
+                    path: "segments",
+                    lazy: () => import("@/pages/admin/analytics-segments"),
+                  },
+                  {
+                    path: "predictions",
+                    lazy: () => import("@/pages/admin/analytics-predictions"),
+                  },
+                  {
+                    path: "models",
+                    lazy: () => import("@/pages/admin/analytics-models"),
+                  },
+                  {
+                    path: "priority",
+                    lazy: () => import("@/pages/admin/analytics-priority"),
+                  },
+                ],
+              },
+              {
+                path: "system/import",
+                lazy: () => import("@/pages/admin/import"),
+              },
+              {
                 element: (
                   <RoleRoute allowedRoles={ADMIN_ROLES} redirectToPrevious />
                 ),

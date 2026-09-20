@@ -25,7 +25,8 @@ class UserEntity:
         password_hash: str,
         full_name: str,
         status: str = "ACTIVE",
-        role_code: str = "CLIENT",
+        role_code: str = "USER",
+        role_id: str | None = None,
         permissions: list[str] | None = None,
         is_active: bool = True,
         created_at: datetime | None = None,
@@ -33,6 +34,10 @@ class UserEntity:
         last_login_at: datetime | None = None,
         failed_login_count: int = 0,
         locked_until: datetime | None = None,
+        google_id: str | None = None,
+        auth_provider: str = "local",
+        team_id: str | None = None,
+        customer_id: str | None = None,
     ):
         self.id_ = id_
         self.email = email
@@ -40,6 +45,7 @@ class UserEntity:
         self.full_name = full_name
         self.status = status
         self.role_code = role_code
+        self.role_id = role_id
         self.permissions = permissions or []
         self.is_active = is_active
         self.created_at = created_at or datetime.now(UTC)
@@ -47,6 +53,10 @@ class UserEntity:
         self.last_login_at = last_login_at
         self.failed_login_count = failed_login_count
         self.locked_until = locked_until
+        self.google_id = google_id
+        self.auth_provider = auth_provider
+        self.team_id = team_id
+        self.customer_id = customer_id
 
     def update_entity(
         self,
@@ -112,6 +122,21 @@ class UserEntity:
 
         return updated_entity
 
+    def update(
+        self,
+        google_id: str | None = None,
+        auth_provider: str | None = None,
+    ) -> UserEntity:
+        """Update user with OAuth2 data."""
+        updated_entity = copy.deepcopy(self)
+
+        if google_id is not None:
+            updated_entity.google_id = google_id
+        if auth_provider is not None:
+            updated_entity.auth_provider = auth_provider
+
+        return updated_entity
+
     def __eq__(self, other: object) -> bool:
         if isinstance(other, UserEntity):
             return self.id_ == other.id_
@@ -126,6 +151,7 @@ class UserEntity:
             "full_name": self.full_name,
             "status": self.status,
             "role_code": self.role_code,
+            "role_id": self.role_id,
             "permissions": self.permissions,
             "is_active": self.is_active,
             "created_at": self.created_at,
@@ -133,4 +159,8 @@ class UserEntity:
             "last_login_at": self.last_login_at,
             "failed_login_count": self.failed_login_count,
             "locked_until": self.locked_until,
+            "google_id": self.google_id,
+            "customer_id": self.customer_id,
+            "auth_provider": self.auth_provider,
+            "team_id": self.team_id,
         }

@@ -24,12 +24,30 @@ from customer_analytics.app.config import settings
 from customer_analytics.app.features.identity.application.usecases.login_user import (
     LoginUserUseCaseImpl,
 )
+from customer_analytics.app.features.identity.application.usecases.register_user import (  # noqa: E501
+    RegisterUserUseCaseImpl,
+)
+from customer_analytics.app.features.identity.application.usecases.request_password_reset import (  # noqa: E501
+    RequestPasswordResetUseCaseImpl,
+)
+from customer_analytics.app.features.identity.application.usecases.reset_password import (  # noqa: E501
+    ResetPasswordUseCaseImpl,
+)
+from customer_analytics.app.features.identity.application.usecases.verify_password_reset import (  # noqa: E501
+    VerifyPasswordResetUseCaseImpl,
+)
+from customer_analytics.app.features.identity.infrastructure.email_sender import (
+    SmtpEmailSender,
+)
 from customer_analytics.app.features.identity.infrastructure.jwt_service import (
     create_access_token,
     create_refresh_token,
     create_refresh_token_family,
     decode_refresh_token,
     hash_refresh_token,
+)
+from customer_analytics.app.features.identity.infrastructure.repositories.password_reset_repository_impl import (  # noqa: E501
+    PasswordResetRepositoryImpl,
 )
 from customer_analytics.app.features.identity.infrastructure.repositories.refresh_token_repository_impl import (  # noqa: E501
     RefreshTokenRepositoryImpl,
@@ -42,10 +60,17 @@ from customer_analytics.app.features.identity.presentation.dependencies import (
 )
 from customer_analytics.app.features.identity.presentation.schema.user import (
     ErrorResponse,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
     LoginRequest,
     LoginResponse,
     MessageResponse,
+    PublicRegisterRequest,
+    RegisterResponse,
+    ResetPasswordRequest,
     UserResponse,
+    VerifyPasswordResetRequest,
+    VerifyPasswordResetResponse,
 )
 from customer_analytics.app.shared.errors import ErrorCode
 from customer_analytics.app.shared.exceptions import AppException
@@ -59,37 +84,44 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 # Only refresh_token goes in HTTP-only cookie
 # access_token stays in response body for frontend to use
 REFRESH_TOKEN_COOKIE = "refresh_token"
-
-# HTTP-only cookies: JavaScript can't access (prevents XSS)
-# SameSite=Strict: Browser won't send on cross-site requests (prevents CSRF)
-# secure=True: Only send over HTTPS (set False for local dev only)
-COOKIE_SECURE = settings.APP_ENV == "production"
-COOKIE_SAMESITE = "strict"
-COOKIE_PATH = "/api/v1/auth"  # Only send to auth endpoints
+COOKIE_PATH = "/api/v1/auth"
 COOKIE_MAX_AGE_SECONDS = settings.JWT_REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60
 
 
-def _set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
+def _cookie_security(request: Request) -> tuple[bool, str]:
+    """Choose cookie flags that work locally and through HTTPS tunnels."""
+    forwarded_proto = request.headers.get("x-forwarded-proto", "").split(",", 1)[0]
+    is_https = request.url.scheme == "https" or forwarded_proto.strip() == "https"
+    return is_https, "none" if is_https else "lax"
+
+
+def _set_refresh_token_cookie(
+    request: Request,
+    response: Response,
+    refresh_token: str,
+) -> None:
     """Set HTTP-only refresh token cookie."""
+    secure, samesite = _cookie_security(request)
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE,
         value=refresh_token,
         max_age=COOKIE_MAX_AGE_SECONDS,
         httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
+        secure=secure,
+        samesite=samesite,
         path=COOKIE_PATH,
     )
 
 
-def _clear_refresh_token_cookie(response: Response) -> None:
+def _clear_refresh_token_cookie(request: Request, response: Response) -> None:
     """Clear refresh token cookie (for logout)."""
+    secure, samesite = _cookie_security(request)
     response.delete_cookie(
         key=REFRESH_TOKEN_COOKIE,
         path=COOKIE_PATH,
         httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
+        secure=secure,
+        samesite=samesite,
     )
 
 
@@ -105,6 +137,18 @@ def _get_refresh_token_repository(
     return RefreshTokenRepositoryImpl(session)
 
 
+def _get_password_reset_repository(
+    session: DatabaseSessionDep,
+) -> PasswordResetRepositoryImpl:
+    """Dependency to get the password reset repository."""
+    return PasswordResetRepositoryImpl(session)
+
+
+def _get_email_sender() -> SmtpEmailSender:
+    """Dependency to get the configured transactional email sender."""
+    return SmtpEmailSender(settings)
+
+
 # Type alias for UnitOfWork dependency
 UnitOfWorkDep = Annotated[UserUnitOfWorkImpl, Depends(_get_user_unit_of_work)]
 
@@ -112,11 +156,133 @@ UnitOfWorkDep = Annotated[UserUnitOfWorkImpl, Depends(_get_user_unit_of_work)]
 RefreshTokenRepoDep = Annotated[
     RefreshTokenRepositoryImpl, Depends(_get_refresh_token_repository)
 ]
+PasswordResetRepoDep = Annotated[
+    PasswordResetRepositoryImpl, Depends(_get_password_reset_repository)
+]
+EmailSenderDep = Annotated[SmtpEmailSender, Depends(_get_email_sender)]
 
 
 def _to_uuid(value: str | uuid.UUID) -> uuid.UUID:
     """Convert value to UUID (handles both str and UUID)."""
     return uuid.UUID(value) if isinstance(value, str) else value
+
+
+@router.post(
+    "/register",
+    response_model=RegisterResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register public user",
+    description="Create an active USER account without privilege fields.",
+    responses={
+        status.HTTP_201_CREATED: {"model": RegisterResponse},
+        status.HTTP_409_CONFLICT: {"model": ErrorResponse},
+    },
+)
+@limiter.limit("3/hour")
+async def register(
+    request: Request,
+    body: PublicRegisterRequest,
+    unit_of_work: UnitOfWorkDep,
+) -> RegisterResponse:
+    """Register a public customer-facing account with role USER."""
+    del request
+    user = await RegisterUserUseCaseImpl(unit_of_work)(
+        email=str(body.email),
+        password=body.password,
+        full_name=body.full_name,
+    )
+    return RegisterResponse(
+        message="Đăng ký tài khoản thành công.",
+        user=UserResponse.model_validate(user),
+    )
+
+
+@router.post(
+    "/password/forgot/request",
+    response_model=ForgotPasswordResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Request password reset OTP",
+    description="Send a generic password reset response and email OTP when applicable.",
+)
+@limiter.limit("3/minute")
+async def request_password_reset(
+    request: Request,
+    body: ForgotPasswordRequest,
+    unit_of_work: UnitOfWorkDep,
+    reset_repository: PasswordResetRepoDep,
+    email_sender: EmailSenderDep,
+) -> ForgotPasswordResponse:
+    """Request a reset OTP without revealing whether the email exists."""
+    use_case = RequestPasswordResetUseCaseImpl(
+        unit_of_work,
+        reset_repository,
+        email_sender,
+    )
+    await use_case(
+        email=str(body.email),
+        requested_ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+    await unit_of_work.commit()
+    return ForgotPasswordResponse(
+        message="Nếu email tồn tại, mã OTP đã được gửi.",
+        expires_in=600,
+        retry_after=60,
+    )
+
+
+@router.post(
+    "/password/forgot/verify",
+    response_model=VerifyPasswordResetResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Verify password reset OTP",
+    responses={status.HTTP_400_BAD_REQUEST: {"model": ErrorResponse}},
+)
+@limiter.limit("5/minute")
+async def verify_password_reset(
+    request: Request,
+    body: VerifyPasswordResetRequest,
+    unit_of_work: UnitOfWorkDep,
+    reset_repository: PasswordResetRepoDep,
+) -> VerifyPasswordResetResponse:
+    """Verify an OTP and issue a short-lived reset token."""
+    del request
+    reset_token = await VerifyPasswordResetUseCaseImpl(reset_repository)(
+        email=str(body.email),
+        otp=body.otp,
+    )
+    await unit_of_work.commit()
+    if reset_token is None:
+        raise AppException(
+            error_code=ErrorCode.INVALID_OTP,
+            message="OTP không hợp lệ hoặc đã hết hạn.",
+        )
+    return VerifyPasswordResetResponse(reset_token=reset_token, expires_in=600)
+
+
+@router.post(
+    "/password/reset",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reset password",
+    responses={status.HTTP_400_BAD_REQUEST: {"model": ErrorResponse}},
+)
+@limiter.limit("5/minute")
+async def reset_password(
+    request: Request,
+    body: ResetPasswordRequest,
+    unit_of_work: UnitOfWorkDep,
+    reset_repository: PasswordResetRepoDep,
+    refresh_token_repo: RefreshTokenRepoDep,
+) -> MessageResponse:
+    """Set a new password and revoke all existing refresh sessions."""
+    del request
+    await ResetPasswordUseCaseImpl(
+        unit_of_work,
+        reset_repository,
+        refresh_token_repo,
+    )(reset_token=body.reset_token, new_password=body.new_password)
+    return MessageResponse(message="Đổi mật khẩu thành công. Vui lòng đăng nhập lại.")
 
 
 @router.post(
@@ -176,8 +342,8 @@ async def login(
     # Commit all changes (user update + refresh token insert)
     await unit_of_work.commit()
 
-    # Set refresh token in HTTP-only cookie
-    _set_refresh_token_cookie(response, refresh_token)
+    # Set refresh token in HTTP-only cookie.
+    _set_refresh_token_cookie(request, response, refresh_token)
 
     # Return access token in response body (frontend reads this)
     return LoginResponse(
@@ -247,13 +413,14 @@ async def refresh_token(
             message="Refresh token đã bị sử dụng lại — tất cả session đã bị thu hồi.",
         )
 
-    # Find user
+    # Find user and reload role permissions for the new access token.
     user = await unit_of_work.repository.find_by_id(user_id)
     if not user:
         raise AppException(
             error_code=ErrorCode.INVALID_CREDENTIALS,
             message="User not found.",
         )
+    user.permissions = await unit_of_work.repository.get_user_permissions(user.id_)
 
     # Check if user is active
     if user.status != "ACTIVE":
@@ -261,11 +428,10 @@ async def refresh_token(
             error_code=ErrorCode.USER_DISABLED,
             message="Tài khoản đã bị vô hiệu hóa.",
         )
-
-    # Revoke old refresh token
+    # Revoke old refresh token.
     await refresh_token_repo.revoke_by_token_hash(token_hash)
 
-    # Create new tokens with same family_id
+    # Create new tokens with same family_id.
     new_access_token = create_access_token(
         user_id=user.id_,
         role_code=user.role_code,
@@ -274,7 +440,7 @@ async def refresh_token(
     new_family_id = family_id or create_refresh_token_family()
     new_refresh_token = create_refresh_token(user_id=user.id_, family_id=new_family_id)
 
-    # Save new refresh token to DB
+    # Save new refresh token to DB.
     new_token_hash = hash_refresh_token(new_refresh_token)
     expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_TTL_DAYS)
     await refresh_token_repo.save(
@@ -286,13 +452,13 @@ async def refresh_token(
         user_agent=request.headers.get("user-agent"),
     )
 
-    # Commit all changes (revoke old token + insert new token)
+    # Commit all changes (revoke old token + insert new token).
     await unit_of_work.commit()
 
-    # Set new refresh token in HTTP-only cookie
-    _set_refresh_token_cookie(response, new_refresh_token)
+    # Set new refresh token in HTTP-only cookie.
+    _set_refresh_token_cookie(request, response, new_refresh_token)
 
-    # Return new access token in response body
+    # Return new access token in response body.
     return LoginResponse(
         access_token=new_access_token,
         role_code=user.role_code,
@@ -353,6 +519,6 @@ async def logout(
         token_hash = hash_refresh_token(refresh_token_value)
         await refresh_token_repo.revoke_by_token_hash(token_hash)
 
-    # Clear refresh token cookie
-    _clear_refresh_token_cookie(response)
+    # Clear refresh token cookie.
+    _clear_refresh_token_cookie(request, response)
     return MessageResponse(message="Dang xuat thanh cong.")

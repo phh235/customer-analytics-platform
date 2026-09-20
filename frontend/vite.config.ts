@@ -19,6 +19,9 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    allowedHosts: [
+      "dealer-python-hydraulic-dental.trycloudflare.com",
+    ],
   },
   test: {
     environment: "jsdom",

@@ -1,19 +1,109 @@
 export type ProductStatus = "active" | "inactive"
 export type CustomerStatus = "active" | "inactive"
 
+export const SEGMENT_LABELS: Record<string, string> = {
+  HIGH_VALUE: "Khách hàng giá trị cao",
+  LOYAL: "Khách hàng trung thành",
+  AT_RISK: "Có nguy cơ rời bỏ",
+  POTENTIAL: "Khách hàng tiềm năng",
+  NEW_CUSTOMER: "Khách hàng mới",
+  NORMAL: "Khách hàng thông thường",
+  INSUFFICIENT_DATA: "Chưa đủ dữ liệu",
+}
+
+export const SCORE_LEVEL_LABELS: Record<string, string> = {
+  HIGH: "Tiềm năng cao",
+  POTENTIAL: "Tiềm năng",
+  NORMAL: "Bình thường",
+  INSUFFICIENT_DATA: "Chưa đủ dữ liệu",
+}
+
+export const ORDER_STATUS_LABELS: Record<string, string> = {
+  PAID: "Đã thanh toán",
+  COMPLETED: "Hoàn tất",
+  DELIVERED: "Đã giao",
+  PROCESSING: "Đang xử lý",
+  CANCELLED: "Đã huỷ",
+  FAILED: "Thất bại",
+  REFUNDED: "Đã hoàn tiền",
+  PARTIAL_REFUNDED: "Hoàn tiền một phần",
+  RETURNED: "Đã trả hàng",
+}
+
+export const ORDER_CHANNEL_LABELS: Record<string, string> = {
+  ONLINE: "Trực tuyến",
+  OFFLINE: "Tại cửa hàng",
+  MARKETPLACE: "Sàn thương mại điện tử",
+  WEBSITE: "Website",
+  STORE: "Cửa hàng",
+}
+
+export const IMPORT_TYPE_LABELS: Record<string, string> = {
+  CUSTOMER: "Khách hàng",
+  ORDER: "Đơn hàng",
+  ORDER_DETAIL: "Chi tiết đơn hàng",
+  PRODUCT: "Sản phẩm",
+  INTERACTION: "Tương tác",
+  DATASET: "Bộ dữ liệu",
+}
+
+export const IMPORT_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Chờ xử lý",
+  VALIDATING: "Đang kiểm tra",
+  PROCESSING: "Đang xử lý",
+  COMPLETED: "Hoàn tất",
+  PARTIALLY_COMPLETED: "Hoàn tất một phần",
+  FAILED: "Thất bại",
+}
+
+export const MODEL_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "Bản nháp",
+  TRAINING: "Đang huấn luyện",
+  TRAINED: "Đã huấn luyện",
+  EVALUATING: "Đang đánh giá",
+  APPROVED: "Đã duyệt",
+  DEPLOYED: "Đang sử dụng",
+  RETIRED: "Đã ngừng sử dụng",
+  FAILED: "Thất bại",
+}
+
+export const MODEL_TYPE_LABELS: Record<string, string> = {
+  LOGISTIC_REGRESSION: "Hồi quy logistic",
+  RANDOM_FOREST: "Rừng ngẫu nhiên",
+}
+
+export const formatEnumLabel = (
+  value: string | null | undefined,
+  labels: Record<string, string>
+) => {
+  if (!value) return "—"
+
+  const normalized = value.trim().toUpperCase()
+  return (
+    labels[normalized] ??
+    value
+      .trim()
+      .replaceAll("_", " ")
+      .toLocaleLowerCase("vi-VN")
+  )
+}
+
 export interface Product {
   id: string
+  productCode: string
   name: string
   sku: string
   category: string
+  imageUrl: string | null
   price: number
   status: ProductStatus
   updatedAt: string
 }
-
 export interface Customer {
   id: string
+  customerCode: string
   name: string
+  imageUrl: string | null
   email: string
   phone: string
   orders: number
@@ -28,6 +118,7 @@ export interface ProductFormData {
   category: string
   price: number
   status: ProductStatus
+  image: File | null
 }
 
 export interface CustomerFormData {
@@ -35,7 +126,9 @@ export interface CustomerFormData {
   email: string
   phone: string
   status: CustomerStatus
+  image: File | null
 }
+
 
 export interface Category {
   id: string
@@ -50,122 +143,6 @@ export interface CategoryFormData {
   code: string
 }
 
-export const PRODUCT_CATEGORIES = [
-  "Điện thoại",
-  "Laptop",
-  "Phụ kiện",
-  "Thiết bị nhà thông minh",
-]
-
-export const SAMPLE_PRODUCTS: Product[] = [
-  {
-    id: "SP-1001",
-    name: "Tai nghe chống ồn AirFlow",
-    sku: "AF-1001",
-    category: "Phụ kiện",
-    price: 2490000,
-    status: "active",
-    updatedAt: "2026-07-28",
-  },
-  {
-    id: "SP-1002",
-    name: "Laptop Nova Pro 14",
-    sku: "NP-1402",
-    category: "Laptop",
-    price: 28990000,
-    status: "active",
-    updatedAt: "2026-07-25",
-  },
-  {
-    id: "SP-1003",
-    name: "Điện thoại PixelPeak X",
-    sku: "PP-X003",
-    category: "Điện thoại",
-    price: 17990000,
-    status: "active",
-    updatedAt: "2026-07-22",
-  },
-  {
-    id: "SP-1004",
-    name: "Bàn phím cơ Lite 75",
-    sku: "LT-7504",
-    category: "Phụ kiện",
-    price: 1690000,
-    status: "inactive",
-    updatedAt: "2026-07-19",
-  },
-  {
-    id: "SP-1005",
-    name: "Camera Home View 360",
-    sku: "HV-3605",
-    category: "Thiết bị nhà thông minh",
-    price: 1290000,
-    status: "active",
-    updatedAt: "2026-07-16",
-  },
-  {
-    id: "SP-1006",
-    name: "Màn hình ViewMax 27 4K",
-    sku: "VM-2706",
-    category: "Phụ kiện",
-    price: 8490000,
-    status: "active",
-    updatedAt: "2026-07-12",
-  },
-]
-
-export const SAMPLE_CUSTOMERS: Customer[] = [
-  {
-    id: "KH-2001",
-    name: "Nguyễn Minh Anh",
-    email: "minhanh.nguyen@example.com",
-    phone: "0901 234 567",
-    orders: 12,
-    totalSpent: 42890000,
-    status: "active",
-    joinedAt: "2025-11-08",
-  },
-  {
-    id: "KH-2002",
-    name: "Trần Quốc Huy",
-    email: "quochuy.tran@example.com",
-    phone: "0912 345 678",
-    orders: 8,
-    totalSpent: 21650000,
-    status: "active",
-    joinedAt: "2026-01-17",
-  },
-  {
-    id: "KH-2003",
-    name: "Lê Thu Hà",
-    email: "thuha.le@example.com",
-    phone: "0987 654 321",
-    orders: 5,
-    totalSpent: 9850000,
-    status: "active",
-    joinedAt: "2026-02-24",
-  },
-  {
-    id: "KH-2004",
-    name: "Phạm Gia Bảo",
-    email: "giabao.pham@example.com",
-    phone: "0933 111 222",
-    orders: 2,
-    totalSpent: 3790000,
-    status: "inactive",
-    joinedAt: "2026-03-12",
-  },
-  {
-    id: "KH-2005",
-    name: "Đỗ Khánh Linh",
-    email: "khanhlinh.do@example.com",
-    phone: "0978 222 333",
-    orders: 15,
-    totalSpent: 55750000,
-    status: "active",
-    joinedAt: "2025-09-30",
-  },
-]
 
 export const normalize = (value: string) => value.toLocaleLowerCase("vi-VN")
 
@@ -183,5 +160,3 @@ export const formatDate = (value: string) =>
     year: "numeric",
   }).format(new Date(value))
 
-export const createId = (prefix: string) =>
-  `${prefix}-${String(Date.now()).slice(-6)}`

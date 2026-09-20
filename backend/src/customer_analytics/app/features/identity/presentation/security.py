@@ -64,8 +64,17 @@ async def get_current_user(
                 message=f"User '{user_id}' not found",
             )
 
-        # Load permissions from JWT payload
-        user.permissions = payload.get("permissions", [])
+        if user.status != "ACTIVE":
+            error_code = (
+                ErrorCode.USER_LOCKED
+                if user.status == "LOCKED"
+                else ErrorCode.USER_DISABLED
+            )
+            raise AppException(error_code=error_code)
+
+        # Resolve authorization from the database so role/permission changes
+        # take effect without waiting for the access token to expire.
+        user.permissions = await user_repo.get_user_permissions(user.id_)
 
         return user
     except AppException:

@@ -30,13 +30,15 @@ from customer_analytics.app.features.identity.application.usecases.get_users imp
 from customer_analytics.app.features.identity.application.usecases.update_user import (
     UpdateUserUseCaseImpl,
 )
+from customer_analytics.app.features.identity.domain.entities.user_entity import (
+    UserEntity,
+)
 from customer_analytics.app.features.identity.domain.enums import UserStatus
 from customer_analytics.app.features.identity.infrastructure.repositories.user_unit_of_work_impl import (  # noqa: E501
     UserUnitOfWorkImpl,
 )
 from customer_analytics.app.features.identity.presentation.dependencies import (
     AdminDep,
-    CurrentUserDep,
     require_permission,
 )
 from customer_analytics.app.features.identity.presentation.schema.user import (
@@ -82,7 +84,7 @@ UnitOfWorkDep = Annotated[UserUnitOfWorkImpl, Depends(_get_user_unit_of_work)]
     },
 )
 async def list_users(
-    current_user: Annotated[CurrentUserDep, Depends(require_permission("users:read"))],
+    current_user: Annotated[UserEntity, Depends(require_permission("users:read"))],
     unit_of_work: UnitOfWorkDep,
     page: Annotated[int, Query(ge=1, description="Page number")] = 1,
     size: Annotated[int, Query(ge=1, le=100, description="Page size")] = 10,
@@ -176,6 +178,7 @@ async def create_user(
         password=body.password,
         full_name=body.full_name,
         role_code=body.role_code,
+        team_id=str(body.team_id) if body.team_id else None,
     )
     use_case = CreateUserUseCaseImpl(unit_of_work)
     result = await use_case((create_model,))
@@ -205,11 +208,13 @@ async def update_user(
     unit_of_work: UnitOfWorkDep,
 ) -> UserResponse:
     """Cap nhat tai khoan (ADMIN only)."""
-    update_model = UserUpdateModel(
-        full_name=body.full_name,
-        role_code=body.role_code,
-        status=UserStatus(body.status) if body.status is not None else None,
-    )
+    update_payload = body.model_dump(exclude_unset=True)
+    if "status" in update_payload:
+        update_payload["status"] = UserStatus(update_payload["status"])
+    if "team_id" in update_payload and update_payload["team_id"] is not None:
+        update_payload["team_id"] = str(update_payload["team_id"])
+
+    update_model = UserUpdateModel(**update_payload)
     use_case = UpdateUserUseCaseImpl(unit_of_work)
     result = await use_case((str(user_id), update_model, str(current_user.id_)))
     return UserResponse.model_validate(result)

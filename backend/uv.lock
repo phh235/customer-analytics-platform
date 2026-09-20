@@ -168,6 +168,19 @@ wheels = [
 ]
 
 [[package]]
+name = "authlib"
+version = "1.7.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "joserfc" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/36/98/7d93f30d029643c0275dbc0bd6d5a6f670661ee6c9a94d93af7ab4887600/authlib-1.7.2.tar.gz", hash = "sha256:2cea25fefcd4e7173bdf1372c0afc265c8034b23a8cd5dcb6a9164b826c64231", size = 176511, upload-time = "2026-05-06T08:10:23.116Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fb/95/adcb68e20c34162e9135f370d6e31737719c2b6f94bc953fe7ed1f10fe21/authlib-1.7.2-py2.py3-none-any.whl", hash = "sha256:3e1faedc9d87e7d56a164eca3ccb6ace0d61b94abe83e92242f8dc8bba9b4a9f", size = 259548, upload-time = "2026-05-06T08:10:21.436Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.7.22"
 source = { registry = "https://pypi.org/simple" }
@@ -259,6 +272,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/76/d4/81420972a676e8ffea40450d8c8c92943e7218a78fe9b64359836cc9876b/click-8.4.2.tar.gz", hash = "sha256:9a6cea6e60b17ebe0a44c5cc636d94f09bd66142c1cd7d8b4cd731c4917a15f6", size = 338000, upload-time = "2026-06-24T17:45:15.148Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fb/e2/79c688af8b210d232694e31e59da9f6ec747bae31c3f5946e4e9b98860d5/click-8.4.2-py3-none-any.whl", hash = "sha256:e6f9f66136c816745b9d65817da91d61d957fb16e02e4dcd0552553c5a197b76", size = 119243, upload-time = "2026-06-24T17:45:13.73Z" },
+]
+
+[[package]]
+name = "cloudinary"
+version = "1.46.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "six" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d9/da/a837db79b7a233611583a0040a04ebc0c835e04e38878a4b2ca58cbe3ab9/cloudinary-1.46.2.tar.gz", hash = "sha256:491ebf4f66ded86a7cff31151e85056520e5a184caf42c7de71b3025da358b95", size = 232297, upload-time = "2026-08-27T15:07:58.353Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/32/98/e68ad32066b7900200e23a457c600296ce1f8fb768f161fdbb03e5ed2633/cloudinary-1.46.2-py3-none-any.whl", hash = "sha256:c552d819cd76cb7cd3c15a8a5ea23557ed6ad0ded661ad4b3f3b46ff353fc391", size = 192542, upload-time = "2026-08-27T15:07:57.191Z" },
 ]
 
 [[package]]
@@ -382,7 +409,13 @@ dependencies = [
     { name = "alembic" },
     { name = "argon2-cffi" },
     { name = "asyncpg" },
+    { name = "authlib" },
+    { name = "cloudinary" },
     { name = "fastapi" },
+    { name = "groq" },
+    { name = "httpx" },
+    { name = "itsdangerous" },
+    { name = "openpyxl" },
     { name = "pwdlib" },
     { name = "pydantic", extra = ["email"] },
     { name = "pydantic-settings" },
@@ -390,7 +423,9 @@ dependencies = [
     { name = "python-multipart" },
     { name = "slowapi" },
     { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "sqlglot" },
     { name = "structlog" },
+    { name = "tzdata" },
     { name = "uuid-utils" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -410,7 +445,13 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.13.0" },
     { name = "argon2-cffi", specifier = ">=25.1.0" },
     { name = "asyncpg", specifier = ">=0.30.0" },
+    { name = "authlib", specifier = ">=1.7.2" },
+    { name = "cloudinary", specifier = ">=1.44.1" },
     { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "groq", specifier = ">=0.31.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "itsdangerous", specifier = ">=2.2.0" },
+    { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pwdlib", specifier = ">=0.3.0" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.13.4" },
     { name = "pydantic-settings", specifier = ">=2.5.0" },
@@ -418,7 +459,9 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.32" },
     { name = "slowapi", specifier = ">=0.1.10" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.35" },
+    { name = "sqlglot", specifier = ">=26.0.0" },
     { name = "structlog", specifier = ">=24.4.0" },
+    { name = "tzdata", specifier = ">=2024.1" },
     { name = "uuid-utils", specifier = ">=0.17.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30.0" },
 ]
@@ -446,6 +489,15 @@ wheels = [
 ]
 
 [[package]]
+name = "distro"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
+]
+
+[[package]]
 name = "dnspython"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -465,6 +517,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f5/22/900cb125c76b7aaa450ce02fd727f452243f2e91a61af068b40adba60ea9/email_validator-2.3.0.tar.gz", hash = "sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426", size = 51238, upload-time = "2025-08-26T13:09:06.831Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/de/15/545e2b6cf2e3be84bc1ed85613edd75b8aea69807a71c26f4ca6a9258e82/email_validator-2.3.0-py3-none-any.whl", hash = "sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4", size = 35604, upload-time = "2025-08-26T13:09:05.858Z" },
+]
+
+[[package]]
+name = "et-xmlfile"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/38/af70d7ab1ae9d4da450eeec1fa3918940a5fafb9055e934af8d6eb0c2313/et_xmlfile-2.0.0.tar.gz", hash = "sha256:dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54", size = 17234, upload-time = "2024-10-25T17:25:40.039Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c1/8b/5fe2cc11fee489817272089c4203e679c63b570a5aaeb18d852ae3cbba6a/et_xmlfile-2.0.0-py3-none-any.whl", hash = "sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa", size = 18059, upload-time = "2024-10-25T17:25:39.051Z" },
 ]
 
 [[package]]
@@ -538,6 +599,23 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/5a/d8/8cba31036a4caae448087ba5d150660ab03b4a0f54d9150f6495a3be7262/greenlet-3.5.4-cp315-cp315t-musllinux_1_2_x86_64.whl", hash = "sha256:60e0bc961d367df506660e9ac0177a76bc6d81305300704b0977d1634f76efe2", size = 1701012, upload-time = "2026-07-22T11:51:23.17Z" },
     { url = "https://files.pythonhosted.org/packages/e3/cd/3f77a4cce3bae631b08eb52f53a82a976669600337e21dfdba811cb50267/greenlet-3.5.4-cp315-cp315t-win_amd64.whl", hash = "sha256:f680e549edb3eaf21eea4e7fe101e15ec180c74b7879ab46adc080f22d4015d2", size = 251977, upload-time = "2026-07-22T11:41:38.125Z" },
     { url = "https://files.pythonhosted.org/packages/93/e8/65e8707d00fe2a49bf12f609a9b2b39ba6dd23c2810eacad877c4fc94bfe/greenlet-3.5.4-cp315-cp315t-win_arm64.whl", hash = "sha256:08fc36de8442d5c3e95b044550dbea9bf144d31ec0cc58e36fb241cb6ef6a994", size = 250538, upload-time = "2026-07-22T11:40:17.985Z" },
+]
+
+[[package]]
+name = "groq"
+version = "1.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0c/c1/20cb719bc21aa22df185c4aa60abc17680d7067d41fe0ca3fda98b75822b/groq-1.7.0.tar.gz", hash = "sha256:d582dbb3f071b92ca339baba83af9f57ba6f46a51c34b04565d7cb9badb2785b", size = 158918, upload-time = "2026-08-26T02:36:19.734Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/f6/c3d8ea3194d7d7d8292edd4dbb4b6832d29c2eab04887dda4a742e83902c/groq-1.7.0-py3-none-any.whl", hash = "sha256:cb1518f823423d4e52445859eb7d2918a927794cec12f8d5e50d9161e3690fc8", size = 143797, upload-time = "2026-08-26T02:36:18.497Z" },
 ]
 
 [[package]]
@@ -622,6 +700,27 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/72/34/14ca021ce8e5dfedc35312d08ba8bf51fdd999c576889fc2c24cb97f4f10/iniconfig-2.3.0.tar.gz", hash = "sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730", size = 20503, upload-time = "2025-10-18T21:55:43.219Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl", hash = "sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12", size = 7484, upload-time = "2025-10-18T21:55:41.639Z" },
+]
+
+[[package]]
+name = "itsdangerous"
+version = "2.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9c/cb/8ac0172223afbccb63986cc25049b154ecfb5e85932587206f42317be31d/itsdangerous-2.2.0.tar.gz", hash = "sha256:e0050c0b7da1eea53ffaf149c0cfbb5c6e2e2b69c4bef22c81fa6eb73e5f6173", size = 54410, upload-time = "2024-04-16T21:28:15.614Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/04/96/92447566d16df59b2a776c0fb82dbc4d9e07cd95062562af01e408583fc4/itsdangerous-2.2.0-py3-none-any.whl", hash = "sha256:c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef", size = 16234, upload-time = "2024-04-16T21:28:14.499Z" },
+]
+
+[[package]]
+name = "joserfc"
+version = "1.7.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c7/e0/27a6a081ae25420eda6768ceae05d7022a7f2447f420588843f2a44e4298/joserfc-1.7.4.tar.gz", hash = "sha256:b3bc561672ae541b17a9237053b48a03dacddd92d68047b3ecdfb4b5714a88ed", size = 234027, upload-time = "2026-07-19T15:43:02.739Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f9/bf/249dcd99b3376375910b7fa922383b57792975c8758f50d44612e749226c/joserfc-1.7.4-py3-none-any.whl", hash = "sha256:32d46c2cd5e3203c13e87a6c61333cab310b1ba80cd54b4c4f386a848a122463", size = 71000, upload-time = "2026-07-19T15:43:01.299Z" },
 ]
 
 [[package]]
@@ -796,6 +895,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a2/6e/371856a3fb9d31ca8dac321cda606860fa4548858c0cc45d9d1d4ca2628b/mypy_extensions-1.1.0.tar.gz", hash = "sha256:52e68efc3284861e772bbcd66823fde5ae21fd2fdb51c62a211403730b916558", size = 6343, upload-time = "2025-04-22T14:54:24.164Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl", hash = "sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505", size = 4963, upload-time = "2025-04-22T14:54:22.983Z" },
+]
+
+[[package]]
+name = "openpyxl"
+version = "3.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "et-xmlfile" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3d/f9/88d94a75de065ea32619465d2f77b29a0469500e99012523b91cc4141cd1/openpyxl-3.1.5.tar.gz", hash = "sha256:cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050", size = 186464, upload-time = "2024-06-28T14:03:44.161Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl", hash = "sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2", size = 250910, upload-time = "2024-06-28T14:03:41.161Z" },
 ]
 
 [[package]]
@@ -1078,6 +1189,15 @@ wheels = [
 ]
 
 [[package]]
+name = "six"
+version = "1.17.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
+]
+
+[[package]]
 name = "slowapi"
 version = "0.1.10"
 source = { registry = "https://pypi.org/simple" }
@@ -1087,6 +1207,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b9/52/24527cf25a8b508926aff53350b0136561dfe86c7125f61526653666e1b2/slowapi-0.1.10.tar.gz", hash = "sha256:d320d5bc04d9f171a77fb16700faf3036d85b00f420f22924c8a225f95bd14f9", size = 13841, upload-time = "2026-06-13T11:59:31.571Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c4/8b/1d359f38706b4097d9a943bf8bd22599f537de4cbaff1e622d3e3936e164/slowapi-0.1.10-py3-none-any.whl", hash = "sha256:3acb61561dc9d687e3d3669362ff6a439de9ba44e2fed3a9c165da26b4b83e28", size = 14921, upload-time = "2026-06-13T11:59:30.485Z" },
+]
+
+[[package]]
+name = "sniffio"
+version = "1.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/87/a6771e1546d97e7e041b6ae58d80074f81b7d5121207425c964ddf5cfdbd/sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc", size = 20372, upload-time = "2024-02-25T23:20:04.057Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e9/44/75a9c9421471a6c4805dbf2356f7c181a29c1879239abab1ea2cc8f38b40/sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2", size = 10235, upload-time = "2024-02-25T23:20:01.196Z" },
 ]
 
 [[package]]
@@ -1129,6 +1258,15 @@ asyncio = [
 ]
 
 [[package]]
+name = "sqlglot"
+version = "30.18.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/73/5b5ce3e23b3ded3ea1986c2c2991217460d5fd5161b3e00a8425f5dcb8a3/sqlglot-30.18.0.tar.gz", hash = "sha256:e57e1b205e341979d1df5b1212c1435c598a0437e4619e3f428b15d5bc3a5cc6", size = 6018496, upload-time = "2026-09-03T13:12:58.206Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/08/9f/3dd2ec8dd84a33e0092f1c815267bc055073f9e833b93e389c59c10f62cc/sqlglot-30.18.0-py3-none-any.whl", hash = "sha256:ee0f9a9f3e2193e763c326e52dfb377b96fdb4292f6305c3ff2d9a220e71c601", size = 748788, upload-time = "2026-09-03T13:12:56.467Z" },
+]
+
+[[package]]
 name = "starlette"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1168,6 +1306,24 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/55/e3/70399cb7dd41c10ac53367ae42139cf4b1ca5f36bb3dc6c9d33acdb43655/typing_inspection-0.4.2.tar.gz", hash = "sha256:ba561c48a67c5958007083d386c3295464928b01faa735ab8547c5692e87f464", size = 75949, upload-time = "2025-10-01T02:14:41.687Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dc/9b/47798a6c91d8bdb567fe2698fe81e0c6b7cb7ef4d13da4114b41d239f65d/typing_inspection-0.4.2-py3-none-any.whl", hash = "sha256:4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7", size = 14611, upload-time = "2025-10-01T02:14:40.154Z" },
+]
+
+[[package]]
+name = "tzdata"
+version = "2026.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/31/3d74fa778a63b98b7374323befcc0be5ab3bd94afd4096a0124e7379152c/tzdata-2026.4.tar.gz", hash = "sha256:f1b8bd365d8d210c55353f4d7f8d6d8561c0ba50d704b700d195a9424bba0d79", size = 199350, upload-time = "2026-09-12T12:56:03.251Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f9/bc/8737e8d54cf51106118039b83f485a4783112fab49ea9d044b234978a46e/tzdata-2026.4-py2.py3-none-any.whl", hash = "sha256:c2169a8b0a7a5e9674da5a135ccdfb2b3e671b333ed9fed17b41f73c34476e81", size = 347494, upload-time = "2026-09-12T12:56:01.67Z" },
+]
+
+[[package]]
+name = "urllib3"
+version = "2.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e3/05/b17359e1cefb4f909b5e40b1b90a496d987258916dbbf88e842c729f510e/urllib3-2.8.0.tar.gz", hash = "sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63", size = 458972, upload-time = "2026-09-15T19:29:36.253Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl", hash = "sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3", size = 135717, upload-time = "2026-09-15T19:29:34.577Z" },
 ]
 
 [[package]]

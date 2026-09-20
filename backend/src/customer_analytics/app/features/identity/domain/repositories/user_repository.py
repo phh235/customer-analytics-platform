@@ -20,6 +20,11 @@ class UserRepository(BaseRepository[UserEntity]):
         raise NotImplementedError()
 
     @abstractmethod
+    async def find_by_google_id(self, google_id: str) -> UserEntity | None:
+        """Find a user by Google ID."""
+        raise NotImplementedError()
+
+    @abstractmethod
     async def find_by_email_with_permissions(
         self, email: str
     ) -> tuple[UserEntity, list[str]] | None:
@@ -34,6 +39,11 @@ class UserRepository(BaseRepository[UserEntity]):
     @abstractmethod
     async def find_role_id_by_code(self, role_code: str) -> uuid.UUID | None:
         """Find a role ID by its stable role code."""
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def update_password(self, user_id: str, password_hash: str) -> None:
+        """Replace a user's password hash."""
         raise NotImplementedError()
 
     @abstractmethod

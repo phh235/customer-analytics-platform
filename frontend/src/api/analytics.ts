@@ -1,0 +1,124 @@
+import apiClient from "@/api/client"
+
+export interface SegmentRecord {
+  customer_id: string
+  name: string
+  segment_type: string
+  reason: string
+  calculated_at: string
+}
+
+export interface PurchasePredictionRecord {
+  customer_id: string
+  name: string
+  prediction_date: string
+  prediction_horizon_days: number
+  feature_window_days: number
+  purchase_probability: number
+  model_version: string
+}
+
+export interface DashboardResponse {
+  days: number
+  filters: {
+    channel: string | null
+    category: string | null
+    segment: string | null
+    level: string | null
+  }
+  total_customers: number
+  total_orders: number
+  total_revenue: number | string
+  aov: number | string
+  segment_distribution: Record<string, number>
+  potential_distribution: Record<string, number>
+}
+
+export async function getSegments(days = 365) {
+  const { data } = await apiClient.get<SegmentRecord[]>("/analytics/segments", {
+    params: { days },
+  })
+  return data
+}
+
+export async function getPurchasePredictions(days = 365, horizonDays = 90) {
+  const { data } = await apiClient.get<PurchasePredictionRecord[]>(
+    "/analytics/predictions/purchase-repeat",
+    { params: { days, horizon_days: horizonDays } }
+  )
+  return data
+}
+
+export async function getAnalyticsDashboard(days = 365) {
+  const { data } = await apiClient.get<DashboardResponse>(
+    "/analytics/dashboard",
+    { params: { days } }
+  )
+  return data
+}
+
+export interface PriorityCustomerRecord {
+  customer_id: string
+  name: string
+  potential_score: number
+  potential_level: string
+  purchase_probability: number
+  preferred_product_category: string | null
+  purchase_cycle_days: number | null
+  recommendation: string
+  priority_reason: string
+}
+
+export interface ModelLifecycleRecord {
+  version: string
+  status: string
+  model_type: string | null
+  feature_window_days: number | null
+  prediction_horizon_days: number | null
+  precision: number | string | null
+  recall: number | string | null
+  f1_score: number | string | null
+  roc_auc: number | string | null
+  pr_auc: number | string | null
+  lift_top10: number | string | null
+  precision_top10: number | string | null
+  baseline_pr_auc: number | string
+  artifact_uri: string | null
+  metrics: Record<string, number> | null
+  evaluated_at: string | null
+}
+
+export async function getPriorityList(days = 365, horizonDays = 90) {
+  const { data } = await apiClient.get<PriorityCustomerRecord[]>(
+    "/analytics/priority-list",
+    { params: { days, horizon_days: horizonDays } }
+  )
+  return data
+}
+
+export async function getModels() {
+  const { data } =
+    await apiClient.get<ModelLifecycleRecord[]>("/analytics/models")
+  return data
+}
+
+export async function trainModel(payload: {
+  version: string
+  model_type: "LOGISTIC_REGRESSION" | "RANDOM_FOREST"
+  feature_window_days: number
+  prediction_horizon_days: number
+  analysis_date?: string
+}) {
+  const { data } = await apiClient.post<ModelLifecycleRecord>(
+    "/analytics/models/train",
+    payload
+  )
+  return data
+}
+
+export async function deployModel(version: string) {
+  const { data } = await apiClient.post<ModelLifecycleRecord>(
+    `/analytics/models/${encodeURIComponent(version)}/deploy`
+  )
+  return data
+}

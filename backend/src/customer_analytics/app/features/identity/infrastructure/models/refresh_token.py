@@ -60,9 +60,7 @@ class RefreshTokenModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         comment="User-Agent for audit",
     )
 
-    __table_args__ = (
-        Index("ix_refresh_tokens_user_family", "user_id", "family_id"),
-    )
+    __table_args__ = (Index("ix_refresh_tokens_user_family", "user_id", "family_id"),)
 
     @property
     def is_revoked(self) -> bool:

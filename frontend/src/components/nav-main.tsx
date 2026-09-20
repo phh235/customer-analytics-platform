@@ -37,6 +37,7 @@ export const NavMain = ({
     items?: {
       title: string
       url: string
+      requiredRoles?: readonly string[]
     }[]
   }[]
 }) => {

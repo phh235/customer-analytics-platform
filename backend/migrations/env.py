@@ -10,8 +10,38 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from customer_analytics.app.config import settings
+from customer_analytics.app.features.analytics.infrastructure.models.aligned import (  # noqa: F401
+    AnalysisRunModel,
+    ConfigurationVersionModel,
+    CustomerBehaviorHistoryModel,
+    CustomerPotentialScoreHistoryModel,
+    CustomerProductPreferenceModel,
+    MLModelEvaluationModel,
+    ScoringRuleModel,
+    ScoringThresholdModel,
+    SegmentationRuleModel,
+    ValidOrderStatusConfigModel,
+)
+from customer_analytics.app.features.analytics.infrastructure.models.analytics_history import (  # noqa: E501, F401
+    PurchasePredictionModel,
+    SegmentHistoryModel,
+)
+from customer_analytics.app.features.analytics.infrastructure.models.analytics_query_audit import (  # noqa: E501, F401
+    AnalyticsQueryAuditModel,
+)
+from customer_analytics.app.features.analytics.infrastructure.models.model_registry import (  # noqa: E501, F401
+    ModelRegistryModel,
+)
+from customer_analytics.app.features.customer.infrastructure.models.customer import (  # noqa: F401
+    CustomerAssignmentModel,
+    CustomerModel,
+)
+from customer_analytics.app.features.identity.infrastructure.models.password_reset_challenge import (  # noqa: E501, F401
+    PasswordResetChallengeModel,
+)
 from customer_analytics.app.features.identity.infrastructure.models.refresh_token import (  # noqa: E501, F401
     RefreshTokenModel,
 )
@@ -21,9 +51,32 @@ from customer_analytics.app.features.identity.infrastructure.models.user import 
     PermissionModel,
     RoleModel,
     RolePermissionModel,
+    TeamModel,
     UserModel,
 )
-from sqlalchemy.ext.asyncio import create_async_engine
+from customer_analytics.app.features.import_data.infrastructure.models.import_job import (  # noqa: E501, F401
+    ImportJobModel,
+)
+from customer_analytics.app.features.operations.infrastructure.models import (  # noqa: F401
+    AuditLogModel,
+    ImportErrorModel,
+)
+from customer_analytics.app.features.order.infrastructure.models.order import (  # noqa: F401
+    OrderItemModel,
+    OrderModel,
+)
+from customer_analytics.app.features.product.infrastructure.models.product import (  # noqa: F401
+    ProductModel,
+)
+from customer_analytics.app.features.reference_data.infrastructure.models import (  # noqa: F401
+    CampaignModel,
+    CustomerInteractionModel,
+    EmployeeModel,
+    GeolocationModel,
+    PaymentModel,
+    ReviewModel,
+    SellerModel,
+)
 
 # Import project modules
 from customer_analytics.core.database import Base

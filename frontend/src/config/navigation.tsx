@@ -2,7 +2,6 @@ import {
   ArrowLeftRightIcon,
   ChartNoAxesCombinedIcon,
   LayoutDashboardIcon,
-  MegaphoneIcon,
   PackageIcon,
   SettingsIcon,
   UsersIcon,
@@ -19,6 +18,7 @@ export interface NavigationItem {
   items?: {
     title: string
     url: string
+    requiredRoles?: readonly UserRole[]
   }[]
 }
 
@@ -72,20 +72,14 @@ export const navMain: NavigationItem[] = [
         title: "Dự đoán",
         url: "/dashboard/analytics/predictions",
       },
-    ],
-  },
-  {
-    title: "Hành động",
-    url: "/dashboard/actions",
-    icon: <MegaphoneIcon />,
-    items: [
       {
-        title: "Chiến dịch",
-        url: "/dashboard/actions/campaigns",
+        title: "Danh sách ưu tiên",
+        url: "/dashboard/analytics/priority",
       },
       {
-        title: "Báo cáo",
-        url: "/dashboard/actions/reports",
+        title: "Quản lý mô hình",
+        url: "/dashboard/analytics/models",
+        requiredRoles: ["ADMIN"],
       },
     ],
   },
