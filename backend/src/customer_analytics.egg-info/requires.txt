@@ -17,4 +17,6 @@ httpx>=0.28.1
 itsdangerous>=2.2.0
 openpyxl>=3.1.5
 cloudinary>=1.44.1
+groq>=0.31.0
+sqlglot>=26.0.0
 tzdata>=2024.1

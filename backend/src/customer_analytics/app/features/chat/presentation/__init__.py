@@ -1,0 +1,1 @@
+"""Chat HTTP presentation layer."""

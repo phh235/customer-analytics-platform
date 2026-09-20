@@ -112,6 +112,57 @@ Authorization: Bearer <access_token>
 ```
 
 ---
+### `POST /api/v1/auth/register`
+Đăng ký tài khoản public. Không cần Bearer token. Backend luôn gán
+`role_code=USER`; client không được chọn role hoặc team.
+
+**Input:**
+```json
+{
+  "email": "user@example.com",
+  "password": "StrongPassword123!",
+  "full_name": "Nguyen Van A"
+}
+```
+
+**Output (201):**
+```json
+{
+  "message": "Đăng ký tài khoản thành công.",
+  "user": {
+    "email": "user@example.com",
+    "full_name": "Nguyen Van A",
+    "status": "ACTIVE",
+    "role_code": "USER"
+  }
+}
+```
+
+### Password reset bằng OTP
+
+```text
+POST /api/v1/auth/password/forgot/request
+POST /api/v1/auth/password/forgot/verify
+POST /api/v1/auth/password/reset
+```
+
+Request OTP:
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+API luôn trả `202` với message generic để không làm lộ email tồn tại.
+OTP có 6 chữ số, hiệu lực 10 phút và chỉ sử dụng một lần.
+Sau khi verify OTP, API trả `reset_token` ngắn hạn để gọi endpoint reset password.
+Reset thành công sẽ revoke toàn bộ refresh sessions của user.
+
+SMTP phải được cấu hình bằng `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`,
+`SMTP_PASSWORD` và `SMTP_FROM_EMAIL`.
+
+---
+
 
 ## User Management (cần quyền `users:create`)
 
@@ -129,7 +180,7 @@ Authorization: Bearer <access_token>  (cần quyền "users:create")
   "email": "newuser@example.com",     // required, email hợp lệ, phải unique
   "password": "StrongPassword123!",   // required, tối thiểu 8 ký tự
   "full_name": "Nguyen Van B",        // required
-  "role_code": "ANALYST"             // optional, default "ANALYST". Giá trị: "ADMIN" | "ANALYST"
+  "role_code": "USER"               // optional, default "USER". Giá trị: "ADMIN" | "USER"
 }
 ```
 
@@ -140,7 +191,7 @@ Authorization: Bearer <access_token>  (cần quyền "users:create")
   "email": "newuser@example.com",
   "full_name": "Nguyen Van B",
   "status": "ACTIVE",
-  "role_code": "ANALYST",
+  "role_code": "USER",
   "created_at": "2024-01-15T10:00:00Z",
   "last_login_at": null
 }
@@ -175,6 +226,16 @@ Lấy chi tiết sản phẩm và tối đa 4 sản phẩm liên quan cùng cate
 
 - `related_products`: danh sách product cùng category, không bao gồm product hiện tại
 
+### `POST /api/v1/products/{product_id}/view`
+Ghi nhận một lượt xem sản phẩm cho tài khoản đã xác thực (cần quyền
+`products:read`).
+
+- Không cần request body; gửi `Authorization: Bearer <access_token>`.
+- Response `201` gồm `event_id` và `interaction_type: "product_view"`.
+- Tài khoản được liên kết với customer profile theo email sau migration. Nếu
+  chưa có profile tương ứng, backend tạo profile tối thiểu và liên kết tài khoản
+  ở lượt xem đầu tiên.
+
 
 ### `POST /api/v1/products/{product_id}/image`
 Tải ảnh sản phẩm lên Cloudinary và lưu `image_url` (cần quyền
@@ -206,6 +267,26 @@ The API uses the scenario names and thresholds:
 For `INSUFFICIENT_DATA`, `recency_days`, R/F/M component scores, and
 `potential_score` are `null`. The response includes the missing component names
 instead of substituting zero-valued scores.
+
+The Script_Duan score uses five-point component scores configured through
+`SCORE_*` settings:
+
+```text
+Potential Score =
+  (R * 0.35 + F * 0.30 + M * 0.20 + Interaction * 0.15) * 20
+```
+
+`R`, `F`, `M`, and `Interaction` are derived from the configured business
+bands; they are not hard-coded per customer. Missing interaction data causes
+the available component weights to be renormalized. The default configuration
+is `SCRIPT_DUAN_V4_EXCEL_PARITY`.
+
+`GET /api/v1/analytics/segments` returns `potential_score`, `potential_level`,
+`rfm`, and `score_components` for every record. `rfm` contains the source
+recency/frequency/monetary metrics; `score_components` contains the five-point
+R/F/M/Interaction inputs, raw interaction value, applied weights, missing
+components, and configuration version. This allows the score to be recomputed
+from the response and audited against the formula above.
 
 ### Model lifecycle
 
@@ -322,11 +403,37 @@ Kiểm tra trạng thái server và database connection.
 
 ### Roles
 
-| Code | Tên | Mô tả | Quyền |
-|------|-----|-------|-------|
-| `ADMIN` | Administrator | Quản trị viên hệ thống | **Tất cả quyền** |
-| `ANALYST` | Data Analyst | Phân tích dữ liệu | `customers:read`, `customers:export`, `analytics:read`, `analytics:predict` |
+| Code | Tên | Mô tả | Quyền chính |
+|------|-----|-------|-------------|
+| `ADMIN` | Administrator | Toàn quyền hệ thống | Tất cả quyền |
+| `USER` | User | Tài khoản người dùng | `products:read` |
 
+
+### Tài khoản demo
+
+Các tài khoản được tạo bởi `customer_analytics.scripts.seed_data`:
+
+| Email | Mật khẩu | Role | Mục đích |
+|-------|----------|------|----------|
+| `admin@example.com` | `Admin123!` | `ADMIN` | Kiểm tra toàn quyền |
+| `user@example.com` | `User123!` | `USER` | Kiểm tra quyền người dùng |
+### Màn hình theo role
+
+| Màn hình | ADMIN | USER |
+|----------|:-----:|:----:|
+| Dashboard tổng quan | Có | Không |
+| Sản phẩm / danh mục | Có | Không |
+| Khách hàng | Có | Không |
+| Giao dịch | Có | Không |
+| Phân khúc / dự đoán / ưu tiên | Có | Không |
+| Nhập dữ liệu | Có | Không |
+| Quản lý mô hình | Có | Không |
+| Quản lý tài khoản | Có | Không |
+| Sản phẩm phía khách hàng | Không áp dụng | Có |
+ 
+
+Frontend ẩn menu không có permission và hiển thị màn hình `403 — Không có quyền truy cập`
+cho đường dẫn dashboard bị truy cập trực tiếp. Backend vẫn là lớp bảo vệ bắt buộc và trả HTTP 403.
 ### Permissions
 
 | Code | Resource | Action | Mô tả |
@@ -371,8 +478,8 @@ async def create_user():
 ### Permission Hierarchy
 
 - `ADMIN` role has **all permissions** automatically
-- `ANALYST` role has only specific permissions (see table above)
-- To add new roles, update `scripts/seed_data.py` and run seed again
+- `USER` role has only product read access
+- Keep the supported role list in `scripts/seed_data.py` aligned with the API schemas
 
 ---
 
