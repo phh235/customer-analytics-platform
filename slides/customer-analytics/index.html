@@ -17,7 +17,6 @@
               <img src="./assets/3cs-logo.png" alt="" />
               <span>3CS STORE</span>
             </div>
-            <span class="section-name">Customer Analytics Platform</span>
           </header>
           <div class="content">
             <div class="cover-content">
@@ -27,17 +26,41 @@
               </div>
               <div class="cover-title">
                 <h1 class="title">
-                  Hệ thống phân khúc khách hàng<br />và dự đoán giá trị mua
+                  <span class="cover-title-line">Hệ thống phân tích dữ liệu khách hàng</span>
+                  <br />
+                  <span class="cover-title-line">và dự đoán tiềm năng mua hàng</span>
                 </h1>
                 <p class="cover-english">Customer Analytics Platform</p>
+              </div>
+              <div class="cover-ascii" data-cover-ascii aria-hidden="true">
+                <img src="./assets/3cs-logo.png" alt="" />
+                <canvas data-cover-ascii-canvas></canvas>
               </div>
               <div class="cover-meta">
                 <div>
                   <p class="cover-meta-label">Nhóm thực hiện · Nhóm 6</p>
                   <div class="member-list">
-                    <p><strong>Phan Huy Hoàng</strong><span>25410219</span></p>
-                    <p><strong>Võ Thị Hương Giang</strong><span>25410196</span></p>
-                    <p><strong>Nguyễn Minh Nam</strong><span>25410259</span></p>
+                    <p>
+                      <span class="member-person">
+                        <strong>Phan Huy Hoàng</strong>
+                        <span class="member-id">25410219</span>
+                      </span>
+                      <span class="member-role">Phát triển Frontend và tích hợp API</span>
+                    </p>
+                    <p>
+                      <span class="member-person">
+                        <strong>Võ Thị Hương Giang</strong>
+                        <span class="member-id">25410196</span>
+                      </span>
+                      <span class="member-role">Phân tích nghiệp vụ và xử lý dữ liệu</span>
+                    </p>
+                    <p>
+                      <span class="member-person">
+                        <strong>Nguyễn Minh Nam</strong>
+                        <span class="member-id">25410259</span>
+                      </span>
+                      <span class="member-role">Phát triển và thiết kế Backend API</span>
+                    </p>
                   </div>
                 </div>
                 <div class="advisor">
@@ -73,18 +96,21 @@
             </div>
             <div class="problem-list">
               <div class="problem-item">
+                <span class="problem-number">01</span>
                 <h3>Dữ liệu phân tán</h3>
                 <p class="body">
                   Hồ sơ, đơn hàng và hành vi khó đối chiếu trong một góc nhìn.
                 </p>
               </div>
               <div class="problem-item">
+                <span class="problem-number">02</span>
                 <h3>Ưu tiên chưa rõ</h3>
                 <p class="body">
                   Đội ngũ thiếu cơ sở để chọn khách hàng cần chăm sóc trước.
                 </p>
               </div>
               <div class="problem-item">
+                <span class="problem-number">03</span>
                 <h3>Phản ứng chậm</h3>
                 <p class="body">
                   Xu hướng sản phẩm và thay đổi hành vi chỉ được phát hiện sau khi đã xảy ra.
@@ -106,6 +132,9 @@
           </header>
           <div class="content">
             <h2 class="slide-title objectives-title">Mục tiêu và phạm vi</h2>
+            <p class="objectives-subtitle">
+              Tập trung dữ liệu, phân tích hành vi và hỗ trợ quyết định quản trị.
+            </p>
             <div class="objectives">
               <div class="objective-row">
                 <span class="objective-number">01</span>
@@ -161,31 +190,68 @@
             </div>
             <div class="architecture">
               <div class="architecture-node">
-                <h3>Giao diện</h3>
-                <p class="tech">React · TypeScript · Vite</p>
+                <h3>Frontend</h3>
+                <div
+                  class="tech-list tech-list--nowrap"
+                  aria-label="React, TypeScript và Vite"
+                >
+                  <span class="tech-item">
+                    <img src="./assets/tech/react.svg" alt="" />React
+                  </span>
+                  <span class="tech-item">
+                    <img src="./assets/tech/typescript.svg" alt="" />TypeScript
+                  </span>
+                  <span class="tech-item">
+                    <img src="./assets/tech/vite.svg" alt="" />Vite
+                  </span>
+                </div>
                 <p class="body">Client và trang quản trị</p>
               </div>
               <div class="architecture-arrow" aria-hidden="true"></div>
               <div class="architecture-node architecture-node--core">
-                <h3>API và nghiệp vụ</h3>
-                <p class="tech">FastAPI · Python</p>
-                <p class="body" style="color: #cfcfcf">
-                  Xác thực, quyền, kiểm tra dữ liệu và điều phối phân tích
-                </p>
+                <h3>Backend</h3>
+                <div class="tech-list" aria-label="FastAPI và Python">
+                  <span class="tech-item">
+                    <img src="./assets/tech/fastapi.svg" alt="" />FastAPI
+                  </span>
+                  <span class="tech-item">
+                    <img src="./assets/tech/python.svg" alt="" />Python
+                  </span>
+                </div>
+                <p class="body">Xử lý nghiệp vụ và dữ liệu hệ thống</p>
               </div>
               <div class="architecture-arrow" aria-hidden="true"></div>
               <div class="architecture-stack">
                 <div class="architecture-node">
-                  <h3>PostgreSQL</h3>
-                  <p class="body">Khách hàng · giao dịch · phân tích</p>
+                  <h3>Database</h3>
+                  <div class="service-list service-list--technology">
+                    <div class="service-item">
+                      <img src="./assets/tech/postgresql.svg" alt="PostgreSQL" />
+                      <span>PostgreSQL triển khai trên Neon</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="architecture-node">
-                  <h3>Mô hình ML</h3>
-                  <p class="body">Phân khúc và dự đoán mua lại</p>
+                  <h3>ML Model</h3>
+                  <div class="service-list service-list--technology">
+                    <div class="service-item">
+                      <img src="./assets/tech/python.svg" alt="Python" />
+                      <span>Python · dự đoán mua lại</span>
+                    </div>
+                  </div>
                 </div>
                 <div class="architecture-node">
-                  <h3>Dịch vụ ngoài</h3>
-                  <p class="body">Cloudinary · Groq Cloud</p>
+                  <h3>Cloud Services</h3>
+                  <div class="service-list" aria-label="Cloudinary và Groq Cloud">
+                    <div class="service-item">
+                      <img src="./assets/tech/cloudinary.svg" alt="Cloudinary" />
+                      <span>Storage</span>
+                    </div>
+                    <div class="service-item">
+                      <img src="./assets/tech/groq.svg" alt="Groq Cloud" />
+                      <span>AI chat</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -239,10 +305,6 @@
               <div class="threshold">
                 <span class="label">Bình thường</span><strong>&lt; 60</strong>
                 <p class="label">Chưa đạt ngưỡng</p>
-              </div>
-              <div class="threshold">
-                <span class="label">Không đủ dữ liệu</span><strong>—</strong>
-                <p class="label">Thiếu dữ liệu R/F/M</p>
               </div>
             </div>
           </div>
@@ -308,19 +370,18 @@
             <div class="auth-grid">
               <img class="screenshot" src="./assets/login.png" alt="Màn hình đăng nhập" />
               <div class="auth-copy">
-                <h3>Hai không gian sau xác thực</h3>
+                <h3>Phân quyền theo vai trò</h3>
                 <div class="rule"></div>
                 <div class="role">
                   <h3>Khách hàng</h3>
                   <p class="body">
-                    Xem danh mục và chi tiết sản phẩm. Mỗi lượt quan tâm tạo thêm dữ liệu
-                    hành vi.
+                    Truy cập cửa hàng, xem sản phẩm và ghi nhận hành vi quan tâm.
                   </p>
                 </div>
                 <div class="role">
                   <h3>Quản trị viên</h3>
                   <p class="body">
-                    Quản lý dữ liệu, tài khoản, mô hình và toàn bộ báo cáo phân tích.
+                    Quản lý dữ liệu, tài khoản, mô hình và theo dõi báo cáo phân tích.
                   </p>
                 </div>
                 <p class="eyebrow" style="margin-top: 2.1rem">
@@ -351,6 +412,14 @@
               <div class="interface-pair-primary">
                 <img class="screenshot" src="./assets/dashboard.png" alt="Dashboard quản trị" />
                 <p class="label">Admin · KPI, biểu đồ và bộ lọc phân tích</p>
+              </div>
+              <div class="interface-pair-primary interface-pair-chatbot">
+                <img
+                  class="screenshot"
+                  src="./assets/chatbot-demo.png"
+                  alt="Trợ lý 3CS AI"
+                />
+                <p class="label">3CS AI · hỏi đáp dữ liệu kinh doanh</p>
               </div>
             </div>
           </div>
@@ -405,10 +474,18 @@
           </header>
           <div class="content">
             <div class="thank-you">
-              <img class="thank-you-logo" src="./assets/uit-logo.png" alt="Logo UIT" />
+              <img
+                class="thank-you-logo"
+                src="./assets/uit-logo.png?v=sharp"
+                alt="Logo UIT"
+              />
               <h2 class="thanks">Cảm ơn thầy</h2>
               <p class="lede">Nhóm xin lắng nghe câu hỏi và góp ý.</p>
-              <p class="thank-you-meta">PHAN HUY HOÀNG · 25410219</p>
+              <div class="thank-you-meta" aria-label="Thành viên nhóm 6">
+                <p><strong>Phan Huy Hoàng</strong><span>25410219</span></p>
+                <p><strong>Võ Thị Hương Giang</strong><span>25410196</span></p>
+                <p><strong>Nguyễn Minh Nam</strong><span>25410259</span></p>
+              </div>
             </div>
           </div>
         </article>
@@ -437,5 +514,6 @@
     </nav>
 
     <script src="./script.js"></script>
+    <script src="./assets/ascii/ascii-cover.iife.js"></script>
   </body>
 </html>

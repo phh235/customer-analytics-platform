@@ -1,5 +1,7 @@
 # Customer Analytics HTML Slides
 
+Bộ slide gồm 10 trang.
+
 ## Chạy trên web
 
 Từ thư mục repository:
@@ -26,4 +28,3 @@ Mở `http://localhost:4173`.
 4. Chọn **Layout: Landscape**.
 5. Chọn **Margins: None**.
 6. Bật **Background graphics**.
-

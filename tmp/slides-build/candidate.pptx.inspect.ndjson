@@ -1,0 +1,227 @@
+{"kind":"deck","id":"pr/6wncfa","name":"Deck"}
+{"kind":"layout","layoutId":"2e0efb45-69bf-434c-8991-1b3d2916f4ed","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"29633580-01a8-47e6-9bc9-17218f549293","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/dm1yw3","slide":1,"title":"3CS STORE","textShapes":6}
+{"kind":"textbox","id":"sh/g3y1kv69","slide":1,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[124,64,180,26]}
+{"kind":"textbox","id":"sh/h472t0nu","slide":1,"text":"Hệ thống phân khúc khách hàng\nvà dự đoán giá trị mua","textPreview":"Hệ thống phân khúc khách hàng | và dự đoán giá trị mua","textChars":52,"textLines":2,"bbox":[66,184,930,160]}
+{"kind":"textbox","id":"sh/25gjml4f","slide":1,"text":"Customer Analytics Platform","textPreview":"Customer Analytics Platform","textChars":27,"textLines":1,"bbox":[68,367,620,38]}
+{"kind":"shape","id":"sh/36pkvq50","slide":1,"bbox":[68,458,1148,0]}
+{"kind":"textbox","id":"sh/47ylovml","slide":1,"text":"Phan Huy Hoàng · 25410219","textPreview":"Phan Huy Hoàng · 25410219","textChars":25,"textLines":1,"bbox":[68,486,430,28]}
+{"kind":"textbox","id":"sh/p872x0n6","slide":1,"text":"TP. Hồ Chí Minh · 09/2026","textPreview":"TP. Hồ Chí Minh · 09/2026","textChars":25,"textLines":1,"bbox":[68,522,430,28]}
+{"kind":"textbox","id":"sh/q9g3q54b","slide":1,"text":"01 / 10","textPreview":"01 / 10","textChars":7,"textLines":1,"bbox":[1134,672,82,18]}
+{"kind":"image","id":"im/qp4rup4n","slide":1,"name":"","alt":"3CS Store","bbox":[66,54,44,44]}
+{"kind":"notes","id":"nt/dm1yw3","slide":1,"text":"Nguồn nội dung: README dự án. Bố cục tham khảo dart-ai-slides.pdf và nguyên tắc Vercel Design Guidelines."}
+{"kind":"slide","id":"sl/zzl6c6","slide":2,"title":"3CS STORE","textShapes":11}
+{"kind":"textbox","id":"sh/o3mx076p","slide":2,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[98,35,150,22]}
+{"kind":"textbox","id":"sh/p4vy9s7a","slide":2,"text":"01 · Tổng quan","textPreview":"01 · Tổng quan","textChars":14,"textLines":1,"bbox":[840,36,360,20]}
+{"kind":"shape","id":"sh/a54f2xov","slide":2,"bbox":[62,72,1156,0]}
+{"kind":"textbox","id":"sh/b6dgb2p0","slide":2,"text":"02 / 10","textPreview":"02 / 10","textChars":7,"textLines":1,"bbox":[1140,678,78,18]}
+{"kind":"textbox","id":"sh/c7mx476l","slide":2,"text":"Bài toán đặt ra","textPreview":"Bài toán đặt ra","textChars":15,"textLines":1,"bbox":[62,96,1040,62]}
+{"kind":"textbox","id":"sh/x8vydc76","slide":2,"text":"Dữ liệu khách hàng, giao dịch và tương tác thường nằm ở nhiều nơi. Doanh nghiệp khó nhận biết ai có giá trị cao, ai có khả năng mua lại và sản phẩm nào đang được quan tâm.","textPreview":"Dữ liệu khách hàng, giao dịch và tương tác thường nằm ở nhiều nơi. Doanh nghiệp khó nhận biết ai có giá trị cao, ai có khả năng mua lại v...","textChars":171,"textLines":1,"bbox":[62,186,760,118]}
+{"kind":"shape","id":"sh/690fqdob","slide":2,"bbox":[62,365,330,0]}
+{"kind":"textbox","id":"sh/ra9wzipw","slide":2,"text":"Dữ liệu phân tán","textPreview":"Dữ liệu phân tán","textChars":16,"textLines":1,"bbox":[62,390,330,34]}
+{"kind":"textbox","id":"sh/nylwz2xo","slide":2,"text":"Hồ sơ, đơn hàng và hành vi khó đối chiếu trong một góc nhìn.","textPreview":"Hồ sơ, đơn hàng và hành vi khó đối chiếu trong một góc nhìn.","textChars":60,"textLines":1,"bbox":[62,438,330,84]}
+{"kind":"shape","id":"sh/mxcfqxg3","slide":2,"bbox":[448,365,330,0]}
+{"kind":"textbox","id":"sh/9kny1cfu","slide":2,"text":"Ưu tiên chưa rõ","textPreview":"Ưu tiên chưa rõ","textChars":15,"textLines":1,"bbox":[448,390,330,34]}
+{"kind":"textbox","id":"sh/ozexs7y9","slide":2,"text":"Đội ngũ thiếu cơ sở để chọn khách hàng cần chăm sóc trước.","textPreview":"Đội ngũ thiếu cơ sở để chọn khách hàng cần chăm sóc trước.","textChars":58,"textLines":1,"bbox":[448,438,330,84]}
+{"kind":"shape","id":"sh/zulwvixc","slide":2,"bbox":[834,365,330,0]}
+{"kind":"textbox","id":"sh/etcfmdg7","slide":2,"text":"Phản ứng chậm","textPreview":"Phản ứng chậm","textChars":13,"textLines":1,"bbox":[834,390,330,34]}
+{"kind":"textbox","id":"sh/1w3exsfi","slide":2,"text":"Xu hướng sản phẩm và thay đổi hành vi chỉ được phát hiện sau khi đã xảy ra.","textPreview":"Xu hướng sản phẩm và thay đổi hành vi chỉ được phát hiện sau khi đã xảy ra.","textChars":75,"textLines":1,"bbox":[834,438,330,84]}
+{"kind":"image","id":"im/m5wjepkb","slide":2,"name":"","alt":"3CS Store","bbox":[62,30,28,28]}
+{"kind":"notes","id":"nt/zzl6c6","slide":2,"text":"Tóm lược bài toán từ mục tiêu và phạm vi của repository."}
+{"kind":"slide","id":"sl/8qghh3","slide":3,"title":"3CS STORE","textShapes":21}
+{"kind":"textbox","id":"sh/m1onq9sf","slide":3,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[98,35,150,22]}
+{"kind":"textbox","id":"sh/n2xoje90","slide":3,"text":"01 · Tổng quan","textPreview":"01 · Tổng quan","textChars":14,"textLines":1,"bbox":[840,36,360,20]}
+{"kind":"shape","id":"sh/w7qpwjah","slide":3,"bbox":[62,72,1156,0]}
+{"kind":"textbox","id":"sh/x8z6por2","slide":3,"text":"03 / 10","textPreview":"03 / 10","textChars":7,"textLines":1,"bbox":[1140,678,78,18]}
+{"kind":"textbox","id":"sh/a587utsb","slide":3,"text":"Mục tiêu và phạm vi","textPreview":"Mục tiêu và phạm vi","textChars":19,"textLines":1,"bbox":[62,96,1040,62]}
+{"kind":"textbox","id":"sh/v6hone9w","slide":3,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[62,204,56,34]}
+{"kind":"textbox","id":"sh/cbm5kzad","slide":3,"text":"Quản lý","textPreview":"Quản lý","textChars":7,"textLines":1,"bbox":[145,204,205,34]}
+{"kind":"textbox","id":"sh/dcf6d4by","slide":3,"text":"Hồ sơ khách hàng, sản phẩm, giao dịch và tài khoản theo quyền.","textPreview":"Hồ sơ khách hàng, sản phẩm, giao dịch và tài khoản theo quyền.","textChars":62,"textLines":1,"bbox":[385,204,780,52]}
+{"kind":"shape","id":"sh/1ojy14v2","slide":3,"bbox":[145,271,1020,0]}
+{"kind":"textbox","id":"sh/gnahszuh","slide":3,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[62,296,56,34]}
+{"kind":"textbox","id":"sh/fm1gzudw","slide":3,"text":"Phân tích","textPreview":"Phân tích","textChars":9,"textLines":1,"bbox":[145,296,205,34]}
+{"kind":"textbox","id":"sh/elszqpcb","slide":3,"text":"Phân khúc hành vi, điểm tiềm năng và xu hướng kinh doanh.","textPreview":"Phân khúc hành vi, điểm tiềm năng và xu hướng kinh doanh.","textChars":57,"textLines":1,"bbox":[385,296,780,52]}
+{"kind":"shape","id":"sh/pc3y54vy","slide":3,"bbox":[145,363,1020,0]}
+{"kind":"textbox","id":"sh/obuhwjud","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[62,388,56,34]}
+{"kind":"textbox","id":"sh/3a1g3ed8","slide":3,"text":"Dự đoán","textPreview":"Dự đoán","textChars":7,"textLines":1,"bbox":[145,388,205,34]}
+{"kind":"textbox","id":"sh/29szu9cn","slide":3,"text":"Ước lượng khả năng mua lại và tạo danh sách khách hàng ưu tiên.","textPreview":"Ước lượng khả năng mua lại và tạo danh sách khách hàng ưu tiên.","textChars":63,"textLines":1,"bbox":[385,388,780,52]}
+{"kind":"shape","id":"sh/dg3i9oba","slide":3,"bbox":[145,455,1020,0]}
+{"kind":"textbox","id":"sh/cfuh0jup","slide":3,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[62,480,56,34]}
+{"kind":"textbox","id":"sh/wj21wn2l","slide":3,"text":"Tương tác","textPreview":"Tương tác","textChars":9,"textLines":1,"bbox":[145,480,205,34]}
+{"kind":"textbox","id":"sh/xkb25sj6","slide":3,"text":"Theo dõi lượt xem sản phẩm và hỗ trợ truy vấn bằng 3CS AI.","textPreview":"Theo dõi lượt xem sản phẩm và hỗ trợ truy vấn bằng 3CS AI.","textChars":58,"textLines":1,"bbox":[385,480,780,52]}
+{"kind":"shape","id":"sh/ahkjuxkv","slide":3,"bbox":[145,547,1020,0]}
+{"kind":"textbox","id":"sh/bit03i1g","slide":3,"text":"Hai không gian sử dụng","textPreview":"Hai không gian sử dụng","textChars":22,"textLines":1,"bbox":[62,594,260,24]}
+{"kind":"textbox","id":"sh/knm1072x","slide":3,"text":"Khách hàng","textPreview":"Khách hàng","textChars":10,"textLines":1,"bbox":[324,586,190,34]}
+{"kind":"textbox","id":"sh/5ov29cji","slide":3,"text":"Quản trị viên","textPreview":"Quản trị viên","textChars":13,"textLines":1,"bbox":[612,586,210,34]}
+{"kind":"textbox","id":"sh/ilkjyxkr","slide":3,"text":"Xem sản phẩm và tạo tín hiệu quan tâm","textPreview":"Xem sản phẩm và tạo tín hiệu quan tâm","textChars":37,"textLines":1,"bbox":[324,623,240,40]}
+{"kind":"textbox","id":"sh/jmdk721c","slide":3,"text":"Theo dõi dữ liệu và ra quyết định","textPreview":"Theo dõi dữ liệu và ra quyết định","textChars":33,"textLines":1,"bbox":[612,623,250,40]}
+{"kind":"image","id":"im/k3u5g32x","slide":3,"name":"","alt":"3CS Store","bbox":[62,30,28,28]}
+{"kind":"notes","id":"nt/8qghh3","slide":3,"text":"Nguồn: README, frontend README và backend API documentation."}
+{"kind":"slide","id":"sl/ijws24","slide":4,"title":"3CS STORE","textShapes":18}
+{"kind":"textbox","id":"sh/0vu90nit","slide":4,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[98,35,150,22]}
+{"kind":"textbox","id":"sh/1wnq9sje","slide":4,"text":"02 · Phân tích và thiết kế","textPreview":"02 · Phân tích và thiết kế","textChars":26,"textLines":1,"bbox":[840,36,360,20]}
+{"kind":"shape","id":"sh/q5c7ud0r","slide":4,"bbox":[62,72,1156,0]}
+{"kind":"textbox","id":"sh/r6l83i1c","slide":4,"text":"04 / 10","textPreview":"04 / 10","textChars":7,"textLines":1,"bbox":[1140,678,78,18]}
+{"kind":"textbox","id":"sh/crupwnih","slide":4,"text":"Kiến trúc tổng thể","textPreview":"Kiến trúc tổng thể","textChars":18,"textLines":1,"bbox":[62,96,1040,62]}
+{"kind":"textbox","id":"sh/ds3q5sj2","slide":4,"text":"Các thành phần chính và luồng trao đổi dữ liệu","textPreview":"Các thành phần chính và luồng trao đổi dữ liệu","textChars":46,"textLines":1,"bbox":[62,157,1040,34]}
+{"kind":"shape","id":"sh/a1wr6h0v","slide":4,"bbox":[62,258,238,136]}
+{"kind":"textbox","id":"sh/bm58fmhg","slide":4,"text":"Giao diện","textPreview":"Giao diện","textChars":9,"textLines":1,"bbox":[84,278,190,32]}
+{"kind":"textbox","id":"sh/7axoj6dk","slide":4,"text":"React · TypeScript · Vite","textPreview":"React · TypeScript · Vite","textChars":25,"textLines":1,"bbox":[84,320,190,26]}
+{"kind":"textbox","id":"sh/69o7a1wz","slide":4,"text":"Client và trang quản trị","textPreview":"Client và trang quản trị","textChars":24,"textLines":1,"bbox":[84,356,190,24]}
+{"kind":"shape","id":"sh/tcfqlgvq","slide":4,"bbox":[400,232,260,188]}
+{"kind":"textbox","id":"sh/sb6pcbe5","slide":4,"text":"API và nghiệp vụ","textPreview":"API và nghiệp vụ","textChars":16,"textLines":1,"bbox":[424,258,214,36]}
+{"kind":"textbox","id":"sh/fyx8n6dg","slide":4,"text":"FastAPI · Python","textPreview":"FastAPI · Python","textChars":16,"textLines":1,"bbox":[424,307,214,26]}
+{"kind":"textbox","id":"sh/udo7e1wv","slide":4,"text":"Xác thực, quyền, kiểm tra dữ liệu\nvà điều phối phân tích","textPreview":"Xác thực, quyền, kiểm tra dữ liệu | và điều phối phân tích","textChars":56,"textLines":2,"bbox":[424,348,214,52]}
+{"kind":"shape","id":"sh/h0zqpgvm","slide":4,"bbox":[770,162,424,86]}
+{"kind":"textbox","id":"sh/gz6pgbe1","slide":4,"text":"PostgreSQL","textPreview":"PostgreSQL","textChars":10,"textLines":1,"bbox":[792,182,150,28]}
+{"kind":"textbox","id":"sh/32h8rqds","slide":4,"text":"Khách hàng · giao dịch · phân tích","textPreview":"Khách hàng · giao dịch · phân tích","textChars":34,"textLines":1,"bbox":[952,184,220,24]}
+{"kind":"shape","id":"sh/2187ilw7","slide":4,"bbox":[770,284,424,86]}
+{"kind":"textbox","id":"sh/yxsrapgf","slide":4,"text":"Mô hình ML","textPreview":"Mô hình ML","textChars":10,"textLines":1,"bbox":[792,304,150,28]}
+{"kind":"textbox","id":"sh/zy1sjux0","slide":4,"text":"Phân khúc và dự đoán mua lại","textPreview":"Phân khúc và dự đoán mua lại","textChars":28,"textLines":1,"bbox":[952,306,220,24]}
+{"kind":"shape","id":"sh/0zatczyl","slide":4,"bbox":[770,406,424,86]}
+{"kind":"textbox","id":"sh/l03al4fq","slide":4,"text":"Dịch vụ ngoài","textPreview":"Dịch vụ ngoài","textChars":13,"textLines":1,"bbox":[792,426,150,28]}
+{"kind":"textbox","id":"sh/qtsr65g3","slide":4,"text":"Cloudinary · Groq Cloud","textPreview":"Cloudinary · Groq Cloud","textChars":23,"textLines":1,"bbox":[952,428,220,24]}
+{"kind":"shape","id":"sh/bu1sfaxo","slide":4,"bbox":[300,326,100,0]}
+{"kind":"shape","id":"sh/cva98fy9","slide":4,"bbox":[660,205,110,121]}
+{"kind":"shape","id":"sh/dwjahkfu","slide":4,"bbox":[660,326,110,1]}
+{"kind":"shape","id":"sh/apcbi9gn","slide":4,"bbox":[660,326,110,123]}
+{"kind":"textbox","id":"sh/vqlsrex8","slide":4,"text":"HTTPS · JSON · SSE","textPreview":"HTTPS · JSON · SSE","textChars":18,"textLines":1,"bbox":[400,458,260,24]}
+{"kind":"image","id":"im/qd4vm9o3","slide":4,"name":"","alt":"3CS Store","bbox":[62,30,28,28]}
+{"kind":"notes","id":"nt/ijws24","slide":4,"text":"Nguồn: AGENTS.md, README và backend API documentation."}
+{"kind":"slide","id":"sl/un6cdg","slide":5,"title":"3CS STORE","textShapes":30}
+{"kind":"textbox","id":"sh/6lszidgz","slide":5,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[98,35,150,22]}
+{"kind":"textbox","id":"sh/rmlgbixk","slide":5,"text":"03 · Phân tích dữ liệu","textPreview":"03 · Phân tích dữ liệu","textChars":22,"textLines":1,"bbox":[840,36,360,20]}
+{"kind":"shape","id":"sh/gbuhony1","slide":5,"bbox":[62,72,1156,0]}
+{"kind":"textbox","id":"sh/1c3ihsfm","slide":5,"text":"05 / 10","textPreview":"05 / 10","textChars":7,"textLines":1,"bbox":[1140,678,78,18]}
+{"kind":"textbox","id":"sh/e9czmxgv","slide":5,"text":"Điểm tiềm năng khách hàng","textPreview":"Điểm tiềm năng khách hàng","textChars":25,"textLines":1,"bbox":[62,96,1040,62]}
+{"kind":"textbox","id":"sh/fal0fixg","slide":5,"text":"Kết hợp giá trị giao dịch và tín hiệu tương tác","textPreview":"Kết hợp giá trị giao dịch và tín hiệu tương tác","textChars":47,"textLines":1,"bbox":[62,157,1040,34]}
+{"kind":"shape","id":"sh/wfahc3yx","slide":5,"bbox":[62,215,1156,112]}
+{"kind":"textbox","id":"sh/hgjy58z2","slide":5,"text":"Potential Score = (R × 0,35 + F × 0,30 + M × 0,20 + Interaction × 0,15) × 20","textPreview":"Potential Score = (R × 0,35 + F × 0,30 + M × 0,20 + Interaction × 0,15) × 20","textChars":76,"textLines":1,"bbox":[90,248,1100,42]}
+{"kind":"textbox","id":"sh/twr29g36","slide":5,"text":"R","textPreview":"R","textChars":1,"textLines":1,"bbox":[62,376,70,54]}
+{"kind":"textbox","id":"sh/8bil0bml","slide":5,"text":"35%","textPreview":"35%","textChars":3,"textLines":1,"bbox":[136,384,76,32]}
+{"kind":"textbox","id":"sh/7a9k76l0","slide":5,"text":"Mức độ gần đây","textPreview":"Mức độ gần đây","textChars":14,"textLines":1,"bbox":[62,440,235,32]}
+{"kind":"textbox","id":"sh/6903y14f","slide":5,"text":"F","textPreview":"F","textChars":1,"textLines":1,"bbox":[351,376,70,54]}
+{"kind":"textbox","id":"sh/h0b2dg32","slide":5,"text":"30%","textPreview":"30%","textChars":3,"textLines":1,"bbox":[425,384,76,32]}
+{"kind":"textbox","id":"sh/gz2l4bmh","slide":5,"text":"Tần suất mua","textPreview":"Tần suất mua","textChars":12,"textLines":1,"bbox":[351,440,235,32]}
+{"kind":"textbox","id":"sh/vytkbqlw","slide":5,"text":"M","textPreview":"M","textChars":1,"textLines":1,"bbox":[640,376,70,54]}
+{"kind":"textbox","id":"sh/uxk32l4b","slide":5,"text":"20%","textPreview":"20%","textChars":3,"textLines":1,"bbox":[714,384,76,32]}
+{"kind":"textbox","id":"sh/54bmh03y","slide":5,"text":"Giá trị chi tiêu","textPreview":"Giá trị chi tiêu","textChars":16,"textLines":1,"bbox":[640,440,235,32]}
+{"kind":"textbox","id":"sh/432l8vmt","slide":5,"text":"I","textPreview":"I","textChars":1,"textLines":1,"bbox":[929,376,70,54]}
+{"kind":"textbox","id":"sh/o7a54zap","slide":5,"text":"15%","textPreview":"15%","textChars":3,"textLines":1,"bbox":[1003,384,76,32]}
+{"kind":"textbox","id":"sh/p8j6d4ba","slide":5,"text":"Tương tác sản phẩm","textPreview":"Tương tác sản phẩm","textChars":18,"textLines":1,"bbox":[929,440,235,32]}
+{"kind":"shape","id":"sh/25sn2psj","slide":5,"bbox":[62,515,1156,0]}
+{"kind":"textbox","id":"sh/3614but4","slide":5,"text":"Tiềm năng cao","textPreview":"Tiềm năng cao","textChars":13,"textLines":1,"bbox":[62,548,250,24]}
+{"kind":"textbox","id":"sh/cbu58ja1","slide":5,"text":"≥ 80","textPreview":"≥ 80","textChars":4,"textLines":1,"bbox":[62,576,250,54]}
+{"kind":"textbox","id":"sh/dc36hobm","slide":5,"text":"Ưu tiên chăm sóc","textPreview":"Ưu tiên chăm sóc","textChars":16,"textLines":1,"bbox":[62,631,250,42]}
+{"kind":"textbox","id":"sh/q9cn69sv","slide":5,"text":"Tiềm năng","textPreview":"Tiềm năng","textChars":9,"textLines":1,"bbox":[367,548,260,24]}
+{"kind":"textbox","id":"sh/balofetg","slide":5,"text":"60–79","textPreview":"60–79","textChars":5,"textLines":1,"bbox":[367,576,260,54]}
+{"kind":"textbox","id":"sh/sfq5wfuh","slide":5,"text":"Theo dõi và nuôi dưỡng","textPreview":"Theo dõi và nuôi dưỡng","textChars":22,"textLines":1,"bbox":[367,631,260,42]}
+{"kind":"textbox","id":"sh/tgzm5kb2","slide":5,"text":"Thông thường","textPreview":"Thông thường","textChars":12,"textLines":1,"bbox":[690,548,230,24]}
+{"kind":"textbox","id":"sh/vup8bidk","slide":5,"text":"< 60","textPreview":"< 60","textChars":4,"textLines":1,"bbox":[690,576,230,54]}
+{"kind":"textbox","id":"sh/utg7idcz","slide":5,"text":"Duy trì tương tác","textPreview":"Duy trì tương tác","textChars":17,"textLines":1,"bbox":[690,631,230,42]}
+{"kind":"textbox","id":"sh/hw7qdsvq","slide":5,"text":"Chưa đủ dữ liệu","textPreview":"Chưa đủ dữ liệu","textChars":15,"textLines":1,"bbox":[972,548,246,24]}
+{"kind":"textbox","id":"sh/wvy9knu5","slide":5,"text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[972,576,246,54]}
+{"kind":"textbox","id":"sh/76587ido","slide":5,"text":"Không thay null bằng 0","textPreview":"Không thay null bằng 0","textChars":22,"textLines":1,"bbox":[972,631,246,42]}
+{"kind":"image","id":"im/k7u10fad","slide":5,"name":"","alt":"3CS Store","bbox":[62,30,28,28]}
+{"kind":"notes","id":"nt/un6cdg","slide":5,"text":"Nguồn: backend/docs/API.md. Trọng số theo SCRIPT_DUAN_V4_EXCEL_PARITY."}
+{"kind":"slide","id":"sl/oeuk76","slide":6,"title":"3CS STORE","textShapes":20}
+{"kind":"textbox","id":"sh/m5wbetk3","slide":6,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[98,35,150,22]}
+{"kind":"textbox","id":"sh/n65s7elo","slide":6,"text":"03 · Phân tích dữ liệu","textPreview":"03 · Phân tích dữ liệu","textChars":22,"textLines":1,"bbox":[840,36,360,20]}
+{"kind":"shape","id":"sh/wbytk32l","slide":6,"bbox":[62,72,1156,0]}
+{"kind":"textbox","id":"sh/xc7ad8jq","slide":6,"text":"06 / 10","textPreview":"06 / 10","textChars":7,"textLines":1,"bbox":[1140,678,78,18]}
+{"kind":"textbox","id":"sh/a9wbitkf","slide":6,"text":"Luồng nghiệp vụ phân tích","textPreview":"Luồng nghiệp vụ phân tích","textChars":25,"textLines":1,"bbox":[62,96,1040,62]}
+{"kind":"shape","id":"sh/ba5sby10","slide":6,"bbox":[62,246,196,190]}
+{"kind":"textbox","id":"sh/kzyto32h","slide":6,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[82,267,60,24]}
+{"kind":"textbox","id":"sh/l07uh8j2","slide":6,"text":"Khách hàng","textPreview":"Khách hàng","textChars":10,"textLines":1,"bbox":[82,315,156,34]}
+{"kind":"textbox","id":"sh/ts7mhsba","slide":6,"text":"Xem sản phẩm\nvà phát sinh giao dịch","textPreview":"Xem sản phẩm | và phát sinh giao dịch","textChars":35,"textLines":2,"bbox":[82,365,156,50]}
+{"kind":"shape","id":"sh/8rylonap","slide":6,"bbox":[292,246,196,190]}
+{"kind":"textbox","id":"sh/7qp4vit4","slide":6,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[312,267,60,24]}
+{"kind":"textbox","id":"sh/65g3mxsj","slide":6,"text":"Thu thập","textPreview":"Thu thập","textChars":8,"textLines":1,"bbox":[312,315,156,34]}
+{"kind":"textbox","id":"sh/hwrmlcb6","slide":6,"text":"Hồ sơ, đơn hàng\nvà lượt tương tác","textPreview":"Hồ sơ, đơn hàng | và lượt tương tác","textChars":33,"textLines":2,"bbox":[312,365,156,50]}
+{"kind":"shape","id":"sh/gvils7al","slide":6,"bbox":[522,246,196,190]}
+{"kind":"textbox","id":"sh/vu94j2tg","slide":6,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[542,267,60,24]}
+{"kind":"textbox","id":"sh/utg3qxsv","slide":6,"text":"Phân tích","textPreview":"Phân tích","textChars":9,"textLines":1,"bbox":[542,315,156,34]}
+{"kind":"textbox","id":"sh/x0n2p8b2","slide":6,"text":"RFM, phân khúc\nvà điểm tiềm năng","textPreview":"RFM, phân khúc | và điểm tiềm năng","textChars":32,"textLines":2,"bbox":[542,365,156,50]}
+{"kind":"shape","id":"sh/czelg3uh","slide":6,"bbox":[752,246,196,190]}
+{"kind":"textbox","id":"sh/ojilw32d","slide":6,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[772,267,60,24]}
+{"kind":"textbox","id":"sh/pkrm58jy","slide":6,"text":"Dự đoán","textPreview":"Dự đoán","textChars":7,"textLines":1,"bbox":[772,315,156,34]}
+{"kind":"textbox","id":"sh/2h03udk7","slide":6,"text":"Khả năng mua lại\nvà sản phẩm quan tâm","textPreview":"Khả năng mua lại | và sản phẩm quan tâm","textChars":37,"textLines":2,"bbox":[772,365,156,50]}
+{"kind":"shape","id":"sh/3i943i1s","slide":6,"bbox":[982,246,196,190]}
+{"kind":"textbox","id":"sh/c7il0n29","slide":6,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1002,267,60,24]}
+{"kind":"textbox","id":"sh/d8bm9sju","slide":6,"text":"Hành động","textPreview":"Hành động","textChars":9,"textLines":1,"bbox":[1002,315,156,34]}
+{"kind":"textbox","id":"sh/q503ydkj","slide":6,"text":"Danh sách ưu tiên\nvà chăm sóc phù hợp","textPreview":"Danh sách ưu tiên | và chăm sóc phù hợp","textChars":37,"textLines":2,"bbox":[1002,365,156,50]}
+{"kind":"shape","id":"sh/b6947i14","slide":6,"bbox":[258,341,34,0]}
+{"kind":"shape","id":"sh/kb2l4nil","slide":6,"bbox":[488,341,34,0]}
+{"kind":"shape","id":"sh/lcbmdsj6","slide":6,"bbox":[718,341,34,0]}
+{"kind":"shape","id":"sh/vixgjqpk","slide":6,"bbox":[948,341,34,0]}
+{"kind":"textbox","id":"sh/uhofql8z","slide":6,"text":"Dữ liệu từ trải nghiệm mua sắm quay lại phục vụ quyết định quản trị","textPreview":"Dữ liệu từ trải nghiệm mua sắm quay lại phục vụ quyết định quản trị","textChars":67,"textLines":1,"bbox":[190,510,900,44]}
+{"kind":"image","id":"im/on2hovq5","slide":6,"name":"","alt":"3CS Store","bbox":[62,30,28,28]}
+{"kind":"notes","id":"nt/oeuk76","slide":6,"text":"Luồng tổng hợp từ các chức năng client, product analytics và dashboard."}
+{"kind":"slide","id":"sl/5xfr7v","slide":7,"title":"3CS STORE","textShapes":10}
+{"kind":"textbox","id":"sh/p8jet0ve","slide":7,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[98,35,150,22]}
+{"kind":"textbox","id":"sh/47ad0vut","slide":7,"text":"04 · Giao diện và phân quyền","textPreview":"04 · Giao diện và phân quyền","textChars":28,"textLines":1,"bbox":[840,36,360,20]}
+{"kind":"shape","id":"sh/fi1cnqdw","slide":7,"bbox":[62,72,1156,0]}
+{"kind":"textbox","id":"sh/uh8vulcr","slide":7,"text":"07 / 10","textPreview":"07 / 10","textChars":7,"textLines":1,"bbox":[1140,678,78,18]}
+{"kind":"textbox","id":"sh/hkjepgv2","slide":7,"text":"Đăng nhập và phân quyền","textPreview":"Đăng nhập và phân quyền","textChars":23,"textLines":1,"bbox":[62,96,1040,62]}
+{"kind":"shape","id":"sh/gjadwvuh","slide":7,"bbox":[57,185,688,434]}
+{"kind":"textbox","id":"sh/6d8vq1cf","slide":7,"text":"Hai không gian sau xác thực","textPreview":"Hai không gian sau xác thực","textChars":27,"textLines":1,"bbox":[800,206,368,32]}
+{"kind":"shape","id":"sh/w321c36h","slide":7,"bbox":[800,258,368,0]}
+{"kind":"textbox","id":"sh/x4bil8n2","slide":7,"text":"Khách hàng","textPreview":"Khách hàng","textChars":10,"textLines":1,"bbox":[800,290,180,30]}
+{"kind":"textbox","id":"sh/a1kjatob","slide":7,"text":"Xem danh mục và chi tiết sản phẩm. Mỗi lượt quan tâm tạo thêm dữ liệu hành vi.","textPreview":"Xem danh mục và chi tiết sản phẩm. Mỗi lượt quan tâm tạo thêm dữ liệu hành vi.","textChars":78,"textLines":1,"bbox":[800,330,350,76]}
+{"kind":"textbox","id":"sh/v2t0jy5w","slide":7,"text":"Quản trị viên","textPreview":"Quản trị viên","textChars":13,"textLines":1,"bbox":[800,445,180,30]}
+{"kind":"textbox","id":"sh/8z2h8j6l","slide":7,"text":"Quản lý dữ liệu, tài khoản, mô hình và toàn bộ báo cáo phân tích.","textPreview":"Quản lý dữ liệu, tài khoản, mô hình và toàn bộ báo cáo phân tích.","textChars":65,"textLines":1,"bbox":[800,485,350,66]}
+{"kind":"textbox","id":"sh/90bihon6","slide":7,"text":"JWT · refresh session · permission checks","textPreview":"JWT · refresh session · permission checks","textChars":41,"textLines":1,"bbox":[800,590,350,24]}
+{"kind":"image","id":"im/nq5gzq9k","slide":7,"name":"","alt":"3CS Store","bbox":[62,30,28,28]}
+{"kind":"image","id":"im/yhgzeps7","slide":7,"name":"","geometry":"roundRect","alt":"Màn hình đăng nhập 3CS Store","bbox":[62,190,678,424]}
+{"kind":"notes","id":"nt/5xfr7v","slide":7,"text":"Ảnh chụp trực tiếp từ hệ thống demo. Quyền tham khảo backend/docs/API.md."}
+{"kind":"slide","id":"sl/btj88i","slide":8,"title":"3CS STORE","textShapes":10}
+{"kind":"textbox","id":"sh/ovadwjql","slide":8,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[98,35,150,22]}
+{"kind":"textbox","id":"sh/9wju5o76","slide":8,"text":"04 · Giao diện và phân quyền","textPreview":"04 · Giao diện và phân quyền","textChars":28,"textLines":1,"bbox":[840,36,360,20]}
+{"kind":"shape","id":"sh/axsvyt8r","slide":8,"bbox":[62,72,1156,0]}
+{"kind":"textbox","id":"sh/bilc7ypc","slide":8,"text":"08 / 10","textPreview":"08 / 10","textChars":7,"textLines":1,"bbox":[1140,678,78,18]}
+{"kind":"textbox","id":"sh/wjud03qx","slide":8,"text":"Trải nghiệm phía khách hàng","textPreview":"Trải nghiệm phía khách hàng","textChars":27,"textLines":1,"bbox":[62,96,1040,62]}
+{"kind":"textbox","id":"sh/xk3u987i","slide":8,"text":"Tìm sản phẩm","textPreview":"Tìm sản phẩm","textChars":12,"textLines":1,"bbox":[62,204,220,30]}
+{"kind":"textbox","id":"sh/ylcv2d8n","slide":8,"text":"Danh sách có tìm kiếm, lọc danh mục và phân trang để người dùng tiếp cận sản phẩm nhanh hơn.","textPreview":"Danh sách có tìm kiếm, lọc danh mục và phân trang để người dùng tiếp cận sản phẩm nhanh hơn.","textChars":92,"textLines":1,"bbox":[62,245,360,88]}
+{"kind":"textbox","id":"sh/jmlcbyp8","slide":8,"text":"Tạo tín hiệu quan tâm","textPreview":"Tạo tín hiệu quan tâm","textChars":21,"textLines":1,"bbox":[62,378,250,30]}
+{"kind":"textbox","id":"sh/7qds7e1k","slide":8,"text":"Lượt xem sản phẩm được ghi nhận và liên kết với hồ sơ khách hàng để phục vụ phân tích.","textPreview":"Lượt xem sản phẩm được ghi nhận và liên kết với hồ sơ khách hàng để phục vụ phân tích.","textChars":86,"textLines":1,"bbox":[62,419,360,88]}
+{"kind":"textbox","id":"sh/6p4by9kz","slide":8,"text":"Giao diện thích ứng","textPreview":"Giao diện thích ứng","textChars":19,"textLines":1,"bbox":[62,552,220,30]}
+{"kind":"textbox","id":"sh/tsfa9ojq","slide":8,"text":"Hỗ trợ chế độ sáng, tối và nhiều kích thước màn hình.","textPreview":"Hỗ trợ chế độ sáng, tối và nhiều kích thước màn hình.","textChars":53,"textLines":1,"bbox":[62,593,350,56]}
+{"kind":"shape","id":"sh/sr6t0j25","slide":8,"bbox":[463,183,760,479]}
+{"kind":"image","id":"im/e10f6dg3","slide":8,"name":"","alt":"3CS Store","bbox":[62,30,28,28]}
+{"kind":"image","id":"im/07yt0nah","slide":8,"name":"","geometry":"roundRect","alt":"Trang chủ và sản phẩm nổi bật","bbox":[468,188,750,469]}
+{"kind":"notes","id":"nt/btj88i","slide":8,"text":"Ảnh chụp trực tiếp từ giao diện client của hệ thống demo."}
+{"kind":"slide","id":"sl/eh2us8","slide":9,"title":"3CS STORE","textShapes":5}
+{"kind":"textbox","id":"sh/gv690nel","slide":9,"text":"3CS STORE","textPreview":"3CS STORE","textChars":9,"textLines":1,"bbox":[98,35,150,22]}
+{"kind":"textbox","id":"sh/hwfatsv6","slide":9,"text":"04 · Giao diện và phân quyền","textPreview":"04 · Giao diện và phân quyền","textChars":28,"textLines":1,"bbox":[840,36,360,20]}
+{"kind":"shape","id":"sh/654rudwj","slide":9,"bbox":[62,72,1156,0]}
+{"kind":"textbox","id":"sh/76dsnid4","slide":9,"text":"09 / 10","textPreview":"09 / 10","textChars":7,"textLines":1,"bbox":[1140,678,78,18]}
+{"kind":"textbox","id":"sh/sr69wne9","slide":9,"text":"Quản trị và phân tích","textPreview":"Quản trị và phân tích","textChars":21,"textLines":1,"bbox":[62,96,1040,62]}
+{"kind":"shape","id":"sh/tsfap8vu","slide":9,"bbox":[57,181,754,475]}
+{"kind":"shape","id":"sh/j2dsjyds","slide":9,"bbox":[837,181,386,245]}
+{"kind":"shape","id":"sh/6xs7yhsn","slide":9,"bbox":[837,442,386,214]}
+{"kind":"textbox","id":"sh/szap07ad","slide":9,"text":"Một màn hình tổng quan","textPreview":"Một màn hình tổng quan","textChars":22,"textLines":1,"bbox":[842,658,190,20]}
+{"kind":"image","id":"im/69wb6xc3","slide":9,"name":"","alt":"3CS Store","bbox":[62,30,28,28]}
+{"kind":"image","id":"im/bilsridg","slide":9,"name":"","geometry":"roundRect","alt":"Dashboard quản trị","bbox":[62,186,744,465]}
+{"kind":"image","id":"im/sv6xg3m1","slide":9,"name":"","geometry":"roundRect","alt":"Bảng phân khúc khách hàng","bbox":[842,186,376,235]}
+{"kind":"image","id":"im/6tofed4b","slide":9,"name":"","geometry":"roundRect","alt":"Danh sách khách hàng ưu tiên","bbox":[842,447,376,204]}
+{"kind":"notes","id":"nt/eh2us8","slide":9,"text":"Ảnh chụp trực tiếp từ Dashboard, Phân khúc và Danh sách ưu tiên của hệ thống demo."}
+{"kind":"slide","id":"sl/z9md3t","slide":10,"title":"Kết quả triển khai","textShapes":11}
+{"kind":"textbox","id":"sh/0vqxg3a5","slide":10,"text":"Kết quả triển khai","textPreview":"Kết quả triển khai","textChars":18,"textLines":1,"bbox":[66,126,520,58]}
+{"kind":"textbox","id":"sh/1wjep8rq","slide":10,"text":"Hệ thống đã kết nối trải nghiệm khách hàng với phân tích quản trị trong một luồng dữ liệu thống nhất.","textPreview":"Hệ thống đã kết nối trải nghiệm khách hàng với phân tích quản trị trong một luồng dữ liệu thống nhất.","textChars":101,"textLines":1,"bbox":[66,198,720,72]}
+{"kind":"shape","id":"sh/q58vats3","slide":10,"bbox":[68,330,10,10]}
+{"kind":"textbox","id":"sh/rqhwje9o","slide":10,"text":"Quản lý khách hàng, sản phẩm, giao dịch và tài khoản","textPreview":"Quản lý khách hàng, sản phẩm, giao dịch và tài khoản","textChars":52,"textLines":1,"bbox":[96,326,620,32]}
+{"kind":"shape","id":"sh/crqdcja9","slide":10,"bbox":[68,384,10,10]}
+{"kind":"textbox","id":"sh/dszelore","slide":10,"text":"Phân khúc, điểm tiềm năng và dự đoán mua lại","textPreview":"Phân khúc, điểm tiềm năng và dự đoán mua lại","textChars":44,"textLines":1,"bbox":[96,380,620,32]}
+{"kind":"shape","id":"sh/a1sfmds7","slide":10,"bbox":[68,438,10,10]}
+{"kind":"textbox","id":"sh/bm1wvi9s","slide":10,"text":"Theo dõi mức độ quan tâm sản phẩm và danh sách ưu tiên","textPreview":"Theo dõi mức độ quan tâm sản phẩm và danh sách ưu tiên","textChars":54,"textLines":1,"bbox":[96,434,620,32]}
+{"kind":"shape","id":"sh/7ihkf65g","slide":10,"bbox":[68,492,10,10]}
+{"kind":"textbox","id":"sh/6hoj614v","slide":10,"text":"113 kiểm thử frontend đạt trong lần kiểm tra gần nhất","textPreview":"113 kiểm thử frontend đạt trong lần kiểm tra gần nhất","textChars":53,"textLines":1,"bbox":[96,488,620,32]}
+{"kind":"shape","id":"sh/tkz2hg3m","slide":10,"bbox":[804,126,1,0]}
+{"kind":"textbox","id":"sh/sjq18bm1","slide":10,"text":"Hướng phát triển","textPreview":"Hướng phát triển","textChars":16,"textLines":1,"bbox":[850,126,350,44]}
+{"kind":"textbox","id":"sh/f6hkjqlc","slide":10,"text":"Mở rộng dữ liệu thực tế\n\nĐánh giá mô hình trên tập độc lập\n\nTheo dõi chất lượng dự đoán theo thời gian\n\nHoàn thiện quy trình chăm sóc theo từng phân khúc","textPreview":"Mở rộng dữ liệu thực tế |  | Đánh giá mô hình trên tập độc lập |  | Theo dõi chất lượng dự đoán theo thời gian |  | Hoàn thiện quy trình ...","textChars":153,"textLines":7,"bbox":[850,208,350,260]}
+{"kind":"textbox","id":"sh/u58jal4r","slide":10,"text":"Cảm ơn thầy","textPreview":"Cảm ơn thầy","textChars":11,"textLines":1,"bbox":[850,554,350,54]}
+{"kind":"textbox","id":"sh/h8z2l03i","slide":10,"text":"Nhóm xin lắng nghe câu hỏi và góp ý","textPreview":"Nhóm xin lắng nghe câu hỏi và góp ý","textChars":35,"textLines":1,"bbox":[850,616,350,30]}
+{"kind":"textbox","id":"sh/g7q1cvmx","slide":10,"text":"10 / 10","textPreview":"10 / 10","textChars":7,"textLines":1,"bbox":[1134,672,82,18]}
+{"kind":"image","id":"im/ihgr6d4v","slide":10,"name":"","alt":"3CS Store","bbox":[66,44,38,38]}
+{"kind":"notes","id":"nt/z9md3t","slide":10,"text":"Kết quả kiểm thử frontend được xác nhận bằng Vitest: 32 file, 113 test đạt. Hạn chế và hướng phát triển tổng hợp từ trạng thái dự án hiện tại."}

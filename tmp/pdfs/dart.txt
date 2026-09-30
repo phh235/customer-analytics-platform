@@ -1,0 +1,404 @@
+--- PAGE 1 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+Chuyên đề tốt nghiệp · IE400.F3.CN2.CNTT
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Nghiên cứu và phát triển hệ thống hỗ trợ sàng
+lọc nguy cơ mắc bệnh tiểu đường dựa trên
+trí tuệ nhân tạo và xử lý ngôn ngữ tự nhiên.
+Sinh viên thực hiện Giảng viên hướng dẫn:
+Phan Huy Hoàng ThS. Đỗ Minh Tiến
+25410219
+Đỗ Kiều Phương
+25410286
+TP. Hồ Chí Minh · Tháng 09/2026
+01 / 28
+
+--- PAGE 2 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+Báo cáo chuyên đề
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Nội dung trình bày
+01 Tổng quan 04 Triển khai
+02 Cơ sở lý thuyết 05 Giao diện và minh họa
+03 Phân tích và thiết kế 06 Kết luận
+Trọng tâm: luồng sàng lọc, thiết kế hệ thống và kết quả thực hiện.
+02 / 28
+
+--- PAGE 3 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+01 · Tổng quan
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Bài toán đặt ra
+Chỉ số sức khỏe có thể đến từ biểu mẫu, phiếu xét nghiệm hoặc lời nói.
+Nhập liệu Tính nhất quán Theo dõi kết quả
+Giảm việc gõ lại khi dữ liệu đã có Kiểm tra dữ liệu và dùng Lưu hồ sơ, dự đoán và phần giải
+trong tài liệu hoặc bản ghi âm. cùng một luồng xử lý cho ba thích gắn với đúng đầu vào.
+cách nhập.
+03 / 28
+
+--- PAGE 4 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+01 · Tổng quan
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Mục tiêu đề tài
+Tiếp nhận Nhập thủ công, ảnh/PDF và giọng nói; chuẩn hóa về biểu mẫu sàng lọc.
+Phân tích Tạo kết quả từ hồ sơ đã lưu; hỗ trợ giải thích khi người dùng yêu cầu.
+Quản lý Theo dõi lịch sử, thống kê sàng lọc và quản lý tài khoản theo quyền.
+04 / 28
+
+--- PAGE 5 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+01 · Tổng quan
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Phạm vi hệ thống
+8 trường đầu vào Hai nhóm chức năng
+Giới tính Tuổi Sàng lọc cho người dùng.
+Tăng huyết áp Bệnh tim
+Quản trị tài khoản, hồ sơ và thống kê.
+Tiền sử hút thuốc BMI
+HbA1c Đường huyết
+Kết quả dùng để hỗ trợ tham khảo; phạm vi đề tài chưa bao gồm kiểm chứng lâm sàng.
+05 / 28
+
+--- PAGE 6 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+01 · Tổng quan
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Tổng quan nghiên cứu liên quan
+Công trình Hướng tiếp cận Kết quả công bố Giới hạn đáng chú ý
+Netayawijit và cs. Random Forest, RF gốc: Acc 96,91% Cần kiểm chứng trên dữ liệu độc lập.
+2025 · [16] SMOTE và SHAP AUC 0,998
+Idris và cs. Stacking SRFEI, Acc 97,446% Recall và F1 giảm so với stacking đối
+2024 · [13] RFE và Isolation Forest F1 macro 82,535% chứng.
+Dash và cs. Federated Learning FLWCO–FedMAP: 3.500 vòng truyền thông, cần dữ liệu
+2025 · [34] kết hợp WCO Acc 97,27% bệnh viện.
+Shetty và cs. SMOTE; đầy đủ / rút gọn đặc trưng XGBoost: Acc 96,8% Tài liệu tham khảo; chưa tái lập
+2026 · [45] ROC-AUC 0,973 phương pháp.
+Phạm vi khảo sát: các công trình chính tập trung vào phân loại dữ liệu có cấu trúc.
+Hướng tiếp cận của đề tài: tích hợp nhập liệu tiếng Việt và quản lý hồ sơ; cần đánh giá riêng chất lượng trích xuất, giải thích.
+Chưa đủ cơ sở khẳng định tính mới của OCR/NLP từ nhóm bài này. Các chỉ số không được so sánh trực tiếp.
+06 / 28
+
+--- PAGE 7 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+01 · Tổng quan
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Dữ liệu và phạm vi đối chiếu
+Dữ liệu / nghiên cứu Số mẫu Số lớp Phạm vi
+PIMA · Idris [13] 768 2 Khác bộ chỉ số đầu vào của nhóm.
+Diabetes Prediction 96.146 2 So sánh đặc trưng đầy đủ và rút gọn.
+Shetty [45] sau loại trùng
+Bệnh nhân Việt Nam 300 3 Bình thường, tiền đái tháo đường, type 2.
+Tien [14]
+Tập dữ liệu của nhóm [46] 96.146 2 87.664 nhãn âm; 8.482 nhãn dương.
+sau loại trùng
+Train · 76.916 Validation · 9.615 Test · 9.615
+80% dữ liệu 10% dữ liệu 10% dữ liệu
+Tệp gốc: 100.000 dòng, loại 3.854 dòng trùng. Chia phân tầng, seed 42. Nhóm giữ hai lớp theo nhãn trong tập dữ liệu; chưa phân loại tiền đái tháo đường.
+07 / 28
+
+--- PAGE 8 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+02 · Cơ sở lý thuyết
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Công nghệ sử dụng
+Thành phần Công nghệ Vai trò
+Giao diện React TypeScript Vite Nhập liệu, kết quả, quản trị
+API và nghiệp vụ FastAPI Python Kiểm tra và xử lý hồ sơ
+Dữ liệu PostgreSQL R2 Hồ sơ và tệp gốc
+Mô hình scikit-learn Pipeline dự đoán
+Dịch vụ AI Groq Cloud Xử lý ảnh, giọng nói và văn bản
+Triển khai: Vercel phục vụ giao diện và API, Cloudflare R2 lưu tệp gốc.
+08 / 28
+
+--- PAGE 9 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+02 · Cơ sở lý thuyết
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Dự đoán và giải thích
+Kết quả sàng lọc Diễn giải kết quả bằng AI
+Quy tắc trong phần mềm và pipeline Mô hình ngôn ngữ diễn giải dữ liệu và kết quả
+Gradient Boosting. hiện có.
+Trả về nhãn, nguồn quyết định và mức nguy cơ theo Người dùng chủ động yêu cầu; nội dung được
+đầu vào đã lưu. truyền dần qua SSE.
+LLM không được gọi trong bước tính dự đoán của pipeline hiện tại.
+09 / 28
+
+--- PAGE 10 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+02 · Cơ sở lý thuyết
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Dữ liệu đầu vào và quy trình dự đoán
+Biểu mẫu tiếp nhận 8 trường Pipeline hiện sử dụng 6 trường
+Danh mục: giới tính, tiền sử hút thuốc. OneHotEncoder: 2 trường danh mục.
+Số: tuổi, BMI, HbA1c, đường huyết. StandardScaler: 4 trường số.
+Nhị phân: tăng huyết áp, bệnh tim. Gradient Boosting: 150 cây, độ sâu tối đa 3, learning rate 0,1.
+Hai trường tăng huyết áp và bệnh tim bị bỏ qua trong ColumnTransformer; chưa có thí nghiệm chứng minh lựa chọn sáu trường.
+Đã đối chiếu notebook (10), tập dữ liệu và bộ xuất ngày 19/08/2026. Chưa chạy lại huấn luyện theo quy trình hiệu chỉnh.
+10 / 28
+
+--- PAGE 11 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+02 · Cơ sở lý thuyết
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+So sánh mô hình trong notebook
+Kết quả đã lưu trên 9.615 mẫu được notebook gọi là test.
+Mô hình F1 PR-AUC Recall
+Gradient Boosting 79,49% 0,8664 66,27%
+XGBoost 78,98% 0,8654 65,57%
+Random Forest 60,69% 0,8586 87,74%
+Decision Tree 56,72% 0,8420 89,86%
+Logistic Regression 56,08% 0,8032 87,03%
+Gradient Boosting có F1 và PR-AUC cao nhất trong bảng. Random Forest và Decision Tree có Recall cao hơn, nhưng F1 thấp hơn.
+Notebook chọn mô hình theo ROC-AUC trên tập kiểm tra. Dòng Gradient Boosting ở đây dùng ngưỡng 0,50; chưa phải đánh giá độc lập.
+11 / 28
+
+--- PAGE 12 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+03 · Phân tích và thiết kế
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Kiến trúc tổng thể
+PostgreSQL
+Tài khoản & hồ sơ sàng lọc
+Trình duyệt API & nghiệp vụ
+React · TypeScript FastAPI · Python
+Groq Cloud
+Nhập liệu & kết quả Kiểm tra quyền & dữ liệu
+Vision · Whisper · GPT-OSS
+Giao diện quản trị Lưu hồ sơ và kết quả
+HTTPS / JSON / SSE Pipeline scikit-learn
+Cloudflare R2
+Lưu trữ ảnh, PDF và âm thanh
+Các thành phần và luồng trao đổi dữ liệu chính
+Frontend quản lý thao tác; backend kiểm tra, thực hiện nghiệp vụ và lưu kết quả.
+12 / 28
+
+--- PAGE 13 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+03 · Phân tích và thiết kế
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Use Case tổng quan
+Hệ thống sàng lọc
+Nhập liệu & sàng lọc Quản lý người dùng
+Yêu cầu giải thích Lịch sử & thống kê
+Người dùng Quản trị viên
+Hai tác nhân và các nhóm chức năng chính
+Chức năng quản trị được bảo vệ bằng phiên đăng nhập và quyền quản trị.
+13 / 28
+
+--- PAGE 14 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+03 · Phân tích và thiết kế
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Thiết kế cơ sở dữ liệu
+users 10 trường analysis_records 21 trường
+id PK · uuid id PK · uuid
+email unique 0..1 0..* user_id FK · nullable
+source · status
+role · is_active
+user_id → users.id
+patient_data · prediction_result
+ON DELETE SET NULL
+auth_version
+explanation_result
+Thông tin tài khoản, thời gian
+Tệp gốc, OCR và thời gian
+Các trường khác ở bản đầy đủ
+Các trường khác ở bản đầy đủ
+ERD rút gọn · 2 bảng, 31 trường
+Hồ sơ có thể không gắn tài khoản. Xóa tài khoản giữ lại hồ sơ và đặt user_id về NULL.
+14 / 28
+
+--- PAGE 15 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+03 · Phân tích và thiết kế
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Quy trình sàng lọc
+Nhập thủ công / ảnh-PDF / giọng nói
+Đồng ý xử lý Kiểm tra Lưu Dự đoán Hiển thị
+& nhập dữ liệu 8 trường hồ sơ & lưu kết quả kết quả
+Tùy chọn
+Tạo và hiển thị Yêu cầu
+Thiếu / sai: bổ sung dữ liệu giải thích AI giải thích
+Ảnh/PDF: người dùng xác nhận trước khi dự đoán.
+Luồng chung cho ba phương thức nhập liệu
+Lưu đầu vào trước khi dự đoán để kết quả luôn gắn với một hồ sơ cụ thể.
+15 / 28
+
+--- PAGE 16 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+04 · Triển khai
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Xử lý dự đoán
+Hai nhánh xử lý hiện có Bảo đảm tính nhất quán
+1. Đọc bản sao đầu vào.
+HbA1c 7,5% và glucose 200 mg/dL
+≥ ≥
+2. Tính kết quả dự đoán.
+Trả kết quả theo quy tắc được cài đặt.
+3. Kiểm tra lại dữ liệu trước khi lưu.
+Các trường hợp còn lại
+Pipeline Gradient Boosting; ngưỡng phân loại 0,40.
+Các ngưỡng trên mô tả logic phần mềm hiện tại, chưa được xác lập là tiêu chuẩn chẩn đoán lâm sàng.
+16 / 28
+
+--- PAGE 17 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+04 · Triển khai
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Nhập liệu từ tài liệu và giọng nói
+Ảnh / PDF Groq Vision (Qwen 3.8 27B) trích xuất JSON.
+Backend kiểm tra giá trị, đơn vị rồi tự điền biểu mẫu.
+Giọng nói Whisper chép lời, GPT-OSS 20B trích xuất chỉ số.
+Tiếp tục dự đoán khi dữ liệu đầy đủ, hợp lệ.
+Ảnh/PDF: người dùng xác nhận trước khi dự đoán.
+Không có chỉ số liên quan: báo lỗi, không điền biểu mẫu.
+17 / 28
+
+--- PAGE 18 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+04 · Triển khai
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Giải thích kết quả qua SSE
+Giao diện FastAPI Groq PostgreSQL
+Yêu cầu giải thích
+Đầu vào + kết quả đã lưu
+Từng đoạn nội dung
+SSE: cập nhật màn hình
+Kiểm tra lại hồ sơ → lưu toàn bộ
+[DONE] sau khi lưu thành công
+Thứ tự truyền và lưu phần giải thích · Groq / gpt-oss-20b
+Nếu hủy hoặc lỗi giữa chừng, hệ thống không lưu nội dung giải thích chưa hoàn tất.
+18 / 28
+
+--- PAGE 19 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+05 · Giao diện và minh họa
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Sàng lọc từ biểu mẫu
+Thao tác chính
+Điền đủ 8 chỉ số sức khỏe.
+Kiểm tra nội dung và đồng ý xử lý dữ liệu.
+Gửi hồ sơ để xem kết quả sàng lọc.
+19 / 28
+
+--- PAGE 20 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+05 · Giao diện và minh họa
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Nhập liệu từ ảnh hoặc PDF
+Thao tác chính
+Tải tệp hoặc chụp tài liệu.
+Trích xuất các chỉ số sức khỏe.
+Kiểm tra, bổ sung và xác nhận.
+20 / 28
+
+--- PAGE 21 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+05 · Giao diện và minh họa
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Nhập liệu bằng giọng nói
+Thao tác chính
+Bắt đầu và kết thúc ghi âm.
+Nhận bản chép lời, trích xuất chỉ số.
+Hoàn thiện dữ liệu trước khi sàng lọc.
+21 / 28
+
+--- PAGE 22 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+05 · Giao diện và minh họa
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Hiển thị kết quả sàng lọc
+Mẫu minh họa
+Nữ, 44 tuổi · BMI 19,31
+HbA1c 6,5% · glucose 200 mg/dL
+Pipeline trả xác suất 3,83%.
+Giao diện làm tròn còn 3,8%. Người dùng có thể bấm
+yêu cầu giải thích.
+Một lần chạy minh họa trên dữ liệu mẫu; không đại diện cho độ chính xác của hệ thống.
+22 / 28
+
+--- PAGE 23 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+05 · Giao diện và minh họa
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Đăng nhập và phân quyền quản trị
+Sau khi xác thực quyền
+Trang tổng quan và biểu đồ.
+Lịch sử hồ sơ sàng lọc.
+Quản lý tài khoản người dùng.
+API kiểm tra phiên và quyền ở
+phía backend.
+23 / 28
+
+--- PAGE 24 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+05 · Giao diện và minh họa
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Thống kê quản trị
+24 / 28
+
+--- PAGE 25 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+06 · Kết luận
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Ngưỡng phân loại và kết quả đánh giá
+Kết quả tại ngưỡng 0,40 Đối chiếu ba ngưỡng
+Gradient Boosting
+Ngưỡng Precision Recall F1
+Accuracy 96,92% 0,30 83,81% 72,64% 77,83%
+Precision 95,85% 0,40 95,85% 68,04% 79,59%
+Recall 68,04% 0,50 99,29% 66,27% 79,49%
+F1 79,59%
+Ngưỡng 0,40 cho F1 cao nhất trong 17 ngưỡng đã khảo sát từ 0,10
+ROC-AUC 0,9739 · PR-AUC 0,8664 đến 0,90.
+Hạ ngưỡng tăng Recall nhưng giảm Precision. Việc chọn ngưỡng cần gắn
+với mục tiêu sử dụng.
+Ngưỡng 0,40 được chọn bằng F1 trên tập kiểm tra. Đây là kết quả cũ đã đối chiếu, chưa phải đánh giá độc lập.
+25 / 28
+
+--- PAGE 26 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+06 · Kết luận
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Kết quả triển khai và kiểm thử
+Kiểm thử dữ liệu đầu vào
+Một quy trình cho ba cách nhập
+35 / 35 ca đạt
+Nhập thủ công, ảnh/PDF và giọng nói cùng đưa về biểu mẫu và hồ sơ
+sàng lọc.
+10 ca nhập thủ công
+Kết quả gắn với đúng hồ sơ
+Kiểm tra lại đầu vào trước khi ghi dự đoán và phần giải thích hoàn chỉnh.
+20 ca tài liệu PDF
+Theo dõi và quản trị theo quyền
+5 ca giọng nói
+Tra cứu hồ sơ, thống kê kết quả, quản lý tài khoản và truy cập tệp gốc.
+Báo cáo kiểm thử ngày 30/08/2026. Nhóm PDF kiểm tra
+dữ liệu mẫu, chưa gọi dịch vụ OCR bên ngoài.
+Đóng góp tập trung vào tích hợp và kiểm soát luồng phần mềm. Chưa đánh giá hiệu quả sử dụng trong môi trường lâm sàng.
+26 / 28
+
+--- PAGE 27 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+06 · Kết luận
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Hạn chế và hướng phát triển
+Hạn chế hiện tại Hướng phát triển
+Tập kiểm tra đã dùng để chọn mô hình và ngưỡng; Tách lựa chọn khỏi đánh giá;
+hai trường nhị phân bị bỏ qua. đối chiếu mô hình 8 trường và 6 trường.
+OCR/giọng nói phụ thuộc chất lượng đầu vào. Đánh giá độ chính xác trích xuất, tỷ lệ cần sửa
+LLM có thể diễn giải sai hoặc mâu thuẫn số liệu. và ảnh hưởng tới kết quả; rà soát giải thích.
+Chưa có kiểm chứng lâm sàng Phối hợp chuyên môn để đánh giá
+và nghiên cứu trải nghiệm người dùng. tính phù hợp và khả năng sử dụng.
+27 / 28
+
+--- PAGE 28 ---
+UIT · ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN
+Chuyên đề tốt nghiệp
+Cảm ơn thầy
+Nhóm xin lắng nghe câu hỏi và góp ý.
+Phan Huy Hoàng
+Đỗ Kiều Phương Hệ thống hỗ trợ sàng lọc nguy cơ tiểu đường
+28 / 28

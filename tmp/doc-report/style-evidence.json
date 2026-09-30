@@ -1,0 +1,125 @@
+{
+  "input": "D:\\Monorepo\\customer-analytics-platform\\tmp\\doc-report\\source.docx",
+  "fonts_by_char_count": {
+    "Times New Roman": 4075
+  },
+  "direct_run_formatting_runs": 54,
+  "direct_paragraph_formatting_paragraphs": 84,
+  "heading_like_paragraphs_not_heading_style": [
+    {
+      "para_index": 3,
+      "text": "M\u1ee4C L\u1ee4C",
+      "style": "normal"
+    },
+    {
+      "para_index": 110,
+      "text": "\u0110\u1ea0I H\u1eccC QU\u1ed0C GIA TH\u00c0NH PH\u1ed0 H\u1ed2 CH\u00cd MINH",
+      "style": "normal"
+    },
+    {
+      "para_index": 111,
+      "text": "TR\u01af\u1edcNG \u0110\u1ea0I H\u1eccC C\u00d4NG NGH\u1ec6 TH\u00d4NG TIN",
+      "style": "normal"
+    },
+    {
+      "para_index": 112,
+      "text": "KHOA KHOA H\u1eccC V\u00c0 K\u0128 THU\u1eacT TH\u00d4NG TIN",
+      "style": "normal"
+    },
+    {
+      "para_index": 115,
+      "text": "K\u1ef8 THU\u1eacT L\u1eacP TR\u00ccNH PYTHON",
+      "style": "normal"
+    },
+    {
+      "para_index": 116,
+      "text": "\u0110\u1ec1 t\u00e0i:\nH\u1ec7 th\u1ed1ng ph\u00e2n t\u00edch d\u1eef li\u1ec7u kh\u00e1ch h\u00e0ng\nv\u00e0 d\u1ef1 \u0111o\u00e1n ti\u1ec1m n\u0103ng mua h\u00e0ng",
+      "style": "normal"
+    },
+    {
+      "para_index": 118,
+      "text": "Nh\u00f3m sinh vi\u00ean th\u1ef1c hi\u1ec7n: 6",
+      "style": "normal"
+    },
+    {
+      "para_index": 123,
+      "text": "H\u1ecd v\u00e0 t\u00ean",
+      "style": "normal"
+    },
+    {
+      "para_index": 124,
+      "text": "MSSV",
+      "style": "normal"
+    },
+    {
+      "para_index": 125,
+      "text": "Ph\u00e2n c\u00f4ng",
+      "style": "normal"
+    },
+    {
+      "para_index": 126,
+      "text": "\u0110\u00e1nh gi\u00e1",
+      "style": "normal"
+    }
+  ],
+  "examples": {
+    "direct_paragraph_formatting": [
+      {
+        "para_index": 1,
+        "text": "",
+        "style": "normal"
+      },
+      {
+        "para_index": 2,
+        "text": "",
+        "style": "normal"
+      },
+      {
+        "para_index": 3,
+        "text": "M\u1ee4C L\u1ee4C",
+        "style": "normal"
+      },
+      {
+        "para_index": 5,
+        "text": "B\u1ea3ng 1: B\u1ea3ng ph\u00e2n c\u00f4ng, \u0111\u00e1nh gi\u00e1 th\u00e0nh vi\u00ean",
+        "style": "normal"
+      },
+      {
+        "para_index": 7,
+        "text": "[Vi\u1ebft l\u1eddi c\u1ea3m \u01a1n ng\u1eafn g\u1ecdn \u0111\u1ebfn gi\u1ea3ng vi\u00ean h\u01b0\u1edbng d\u1eabn, nh\u00e0 tr\u01b0\u1eddng v\u00e0 c\u00e1c th\u00e0nh vi\u00ean trong nh\u00f3m.]",
+        "style": "normal"
+      }
+    ],
+    "direct_run_formatting": [
+      {
+        "para_index": 3,
+        "run_text": "M\u1ee4C L\u1ee4C",
+        "style": "normal"
+      },
+      {
+        "para_index": 5,
+        "run_text": "B\u1ea3ng 1: B\u1ea3ng ph\u00e2n c\u00f4ng, \u0111\u00e1nh gi\u00e1 th\u00e0nh vi\u00ean",
+        "style": "normal"
+      },
+      {
+        "para_index": 7,
+        "run_text": "[Vi\u1ebft l\u1eddi c\u1ea3m \u01a1n ng\u1eafn g\u1ecdn \u0111\u1ebfn gi\u1ea3ng vi\u00ean h\u01b0\u1edbng d\u1eabn, nh\u00e0 tr\u01b0\u1eddng v\u00e0 c\u00e1c th\u00e0nh vi\u00ean",
+        "style": "normal"
+      },
+      {
+        "para_index": 13,
+        "run_text": "Xin tr\u00e2n tr\u1ecdng c\u1ea3m \u01a1n!",
+        "style": "normal"
+      },
+      {
+        "para_index": 15,
+        "run_text": "[B\u1ed5 sung danh m\u1ee5c sau khi ch\u00e8n h\u00ecnh, s\u01a1 \u0111\u1ed3 v\u00e0 \u1ea3nh giao di\u1ec7n. M\u1ed7i m\u1ee5c g\u1ed3m s\u1ed1 h\u00ecnh",
+        "style": "normal"
+      }
+    ]
+  },
+  "notes": [
+    "Direct formatting is not always wrong, but it often causes inconsistent output when templates change.",
+    "Heading-like paragraphs not using Heading styles can break TOC and accessibility."
+  ]
+}
