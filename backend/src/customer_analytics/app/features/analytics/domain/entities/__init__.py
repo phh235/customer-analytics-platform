@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from customer_analytics.app.features.analytics.domain.entities.potential_score_entity import (  # noqa: E501
+from customer_analytics.app.features.analytics.domain.entities.potential_score_entity import (
     PotentialScoreEntity,
 )
 from customer_analytics.app.features.analytics.domain.entities.rfm_entity import (

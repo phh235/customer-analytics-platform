@@ -13,6 +13,7 @@ class RFMResponse(BaseModel):
     """RFM analytics response."""
 
     customer_id: str = Field(description="Customer ID")
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     name: str = Field(description="Customer name")
     recency_days: float | None = Field(
         description="Days since last valid order, or null without orders"
@@ -45,6 +46,7 @@ class SegmentResponse(BaseModel):
     """Segment analytics response with score diagnostics."""
 
     customer_id: str = Field(description="Customer ID")
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     name: str = Field(description="Customer name")
     segment_type: str = Field(description="Assigned segment")
     reason: str = Field(description="Reason for assigned segment")
@@ -79,6 +81,7 @@ class PotentialScoreResponse(BaseModel):
     """Potential score response."""
 
     customer_id: str = Field(description="Customer ID")
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     name: str = Field(description="Customer name")
     score: float | None = Field(
         description="Potential score from 0 to 100, or null for insufficient data"
@@ -92,6 +95,7 @@ class PriorityCustomerResponse(BaseModel):
     """Customer selected for the combined potential and prediction queue."""
 
     customer_id: str
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     name: str
     potential_score: float
     potential_level: str
@@ -106,6 +110,7 @@ class CustomerProfileResponse(BaseModel):
     """Customer profile block for customer 360."""
 
     customer_id: str = Field(description="Customer ID")
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     name: str = Field(description="Customer name")
     email: str | None = Field(default=None, description="Email")
     phone: str | None = Field(default=None, description="Phone")
@@ -152,6 +157,7 @@ class SegmentHistoryResponse(BaseModel):
     """A persisted segment snapshot for a customer."""
 
     customer_id: str = Field(description="Customer ID")
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     segment_type: str = Field(description="Assigned segment at that time")
     reason: str = Field(description="Reason recorded with the assignment")
     calculated_at: datetime = Field(description="When the segment was computed")
@@ -162,6 +168,7 @@ class PurchasePredictionResponse(BaseModel):
     """Repeat-purchase prediction for a customer."""
 
     customer_id: str
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     name: str
     prediction_date: datetime
     prediction_horizon_days: int
@@ -271,6 +278,7 @@ class DashboardPotentialCustomerResponse(BaseModel):
     """Top potential customer entry on the dashboard."""
 
     customer_id: str = Field(description="Customer ID")
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     score: float | None = Field(
         description="Potential score, or null for insufficient data"
     )
@@ -282,6 +290,7 @@ class DashboardSegmentCustomerResponse(BaseModel):
     """Segmented customer entry on the dashboard."""
 
     customer_id: str = Field(description="Customer ID")
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     segment_type: str = Field(description="Assigned segment")
     reason: str = Field(description="Reason for assigned segment")
     calculated_at: datetime = Field(description="Calculation timestamp")
@@ -326,6 +335,7 @@ class DashboardResponse(BaseModel):
 
 class BehaviorMetricsResponse(BaseModel):
     customer_id: str
+    customer_code: str | None = Field(default=None, description="Customer-facing code")
     recency_days: float | None
     frequency: int
     monetary: Decimal

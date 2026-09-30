@@ -25,8 +25,10 @@ class RFMEntity:
         analysis_date: date | None = None,
         interaction_score: float = 0.0,
         interaction_normalized_score: float | None = None,
+        customer_code: str | None = None,
     ):
         self.customer_id = customer_id
+        self.customer_code = customer_code
         self.recency_days = recency_days
         self.frequency = frequency
         self.monetary = monetary
@@ -44,6 +46,7 @@ class RFMEntity:
         """Convert entity to dictionary."""
         return {
             "customer_id": self.customer_id,
+            "customer_code": self.customer_code,
             "recency_days": self.recency_days,
             "frequency": self.frequency,
             "monetary": self.monetary,

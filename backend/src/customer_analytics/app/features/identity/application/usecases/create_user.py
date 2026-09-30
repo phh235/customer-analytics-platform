@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from customer_analytics.app.features.identity.application.dto.user_command_model import (  # noqa: E501
+from customer_analytics.app.features.identity.application.dto.user_command_model import (
     UserCreateModel,
 )
 from customer_analytics.app.features.identity.application.dto.user_query_model import (
@@ -13,7 +13,7 @@ from customer_analytics.app.features.identity.application.dto.user_query_model i
 from customer_analytics.app.features.identity.domain.entities.user_entity import (
     UserEntity,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 from customer_analytics.app.features.identity.infrastructure.password_hasher import (

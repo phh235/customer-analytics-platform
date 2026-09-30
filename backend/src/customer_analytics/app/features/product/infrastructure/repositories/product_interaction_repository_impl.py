@@ -111,4 +111,3 @@ class ProductInteractionRepositoryImpl:
         )
         await self._session.flush()
         return event_id
-

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from customer_analytics.app.features.customer.application.dto.customer_query_model import (  # noqa: E501
+from customer_analytics.app.features.customer.application.dto.customer_query_model import (
     CustomerReadModel,
 )
-from customer_analytics.app.features.customer.domain.repositories.customer_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.customer.domain.repositories.customer_unit_of_work import (
     CustomerUnitOfWork,
 )
 from customer_analytics.app.shared.errors import ErrorCode

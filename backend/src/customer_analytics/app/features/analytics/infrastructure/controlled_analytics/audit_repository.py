@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from customer_analytics.app.config import Settings
-from customer_analytics.app.features.analytics.infrastructure.models.analytics_query_audit import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.models.analytics_query_audit import (
     AnalyticsQueryAuditModel,
 )
 

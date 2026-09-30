@@ -24,16 +24,16 @@ from customer_analytics.app.config import settings
 from customer_analytics.app.features.identity.application.usecases.login_user import (
     LoginUserUseCaseImpl,
 )
-from customer_analytics.app.features.identity.application.usecases.register_user import (  # noqa: E501
+from customer_analytics.app.features.identity.application.usecases.register_user import (
     RegisterUserUseCaseImpl,
 )
-from customer_analytics.app.features.identity.application.usecases.request_password_reset import (  # noqa: E501
+from customer_analytics.app.features.identity.application.usecases.request_password_reset import (
     RequestPasswordResetUseCaseImpl,
 )
-from customer_analytics.app.features.identity.application.usecases.reset_password import (  # noqa: E501
+from customer_analytics.app.features.identity.application.usecases.reset_password import (
     ResetPasswordUseCaseImpl,
 )
-from customer_analytics.app.features.identity.application.usecases.verify_password_reset import (  # noqa: E501
+from customer_analytics.app.features.identity.application.usecases.verify_password_reset import (
     VerifyPasswordResetUseCaseImpl,
 )
 from customer_analytics.app.features.identity.infrastructure.email_sender import (
@@ -46,13 +46,13 @@ from customer_analytics.app.features.identity.infrastructure.jwt_service import 
     decode_refresh_token,
     hash_refresh_token,
 )
-from customer_analytics.app.features.identity.infrastructure.repositories.password_reset_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.repositories.password_reset_repository_impl import (
     PasswordResetRepositoryImpl,
 )
-from customer_analytics.app.features.identity.infrastructure.repositories.refresh_token_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.repositories.refresh_token_repository_impl import (
     RefreshTokenRepositoryImpl,
 )
-from customer_analytics.app.features.identity.infrastructure.repositories.user_unit_of_work_impl import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.repositories.user_unit_of_work_impl import (
     UserUnitOfWorkImpl,
 )
 from customer_analytics.app.features.identity.presentation.dependencies import (
@@ -80,16 +80,16 @@ from customer_analytics.core.middleware.rate_limit import limiter
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 
-# ── Refresh Token Cookie Settings ───────────────────────────
-# Only refresh_token goes in HTTP-only cookie
-# access_token stays in response body for frontend to use
+# Cấu hình cookie:
+# - refresh_token nằm trong cookie HTTP-only.
+# - access_token trả về response để frontend giữ trong bộ nhớ.
 REFRESH_TOKEN_COOKIE = "refresh_token"
 COOKIE_PATH = "/api/v1/auth"
 COOKIE_MAX_AGE_SECONDS = settings.JWT_REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60
 
 
 def _cookie_security(request: Request) -> tuple[bool, str]:
-    """Choose cookie flags that work locally and through HTTPS tunnels."""
+    """Chọn cờ cookie phù hợp cho HTTP local và HTTPS production."""
     forwarded_proto = request.headers.get("x-forwarded-proto", "").split(",", 1)[0]
     is_https = request.url.scheme == "https" or forwarded_proto.strip() == "https"
     return is_https, "none" if is_https else "lax"
@@ -212,7 +212,7 @@ async def request_password_reset(
     reset_repository: PasswordResetRepoDep,
     email_sender: EmailSenderDep,
 ) -> ForgotPasswordResponse:
-    """Request a reset OTP without revealing whether the email exists."""
+    """Yêu cầu OTP nhưng không tiết lộ email có tồn tại hay không."""
     use_case = RequestPasswordResetUseCaseImpl(
         unit_of_work,
         reset_repository,
@@ -318,7 +318,7 @@ async def login(
     use_case = LoginUserUseCaseImpl(unit_of_work)
     user = await use_case((body.email, body.password))
 
-    # Create tokens
+    # Tạo access token và refresh token cho phiên đăng nhập.
     access_token = create_access_token(
         user_id=user.id_,
         role_code=user.role_code,
@@ -327,7 +327,7 @@ async def login(
     family_id = create_refresh_token_family()
     refresh_token = create_refresh_token(user_id=user.id_, family_id=family_id)
 
-    # Save refresh token to DB
+    # Lưu hash refresh token, không lưu token gốc vào database.
     token_hash = hash_refresh_token(refresh_token)
     expires_at = datetime.now(UTC) + timedelta(days=settings.JWT_REFRESH_TOKEN_TTL_DAYS)
     await refresh_token_repo.save(
@@ -339,13 +339,13 @@ async def login(
         user_agent=request.headers.get("user-agent"),
     )
 
-    # Commit all changes (user update + refresh token insert)
+    # Lưu thay đổi user và refresh token trong cùng một transaction.
     await unit_of_work.commit()
 
-    # Set refresh token in HTTP-only cookie.
+    # Refresh token nằm trong cookie HTTP-only.
     _set_refresh_token_cookie(request, response, refresh_token)
 
-    # Return access token in response body (frontend reads this)
+    # Access token trả về body để frontend giữ trong bộ nhớ.
     return LoginResponse(
         access_token=access_token,
         role_code=user.role_code,
@@ -382,7 +382,7 @@ async def refresh_token(
     - Sets new refresh_token in HTTP-only cookie
     - Revokes old refresh token (rotation)
     """
-    # Read refresh token from cookie
+    # Đọc refresh token từ cookie rồi giải mã payload.
     refresh_token_value = request.cookies.get(REFRESH_TOKEN_COOKIE)
     if not refresh_token_value:
         raise AppException(
@@ -390,7 +390,6 @@ async def refresh_token(
             message="Refresh token cookie not found.",
         )
 
-    # Decode and validate refresh token
     payload = decode_refresh_token(refresh_token_value)
     user_id = payload.get("sub")
     family_id = payload.get("family_id")
@@ -401,11 +400,11 @@ async def refresh_token(
             message="Invalid refresh token payload.",
         )
 
-    # Check if token is revoked in DB
+    # Nếu token đã bị thu hồi, phát hiện việc dùng lại token cũ.
     token_hash = hash_refresh_token(refresh_token_value)
     stored_token = await refresh_token_repo.find_by_token_hash(token_hash)
     if stored_token and stored_token.get("revoked_at"):
-        # Token reuse detected — revoke all tokens in this family
+        # Thu hồi toàn bộ token trong cùng một nhóm phiên.
         if family_id:
             await refresh_token_repo.revoke_all_by_family(family_id)
         raise AppException(
@@ -413,7 +412,7 @@ async def refresh_token(
             message="Refresh token đã bị sử dụng lại — tất cả session đã bị thu hồi.",
         )
 
-    # Find user and reload role permissions for the new access token.
+    # Tải user và quyền mới nhất để tạo access token mới.
     user = await unit_of_work.repository.find_by_id(user_id)
     if not user:
         raise AppException(
@@ -422,16 +421,14 @@ async def refresh_token(
         )
     user.permissions = await unit_of_work.repository.get_user_permissions(user.id_)
 
-    # Check if user is active
+    # Chỉ user đang ACTIVE mới được làm mới phiên đăng nhập.
     if user.status != "ACTIVE":
         raise AppException(
             error_code=ErrorCode.USER_DISABLED,
             message="Tài khoản đã bị vô hiệu hóa.",
         )
-    # Revoke old refresh token.
+    # Thu hồi refresh token cũ để thực hiện token rotation.
     await refresh_token_repo.revoke_by_token_hash(token_hash)
-
-    # Create new tokens with same family_id.
     new_access_token = create_access_token(
         user_id=user.id_,
         role_code=user.role_code,

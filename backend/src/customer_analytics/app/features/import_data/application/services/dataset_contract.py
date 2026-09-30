@@ -271,8 +271,7 @@ def parse_dataset_workbook(file_content: bytes) -> DatasetWorkbook:
             while raw_headers and raw_headers[-1] in (None, ""):
                 raw_headers.pop()
             headers = tuple(
-                str(value).strip() if value is not None else ""
-                for value in raw_headers
+                str(value).strip() if value is not None else "" for value in raw_headers
             )
             if headers != expected_headers:
                 raise AppException(

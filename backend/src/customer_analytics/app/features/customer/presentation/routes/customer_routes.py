@@ -8,22 +8,22 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 
 from customer_analytics.app.config import settings
-from customer_analytics.app.features.customer.application.usecases.create_customer import (  # noqa: E501
+from customer_analytics.app.features.customer.application.usecases.create_customer import (
     CreateCustomerUseCaseImpl,
 )
-from customer_analytics.app.features.customer.application.usecases.delete_customer import (  # noqa: E501
+from customer_analytics.app.features.customer.application.usecases.delete_customer import (
     DeleteCustomerUseCaseImpl,
 )
-from customer_analytics.app.features.customer.application.usecases.get_customer import (  # noqa: E501
+from customer_analytics.app.features.customer.application.usecases.get_customer import (
     GetCustomerUseCaseImpl,
 )
-from customer_analytics.app.features.customer.application.usecases.get_customers import (  # noqa: E501
+from customer_analytics.app.features.customer.application.usecases.get_customers import (
     GetCustomersUseCaseImpl,
 )
-from customer_analytics.app.features.customer.application.usecases.update_customer import (  # noqa: E501
+from customer_analytics.app.features.customer.application.usecases.update_customer import (
     UpdateCustomerUseCaseImpl,
 )
-from customer_analytics.app.features.customer.infrastructure.repositories.customer_unit_of_work_impl import (  # noqa: E501
+from customer_analytics.app.features.customer.infrastructure.repositories.customer_unit_of_work_impl import (
     CustomerUnitOfWorkImpl,
 )
 from customer_analytics.app.features.customer.presentation.schema.customer import (
@@ -178,7 +178,7 @@ async def create_customer(
     unit_of_work: UnitOfWorkDep,
 ) -> CustomerResponse:
     """Tao khach hang moi."""
-    from customer_analytics.app.features.customer.application.dto.customer_command_model import (  # noqa: E501
+    from customer_analytics.app.features.customer.application.dto.customer_command_model import (
         CustomerCreateModel,
     )
 
@@ -219,7 +219,7 @@ async def update_customer(
     unit_of_work: UnitOfWorkDep,
 ) -> CustomerResponse:
     """Cap nhat khach hang."""
-    from customer_analytics.app.features.customer.application.dto.customer_command_model import (  # noqa: E501
+    from customer_analytics.app.features.customer.application.dto.customer_command_model import (
         CustomerUpdateModel,
     )
 
@@ -260,7 +260,7 @@ async def upload_customer_image(
     image: Annotated[UploadFile, File(...)],
 ) -> CustomerResponse:
     """Upload and persist a customer image URL."""
-    from customer_analytics.app.features.customer.application.dto.customer_command_model import (  # noqa: E501
+    from customer_analytics.app.features.customer.application.dto.customer_command_model import (
         CustomerUpdateModel,
     )
     from customer_analytics.app.shared.errors import ErrorCode
@@ -294,7 +294,7 @@ async def upload_customer_image(
     response_model=CustomerResponse,
     status_code=status.HTTP_200_OK,
     summary="Disable customer",
-    description="Disable a customer (soft delete). Requires customers:delete permission.",  # noqa: E501
+    description="Disable a customer (soft delete). Requires customers:delete permission.",
     responses={
         status.HTTP_200_OK: {
             "description": "Customer disabled successfully",

@@ -8,13 +8,13 @@ from datetime import UTC, datetime
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from customer_analytics.app.features.identity.domain.entities.password_reset_challenge import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.entities.password_reset_challenge import (
     PasswordResetChallenge,
 )
-from customer_analytics.app.features.identity.domain.repositories.password_reset_repository import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.password_reset_repository import (
     PasswordResetRepository,
 )
-from customer_analytics.app.features.identity.infrastructure.models.password_reset_challenge import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.models.password_reset_challenge import (
     PasswordResetChallengeModel,
 )
 

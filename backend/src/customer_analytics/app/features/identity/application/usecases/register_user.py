@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from customer_analytics.app.features.identity.application.dto.user_command_model import (  # noqa: E501
+from customer_analytics.app.features.identity.application.dto.user_command_model import (
     UserCreateModel,
 )
 from customer_analytics.app.features.identity.application.dto.user_query_model import (
@@ -11,7 +11,7 @@ from customer_analytics.app.features.identity.application.dto.user_query_model i
 from customer_analytics.app.features.identity.application.usecases.create_user import (
     CreateUserUseCaseImpl,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 

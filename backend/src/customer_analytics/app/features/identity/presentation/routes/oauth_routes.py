@@ -24,7 +24,7 @@ from customer_analytics.app.config import settings
 from customer_analytics.app.features.identity.application.usecases.google_auth import (
     GoogleAuthUseCaseImpl,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 from customer_analytics.app.features.identity.infrastructure.jwt_service import (
@@ -34,7 +34,7 @@ from customer_analytics.app.features.identity.infrastructure.jwt_service import 
     hash_refresh_token,
 )
 from customer_analytics.app.features.identity.infrastructure.oauth import oauth
-from customer_analytics.app.features.identity.infrastructure.repositories.refresh_token_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.identity.infrastructure.repositories.refresh_token_repository_impl import (
     RefreshTokenRepositoryImpl,
 )
 from customer_analytics.app.shared.errors import ErrorCode
@@ -85,7 +85,7 @@ async def _get_user_unit_of_work(
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> UserUnitOfWork:
     """User unit of work dependency."""
-    from customer_analytics.app.features.identity.infrastructure.repositories.user_unit_of_work_impl import (  # noqa: E501
+    from customer_analytics.app.features.identity.infrastructure.repositories.user_unit_of_work_impl import (
         UserUnitOfWorkImpl,
     )
 
@@ -96,7 +96,7 @@ async def _get_refresh_token_repository(
     db: AsyncSession = Depends(get_db),  # noqa: B008
 ) -> RefreshTokenRepositoryImpl:
     """Refresh token repository dependency."""
-    from customer_analytics.app.features.identity.infrastructure.repositories.refresh_token_repository_impl import (  # noqa: E501
+    from customer_analytics.app.features.identity.infrastructure.repositories.refresh_token_repository_impl import (
         RefreshTokenRepositoryImpl,
     )
 

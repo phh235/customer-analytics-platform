@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from customer_analytics.app.features.customer.domain.repositories.customer_repository import (  # noqa: E501
+from customer_analytics.app.features.customer.domain.repositories.customer_repository import (
     CustomerRepository,
 )
 

@@ -14,14 +14,14 @@ from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import StreamingResponse
 
 from customer_analytics.app.config import settings
-from customer_analytics.app.features.analytics.application.services.export_service import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.services.export_service import (
     build_csv,
     build_xlsx,
 )
-from customer_analytics.app.features.analytics.application.services.model_lifecycle_service import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.services.model_lifecycle_service import (
     ModelLifecycleService,
 )
-from customer_analytics.app.features.analytics.application.services.purchase_model import (  # noqa: E501
+from customer_analytics.app.features.analytics.application.services.purchase_model import (
     train_purchase_model,
 )
 from customer_analytics.app.features.analytics.application.usecases import (
@@ -46,10 +46,10 @@ from customer_analytics.app.features.analytics.domain.enums import (
     ScoreLevel,
     SegmentType,
 )
-from customer_analytics.app.features.analytics.infrastructure.repositories.analytics_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.analytics.infrastructure.repositories.analytics_repository_impl import (
     AnalyticsRepositoryImpl,
 )
-from customer_analytics.app.features.analytics.presentation.schema.analytics_schemas import (  # noqa: E501
+from customer_analytics.app.features.analytics.presentation.schema.analytics_schemas import (
     BehaviorMetricsResponse,
     Customer360RecentOrderResponse,
     Customer360Response,
@@ -69,7 +69,7 @@ from customer_analytics.app.features.analytics.presentation.schema.analytics_sch
     SegmentHistoryResponse,
     SegmentResponse,
 )
-from customer_analytics.app.features.analytics.presentation.schema.dashboard_overview_schemas import (  # noqa: E501
+from customer_analytics.app.features.analytics.presentation.schema.dashboard_overview_schemas import (
     DashboardOptionsResponse,
     DashboardOverviewResponse,
 )
@@ -165,6 +165,7 @@ def _to_rfm_response(entity: RFMEntity) -> RFMResponse:
     """Map RFM entity to response schema."""
     return RFMResponse(
         customer_id=entity.customer_id,
+        customer_code=getattr(entity, "customer_code", None),
         name=getattr(entity, "name", "Unknown Customer"),
         recency_days=entity.recency_days,
         frequency=entity.frequency,
@@ -184,6 +185,7 @@ def _to_segment_response(entity: SegmentEntity) -> SegmentResponse:
     """Map segment entity to response schema."""
     return SegmentResponse(
         customer_id=entity.customer_id,
+        customer_code=getattr(entity, "customer_code", None),
         name=getattr(entity, "name", "Unknown Customer"),
         segment_type=entity.segment_type.value,
         reason=entity.reason,
@@ -212,6 +214,7 @@ def _to_potential_score_response(
     """Map potential score entity to response schema."""
     return PotentialScoreResponse(
         customer_id=entity.customer_id,
+        customer_code=getattr(entity, "customer_code", None),
         name=getattr(entity, "name", "Unknown Customer"),
         score=entity.score,
         level=entity.level.value,
@@ -248,6 +251,7 @@ def _to_customer_360_response(payload: dict[str, Any]) -> Customer360Response:
     return Customer360Response(
         profile=CustomerProfileResponse(
             customer_id=payload["customer_id"],
+            customer_code=payload.get("customer_code"),
             name=payload["name"],
             email=payload["email"],
             phone=payload["phone"],
@@ -266,6 +270,7 @@ def _to_customer_360_response(payload: dict[str, Any]) -> Customer360Response:
         ),
         rfm=RFMResponse(
             customer_id=payload["rfm"]["customer_id"],
+            customer_code=payload["rfm"].get("customer_code"),
             name=payload["name"],
             recency_days=payload["rfm"]["recency_days"],
             frequency=payload["rfm"]["frequency"],
@@ -287,6 +292,7 @@ def _to_customer_360_response(payload: dict[str, Any]) -> Customer360Response:
         behavior=payload.get("behavior"),
         segment=SegmentResponse(
             customer_id=payload["customer_id"],
+            customer_code=payload.get("customer_code"),
             name=payload["name"],
             segment_type=payload["segment"]["segment_type"],
             reason=payload["segment"]["reason"],
@@ -303,6 +309,7 @@ def _to_customer_360_response(payload: dict[str, Any]) -> Customer360Response:
         else None,
         potential_score=PotentialScoreResponse(
             customer_id=payload["customer_id"],
+            customer_code=payload.get("customer_code"),
             name=payload["name"],
             score=payload["potential_score"]["score"],
             level=payload["potential_score"]["level"],
@@ -707,6 +714,7 @@ async def get_priority_list(
         )
         priority.append(
             PriorityCustomerResponse(
+                customer_code=prediction.get("customer_code"),
                 customer_id=score.customer_id,
                 name=prediction["name"],
                 potential_score=score.score,
@@ -793,6 +801,7 @@ async def recalculate_analytics(
     assert isinstance(score_result, list)
 
     await repository.save_segment_history(segment_result)
+    await repository.save_current_potential_scores(score_result, days)
     await repository.commit()
 
     return RecalculateAnalyticsResponse(
@@ -1048,9 +1057,23 @@ async def export_rfm_csv(
 ) -> StreamingResponse:
     rows = await repository.calculate_all_rfm(days)
     content = build_csv(
-        ["customer_id", "recency_days", "frequency", "monetary", "rfm_score"],
         [
-            [r.customer_id, r.recency_days, r.frequency, r.monetary, r.rfm_score]
+            "customer_id",
+            "customer_code",
+            "recency_days",
+            "frequency",
+            "monetary",
+            "rfm_score",
+        ],
+        [
+            [
+                r.customer_id,
+                r.customer_code,
+                r.recency_days,
+                r.frequency,
+                r.monetary,
+                r.rfm_score,
+            ]
             for r in rows
         ],
     )
@@ -1071,9 +1094,23 @@ async def export_rfm_xlsx(
     rows = await repository.calculate_all_rfm(days)
     content = build_xlsx(
         "RFM",
-        ["customer_id", "recency_days", "frequency", "monetary", "rfm_score"],
         [
-            [r.customer_id, r.recency_days, r.frequency, float(r.monetary), r.rfm_score]
+            "customer_id",
+            "customer_code",
+            "recency_days",
+            "frequency",
+            "monetary",
+            "rfm_score",
+        ],
+        [
+            [
+                r.customer_id,
+                r.customer_code,
+                r.recency_days,
+                r.frequency,
+                float(r.monetary),
+                r.rfm_score,
+            ]
             for r in rows
         ],
     )
@@ -1092,10 +1129,18 @@ async def export_segments_csv(
 ) -> StreamingResponse:
     segments = await repository.get_all_segments(days)
     content = build_csv(
-        ["customer_id", "name", "segment_type", "reason", "calculated_at"],
+        [
+            "customer_id",
+            "customer_code",
+            "name",
+            "segment_type",
+            "reason",
+            "calculated_at",
+        ],
         [
             [
                 s.customer_id,
+                getattr(s, "customer_code", None),
                 getattr(s, "name", ""),
                 s.segment_type.value,
                 s.reason,
@@ -1120,10 +1165,18 @@ async def export_segments_xlsx(
     segments = await repository.get_all_segments(days)
     content = build_xlsx(
         "Segments",
-        ["customer_id", "name", "segment_type", "reason", "calculated_at"],
+        [
+            "customer_id",
+            "customer_code",
+            "name",
+            "segment_type",
+            "reason",
+            "calculated_at",
+        ],
         [
             [
                 s.customer_id,
+                getattr(s, "customer_code", None),
                 getattr(s, "name", ""),
                 s.segment_type.value,
                 s.reason,
@@ -1149,6 +1202,7 @@ async def export_target_list_csv(
     predictions = await repository.get_purchase_predictions(days, horizon_days)
     headers = [
         "customer_id",
+        "customer_code",
         "name",
         "purchase_probability",
         "prediction_date",
@@ -1159,6 +1213,7 @@ async def export_target_list_csv(
     rows = [
         [
             row["customer_id"],
+            row["customer_code"],
             row["name"],
             row["purchase_probability"],
             row["prediction_date"],
@@ -1187,6 +1242,7 @@ async def export_predictions_xlsx(
     predictions = await repository.get_purchase_predictions(days, horizon_days)
     headers = [
         "customer_id",
+        "customer_code",
         "name",
         "purchase_probability",
         "prediction_date",
@@ -1197,6 +1253,7 @@ async def export_predictions_xlsx(
     rows = [
         [
             row["customer_id"],
+            row["customer_code"],
             row["name"],
             row["purchase_probability"],
             row["prediction_date"],

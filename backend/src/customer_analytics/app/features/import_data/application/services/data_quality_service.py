@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Any
 
-from customer_analytics.app.features.import_data.application.services.validators import (  # noqa: E501
+from customer_analytics.app.features.import_data.application.services.validators import (
     check_duplicates,
     validate_date,
     validate_email,

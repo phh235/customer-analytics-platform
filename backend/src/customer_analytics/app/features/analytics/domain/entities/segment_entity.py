@@ -25,8 +25,10 @@ class SegmentEntity:
         analysis_date: date | None = None,
         rfm: dict[str, Any] | None = None,
         score_components: dict[str, Any] | None = None,
+        customer_code: str | None = None,
     ):
         self.customer_id = customer_id
+        self.customer_code = customer_code
         self.segment_type = segment_type
         self.reason = reason
         self.calculated_at = calculated_at
@@ -40,6 +42,7 @@ class SegmentEntity:
         """Convert entity to dictionary."""
         return {
             "customer_id": self.customer_id,
+            "customer_code": self.customer_code,
             "segment_type": self.segment_type.value,
             "reason": self.reason,
             "potential_score": self.potential_score,

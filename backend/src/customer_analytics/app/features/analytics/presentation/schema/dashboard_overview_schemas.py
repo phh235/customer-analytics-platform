@@ -142,6 +142,7 @@ class DashboardOpportunityCustomerResponse(BaseModel):
     """Customer with both a score and a model probability."""
 
     id: str
+    customer_code: str | None = None
     name: str
     segment: str
     potential_score: float
@@ -153,6 +154,7 @@ class DashboardPriorityCustomerResponse(BaseModel):
     """High-potential customer in the bounded priority list."""
 
     id: str
+    customer_code: str | None = None
     name: str
     segment: str
     potential_score: float

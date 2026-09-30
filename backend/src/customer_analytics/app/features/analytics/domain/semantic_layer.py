@@ -20,6 +20,21 @@ ANALYTICS_VIEWS: dict[str, dict[str, str]] = {
         "line_total": "Order-line total amount",
         "status": "Order status",
     },
+    "product_views": {
+        "product_name": "Product display name",
+        "category": "Product category",
+        "created_at": "Product-view event timestamp",
+        "view_count": "Number of product-view events",
+    },
+    "customer_potential_current": {
+        "customer_code": "Customer-facing reference code",
+        "potential_score": "Current potential score",
+        "potential_level": "Current potential level",
+        "analysis_date": "Business date used for scoring",
+        "feature_window_days": "Scoring lookback window in days",
+        "calculated_at": "Snapshot calculation timestamp",
+        "scoring_configuration_version": "Scoring configuration version",
+    },
 }
 ADMIN_RAW_TABLES: dict[str, frozenset[str]] = {
     "customers": frozenset(
@@ -107,6 +122,11 @@ ANALYTICS_RELATIONSHIPS = (
     "deleted customers.",
     "analytics.product_sales joins order_items to orders and products "
     "and excludes deleted products.",
+    "analytics.product_views joins product-view interactions to products "
+    "and excludes deleted customers and products.",
+    "analytics.customer_potential_current is the canonical current "
+    "potential-score snapshot produced by the backend scoring flow and "
+    "contains no customer PII.",
     "public.orders.customer_id joins public.customers.id.",
     "public.order_items.order_id joins public.orders.id.",
     "public.order_items.product_id joins public.products.id.",
@@ -128,6 +148,11 @@ ANALYTICS_DIMENSIONS: dict[str, dict[str, str]] = {
         "expression": "category",
         "description": "Product category",
     },
+    "potential_level": {
+        "source": "customer_potential_current",
+        "expression": "potential_level",
+        "description": "Current potential level",
+    },
 }
 
 
@@ -146,6 +171,7 @@ ANALYTICS_METRIC_SOURCES = {
     "gross_revenue": "customer_sales",
     "average_order_value": "customer_sales",
     "quantity_sold": "product_sales",
+    "view_count": "product_views",
 }
 
 
@@ -153,10 +179,9 @@ ANALYTICS_METRIC_EXPRESSIONS = {
     "order_count": "COUNT(*)",
     "revenue": "COALESCE(SUM(net_amount), 0)",
     "gross_revenue": "COALESCE(SUM(total_amount), 0)",
-    "average_order_value": (
-        "COALESCE(SUM(net_amount), 0) / NULLIF(COUNT(*), 0)"
-    ),
+    "average_order_value": ("COALESCE(SUM(net_amount), 0) / NULLIF(COUNT(*), 0)"),
     "quantity_sold": "COALESCE(SUM(quantity), 0)",
+    "view_count": "COALESCE(SUM(view_count), 0)",
 }
 
 
@@ -166,7 +191,48 @@ ANALYTICS_METRICS = {
     "gross_revenue": "Gross revenue (SUM(total_amount)) from delivered orders",
     "average_order_value": "Net revenue divided by delivered order count",
     "quantity_sold": "Quantity sold on delivered order lines",
+    "view_count": "Number of product-view events",
 }
+
+
+ANALYTICS_CAPABILITIES = (
+    {
+        "name": "Order and sales analysis",
+        "sources": "analytics.customer_sales",
+        "keywords": "doanh thu, doanh số, đơn hàng, giá trị đơn hàng",
+        "supports": "order_count, revenue, gross_revenue, average_order_value",
+        "dimensions": "customer_region, created_at, status",
+    },
+    {
+        "name": "Product sales analysis",
+        "sources": "analytics.product_sales",
+        "keywords": "sản phẩm bán, số lượng bán, doanh số theo sản phẩm",
+        "supports": "quantity_sold grouped by product_name or category",
+        "dimensions": "product_name, category, created_at, status",
+    },
+    {
+        "name": "Product-view analysis",
+        "sources": "analytics.product_views",
+        "keywords": "sản phẩm được xem, lượt xem, quan tâm sản phẩm",
+        "supports": "view_count grouped by product_name or category",
+        "dimensions": "product_name, category, created_at",
+    },
+    {
+        "name": "Customer potential analysis",
+        "sources": "analytics.customer_potential_current",
+        "keywords": "khách hàng tiềm năng, tiềm năng cao, potential score",
+        "supports": "customer_code, potential_score, potential_level",
+        "dimensions": "potential_level, analysis_date, calculated_at",
+    },
+)
+
+
+UNAVAILABLE_CHAT_CAPABILITIES = (
+    "customer names or customer_id lists",
+    "RFM scores and raw RFM component rankings",
+    "customer segments and priority customers",
+    "purchase predictions and full customer profiles",
+)
 
 
 ALLOWED_RESULT_ALIASES = frozenset(
@@ -176,11 +242,10 @@ ALLOWED_RESULT_ALIASES = frozenset(
         "gross_revenue",
         "average_order_value",
         "quantity_sold",
+        "view_count",
         "period",
     }
 )
-
-
 
 
 def build_schema_context(*, admin_mode: bool = False) -> str:
@@ -199,6 +264,18 @@ def build_schema_context(*, admin_mode: bool = False) -> str:
         "Available analytics views:",
         *view_lines,
         "",
+        "Supported chat capabilities (use only these mappings):",
+        *(
+            f"- {item['name']}: source={item['sources']}; "
+            f"keywords={item['keywords']}; supports={item['supports']}; "
+            f"dimensions={item['dimensions']}"
+            for item in ANALYTICS_CAPABILITIES
+        ),
+        "",
+        "Unavailable in controlled chat; return mode unsupported instead "
+        "of inventing a source or dimension:",
+        *(f"- {item}" for item in UNAVAILABLE_CHAT_CAPABILITIES),
+        "",
         "Business metrics:",
         *metric_lines,
         "",
@@ -213,13 +290,14 @@ def build_schema_context(*, admin_mode: bool = False) -> str:
         *(f"- {relationship}" for relationship in ANALYTICS_RELATIONSHIPS),
         "",
         "Planner contract:",
-        '- Return JSON with mode "aggregate" or "rows".',
-        '- For aggregates, provide metric, date_from/date_to as ISO dates, '
+        '- Return JSON with mode "aggregate", "rows", or "unsupported".',
+        '- For unsupported questions, return exactly {"mode":"unsupported"}.',
+        "- For aggregates, provide metric, date_from/date_to as ISO dates, "
         "optional group_by and time_bucket.",
         '- For row listings, provide source and columns; ADMIN may use "*" '
         "for approved raw tables.",
         "- Use half-open date ranges: date >= date_from and date < date_to.",
-        "- Use status = 'delivered' for business metrics.",
+        "- Use status = 'delivered' for order and sales metrics.",
         "- Return at most 100 rows.",
     ]
     if admin_mode:

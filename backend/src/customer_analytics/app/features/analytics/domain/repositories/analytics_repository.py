@@ -166,6 +166,13 @@ class AnalyticsRepository(BaseRepository[RFMEntity]):
         raise NotImplementedError()
 
     @abstractmethod
+    async def save_current_potential_scores(
+        self, scores: list[PotentialScoreEntity], days: int
+    ) -> None:
+        """Persist the latest potential scores for analytics consumers."""
+        raise NotImplementedError()
+
+    @abstractmethod
     async def save_segment_history(self, segments: list[SegmentEntity]) -> None:
         """Persist the current segmentation snapshot."""
         raise NotImplementedError()

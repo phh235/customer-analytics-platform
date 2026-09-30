@@ -8,13 +8,13 @@ from customer_analytics.app.features.identity.application.password_reset_tokens 
     generate_otp,
     hash_reset_secret,
 )
-from customer_analytics.app.features.identity.domain.entities.password_reset_challenge import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.entities.password_reset_challenge import (
     PasswordResetChallenge,
 )
-from customer_analytics.app.features.identity.domain.repositories.password_reset_repository import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.password_reset_repository import (
     PasswordResetRepository,
 )
-from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (  # noqa: E501
+from customer_analytics.app.features.identity.domain.repositories.user_unit_of_work import (
     UserUnitOfWork,
 )
 from customer_analytics.app.features.identity.infrastructure.email_sender import (

@@ -113,8 +113,7 @@ class ImportJob:
         job = deepcopy(self)
         job.errors.append(error)
         if error.row_number > 0 and not any(
-            existing.row_number == error.row_number
-            and existing.sheet == error.sheet
+            existing.row_number == error.row_number and existing.sheet == error.sheet
             for existing in self.errors
         ):
             job.error_rows += 1

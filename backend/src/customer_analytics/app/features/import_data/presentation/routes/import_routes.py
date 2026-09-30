@@ -131,8 +131,7 @@ async def upload_file(
     import_type: str = Query(
         ...,
         description=(
-            "Import type (CUSTOMER, ORDER, ORDER_DETAIL, PRODUCT, INTERACTION, "
-            "DATASET)"
+            "Import type (CUSTOMER, ORDER, ORDER_DETAIL, PRODUCT, INTERACTION, DATASET)"
         ),
     ),
     current_user: UserEntity = Depends(require_permission("import:create")),

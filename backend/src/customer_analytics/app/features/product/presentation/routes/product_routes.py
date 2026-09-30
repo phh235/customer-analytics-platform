@@ -15,10 +15,10 @@ from customer_analytics.app.features.identity.domain.entities.user_entity import
 from customer_analytics.app.features.identity.presentation.dependencies import (
     require_permission,
 )
-from customer_analytics.app.features.product.application.usecases.create_product import (  # noqa: E501
+from customer_analytics.app.features.product.application.usecases.create_product import (
     CreateProductUseCaseImpl,
 )
-from customer_analytics.app.features.product.application.usecases.delete_product import (  # noqa: E501
+from customer_analytics.app.features.product.application.usecases.delete_product import (
     DeleteProductUseCaseImpl,
 )
 from customer_analytics.app.features.product.application.usecases.get_product import (
@@ -27,13 +27,13 @@ from customer_analytics.app.features.product.application.usecases.get_product im
 from customer_analytics.app.features.product.application.usecases.get_products import (
     GetProductsUseCaseImpl,
 )
-from customer_analytics.app.features.product.application.usecases.update_product import (  # noqa: E501
+from customer_analytics.app.features.product.application.usecases.update_product import (
     UpdateProductUseCaseImpl,
 )
-from customer_analytics.app.features.product.infrastructure.repositories.product_interaction_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.product.infrastructure.repositories.product_interaction_repository_impl import (
     ProductInteractionRepositoryImpl,
 )
-from customer_analytics.app.features.product.infrastructure.repositories.product_repository_impl import (  # noqa: E501
+from customer_analytics.app.features.product.infrastructure.repositories.product_repository_impl import (
     ProductRepositoryImpl,
 )
 from customer_analytics.app.features.product.presentation.schema.product import (
@@ -155,7 +155,7 @@ async def get_product(
     current_user: Annotated[UserEntity, Depends(require_permission("products:read"))],
     repository: Annotated[ProductRepositoryImpl, Depends(_get_product_repository)],
 ) -> ProductDetailResponse:
-    from customer_analytics.app.features.product.application.dto.product_query_model import (  # noqa: E501
+    from customer_analytics.app.features.product.application.dto.product_query_model import (
         ProductReadModel,
     )
 
@@ -206,9 +206,7 @@ async def record_product_view(
         email=current_user.email,
         full_name=current_user.full_name,
         customer_id=(
-            uuid.UUID(current_user.customer_id)
-            if current_user.customer_id
-            else None
+            uuid.UUID(current_user.customer_id) if current_user.customer_id else None
         ),
     )
     return ProductViewRecordedResponse(event_id=event_id)
@@ -242,7 +240,7 @@ async def upload_product_image(
     image: Annotated[UploadFile, File(...)],
 ) -> ProductResponse:
     """Upload and persist a product image URL."""
-    from customer_analytics.app.features.product.application.dto.product_command_model import (  # noqa: E501
+    from customer_analytics.app.features.product.application.dto.product_command_model import (
         ProductUpdateModel,
     )
     from customer_analytics.app.shared.errors import ErrorCode
@@ -295,7 +293,7 @@ async def create_product(
     repository: Annotated[ProductRepositoryImpl, Depends(_get_product_repository)],
 ) -> ProductResponse:
     """Tạo sản phẩm mới."""
-    from customer_analytics.app.features.product.application.dto.product_command_model import (  # noqa: E501
+    from customer_analytics.app.features.product.application.dto.product_command_model import (
         ProductCreateModel,
     )
 
@@ -339,7 +337,7 @@ async def update_product(
     repository: Annotated[ProductRepositoryImpl, Depends(_get_product_repository)],
 ) -> ProductResponse:
     """Cập nhật sản phẩm."""
-    from customer_analytics.app.features.product.application.dto.product_command_model import (  # noqa: E501
+    from customer_analytics.app.features.product.application.dto.product_command_model import (
         ProductUpdateModel,
     )
 

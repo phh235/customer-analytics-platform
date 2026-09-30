@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from customer_analytics.app.features.analytics.domain.repositories.analytics_repository import (  # noqa: E501
+from customer_analytics.app.features.analytics.domain.repositories.analytics_repository import (
     AnalyticsRepository,
 )
 

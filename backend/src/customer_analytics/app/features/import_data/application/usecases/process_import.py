@@ -80,7 +80,7 @@ class ProcessImportUseCaseImpl(ProcessImportUseCase):
     async def __call__(self, args: tuple[str, dict[str, str]]) -> ImportJobReadModel:
         job_id, column_mapping = args
 
-        # Get import job
+        # Tìm import job và chỉ cho xử lý job đang ở trạng thái PENDING.
         job = await self.repository.find_by_id(job_id)
         if job is None:
             raise AppException(
@@ -94,7 +94,7 @@ class ProcessImportUseCaseImpl(ProcessImportUseCase):
                 message=f"Import job đã ở trạng thái '{job.status.value}'. Chỉ có thể xử lý job ở trạng thái PENDING.",
             )
 
-        # Start validation
+        # Lưu mapping và chuyển job sang bước kiểm tra dữ liệu.
         job = job.start_validation()
         job.mapping = column_mapping
         await self.repository.update(job)
@@ -129,12 +129,9 @@ class ProcessImportUseCaseImpl(ProcessImportUseCase):
             await self.repository.update(job)
             return ImportJobReadModel.from_entity(job)
 
+        # Đọc file, đổi tên cột theo mapping rồi kiểm tra dữ liệu.
         _, rows = parse_file(source_content, job.filename)
-
-        # Map rows using column mapping.
         mapped_rows = [map_row_data(row, column_mapping) for row in rows]
-
-        # Validate data.
         validation_errors = validate_import_data(mapped_rows, job.import_type.value)
         validation_errors.extend(
             await self._validate_persistent_relationships(
